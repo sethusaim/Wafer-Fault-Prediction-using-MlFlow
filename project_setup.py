@@ -360,7 +360,7 @@ def create_src_folder():
         model_files = [
             "load_production_model.py",
             "predictionFromModel.py",
-            "trainModel.py",
+            "trainingModel.py",
         ]
 
         for model in model_files:
