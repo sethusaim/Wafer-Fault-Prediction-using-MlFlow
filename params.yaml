@@ -1,0 +1,131 @@
+base:
+  project : Wafer-Fault-Detection with Mlflow
+  random_state : 355
+  target_col : Output
+  test_size : 0.33
+  project_dir : /home/king/Workspace/Personal Projects/Wafer-Fault-Prediction-MlOps
+
+data_source:
+  train_data_source : data_given/training_batch_files
+  pred_data_source : data_given/prediction_batch_files
+
+data:
+  good:
+    train : data/train/raw_valid/good
+    pred : data/prediction/raw_valid/good
+  
+  bad:
+    train : data/train/raw_valid/bad
+    pred : data/prediction/raw_valid/bad
+
+  archived:
+    train : data/train/archived  
+    pred : data/pred/archived
+
+knn_imputer:
+  n_neighbors : 3
+  weights : uniform
+
+kmeans_cluster:
+  init : k-means++
+  max_clusters : 11
+  knee_locator:
+    curve : convex
+    direction : decreasing
+
+models_dir:
+  trained_models_dir : models/trained
+  prod_models_dir : models/prod
+  stag_models_dir : models/stag
+
+model_params:
+  verbose : 3
+  cv : 5
+  n_jobs : -1
+
+  rf_model:
+    n_estimators:
+      - 10
+      - 50
+      - 100
+      - 130
+      
+    criterion:
+      - gini
+      - entropy
+
+    max_features:
+      - auto
+      - log2
+
+    max_depth:
+      - 2
+      - 3
+      - 4
+      - 5
+
+  xgb_model:
+    learning_rate:
+      - 0.5
+      - 0.1
+      - 0.01
+      - 0.001
+
+    max_depth:
+      - 3
+      - 5
+      - 10
+      - 20
+
+    n_estimators:
+      - 10
+      - 50
+      - 100
+      - 200
+    
+mlflow_config:
+  artifacts_dir : artifacts
+  experiment_name : wafer
+  remote_server_uri : http://0.0.0.0:5000
+  run_name  : mlops
+  serialization_format : cloudpickle
+
+log_dir:
+  train_log_dir : logs/training_logs
+  pred_log_dir : logs/prediction_logs
+
+db_file:
+  train_db_file : databases/Training_FileFromDB/InputFile.csv
+  pred_db_file : databases/Prediction_FileFromDB/InputFile.csv
+
+db_file_path:   
+  train_db_path : databases/Training_FileFromDB
+  pred_db_path : databases/Prediction_FileFromDB
+
+database_dir:
+  train_database : databases/Training_Database
+  pred_database : databases/Prediction_Database
+
+schema_dir:
+  train_schema_file : config/schema_training.json
+  pred_schema_file : config/schema_prediction.json
+
+model_names:
+  xgb_model_name : XGBoost
+  rf_model_name : RandomForest
+  kmeans_model_name : KMeans
+  
+model_save_format : .sav
+
+elbow_plot_fig : data/preprocessing_data/K-Means_Elbow.PNG
+
+null_values_csv_file : data/preprocessing_data/null_values.csv
+
+pred_output_file : output/Prediction_Output_File/Predictions.csv
+
+export_csv_file_name : InputFile.csv
+
+templates:
+  dir : templates
+  index_html_file : index.html
+
