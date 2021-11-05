@@ -122,10 +122,6 @@ class trainModel:
                 )
 
                 try:
-                    self.log_writer.log(
-                        self.file_object, "Started setting the remote server uri"
-                    )
-
                     remote_server_uri = self.config["mlflow_config"][
                         "remote_server_uri"
                     ]
@@ -136,10 +132,6 @@ class trainModel:
                         self.file_object, "Setting of remote server uri done"
                     )
 
-                    self.log_writer.log(
-                        self.file_object,
-                        "Started setting the experiment name in mlflow",
-                    )
                     try:
                         exp_name = self.config["mlflow_config"]["experiment_name"]
 
@@ -190,36 +182,16 @@ class trainModel:
                     with mlflow.start_run(
                         run_name=self.config["mlflow_config"]["run_name"]
                     ):
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging of models,metrics and params in mlflow",
-                        )
-
-                        self.log_writer.log(
-                            self.file_object, "Starting logging of kmeans model"
-                        )
 
                         mlflow.sklearn.log_model(
-                            kmeans_model,
+                            sk_model=kmeans_model,
                             artifact_path=self.config["mlflow_config"]["artifacts_dir"],
-                            serialization_format=self.config["mlflow_config"][
-                                "serialization_format"
-                            ],
-                            registered_model_name=self.config["model_names"][
-                                "kmeans_model_name"
-                            ],
+                            serialization_format=self.config["mlflow_config"]["serialization_format"],
+                            registered_model_name=self.config["model_names"]["kmeans_model_name"],
                         )
 
                         self.log_writer.log(
                             self.file_object, "Logged kmeans model in mlflow"
-                        )
-
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " learning rate in mlflow",
                         )
 
                         mlflow.log_param(
@@ -236,14 +208,6 @@ class trainModel:
                             + " learning rate logged in mlflow",
                         )
 
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " max depth in mlflow",
-                        )
-
                         mlflow.log_param(
                             self.config["model_names"]["xgb_model_name"]
                             + str(i)
@@ -256,14 +220,6 @@ class trainModel:
                             self.config["model_names"]["xgb_model_name"]
                             + str(i)
                             + " max depth logged in mlflow",
-                        )
-
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " n_estimators in mlflow",
                         )
 
                         mlflow.log_param(
@@ -280,14 +236,6 @@ class trainModel:
                             + " n_estimators logged in mlflow",
                         )
 
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " criterion in mlflow",
-                        )
-
                         mlflow.log_param(
                             self.config["model_names"]["rf_model_name"]
                             + str(i)
@@ -300,14 +248,6 @@ class trainModel:
                             self.config["model_names"]["rf_model_name"]
                             + str(i)
                             + " criterion logged in mlflow",
-                        )
-
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " max depth in mlflow",
                         )
 
                         mlflow.log_param(
@@ -324,14 +264,6 @@ class trainModel:
                             + "-max_features logged in mlflow",
                         )
 
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + "n_estimators",
-                        )
-
                         mlflow.log_param(
                             self.config["model_names"]["rf_model_name"]
                             + str(i)
@@ -344,14 +276,6 @@ class trainModel:
                             self.config["model_names"]["rf_model_name"]
                             + str(i)
                             + "-n_estimatores logged in mlflow",
-                        )
-
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " best score in mlflow",
                         )
 
                         mlflow.log_metric(
@@ -368,14 +292,6 @@ class trainModel:
                             + " best_score in mlflow",
                         )
 
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " best score in mlflow",
-                        )
-
                         mlflow.log_metric(
                             self.config["model_names"]["rf_model_name"]
                             + str(i)
@@ -389,25 +305,12 @@ class trainModel:
                             + str(i)
                             + " best_score logged in mlflow",
                         )
-
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " model in mlflow",
-                        )
-
+                        
                         mlflow.sklearn.log_model(
-                            xgb_model,
+                            sk_model=xgb_model,
                             artifact_path=self.config["mlflow_config"]["artifacts_dir"],
-                            serialization_format=self.config["mlflow_config"][
-                                "serialization_format"
-                            ],
-                            registered_model_name=self.config["model_names"][
-                                "xgb_model_name"
-                            ]
-                            + str(i),
+                            serialization_format=self.config["mlflow_config"]["serialization_format"],
+                            registered_model_name=self.config["model_names"]["xgb_model_name"],
                         )
 
                         self.log_writer.log(
@@ -417,25 +320,12 @@ class trainModel:
                             + str(i)
                             + " in mlflow",
                         )
-
-                        self.log_writer.log(
-                            self.file_object,
-                            "Started logging "
-                            + self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " model in mlflow",
-                        )
-
+                        
                         mlflow.sklearn.log_model(
-                            rf_model,
+                            sk_model=rf_model,
                             artifact_path=self.config["mlflow_config"]["artifacts_dir"],
-                            serialization_format=self.config["mlflow_config"][
-                                "serialization_format"
-                            ],
-                            registered_model_name=self.config["model_names"][
-                                "rf_model_name"
-                            ]
-                            + str(i),
+                            serialization_format=self.config["mlflow_config"]["serialization_format"],
+                            registered_model_name=self.config["model_names"]["rf_model_name"],
                         )
 
                         self.log_writer.log(
