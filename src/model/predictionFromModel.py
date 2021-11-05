@@ -1,11 +1,13 @@
 import os
 
 import pandas as pd
-from src.data_preprocessing import preprocessing
-from src.data_preprocessing.data_ingestion import data_loader_prediction
+from src.data_preprocessing.data_ingestion.data_loader_prediction import (
+    Data_Getter_Pred,
+)
+from src.data_preprocessing.preprocessing import Preprocessor
 from src.file_operations import file_methods
 from src.raw_data_validation.pred_data_validation import Prediction_Data_validation
-from utils.application_logging import logger
+from utils.application_logging.logger import App_Logger
 from utils.read_params import read_params
 
 
@@ -27,7 +29,7 @@ class prediction:
 
         self.file_object = open(self.pred_log, "a+")
 
-        self.log_writer = logger.App_Logger()
+        self.log_writer = App_Logger()
 
         if path is not None:
             self.pred_data_val = Prediction_Data_validation(path)
@@ -46,13 +48,11 @@ class prediction:
 
             self.log_writer.log(self.file_object, "Start of Prediction")
 
-            data_getter = data_loader_prediction.Data_Getter_Pred(
-                self.file_object, self.log_writer
-            )
+            data_getter = Data_Getter_Pred(self.file_object, self.log_writer)
 
             data = data_getter.get_data()
 
-            preprocessor = preprocessing.Preprocessor(self.file_object, self.log_writer)
+            preprocessor = Preprocessor(self.file_object, self.log_writer)
 
             is_null_present = preprocessor.is_null_present(data)
 

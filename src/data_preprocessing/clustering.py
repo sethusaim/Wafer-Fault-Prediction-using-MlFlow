@@ -1,7 +1,7 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
-from src.file_operations import file_methods
+from src.file_operations.file_methods import File_Operation
 from utils.read_params import read_params
 
 
@@ -115,9 +115,7 @@ class KMeansClustering:
 
             self.y_kmeans = self.kmeans.fit_predict(data)
 
-            self.file_op = file_methods.File_Operation(
-                self.file_object, self.logger_object
-            )
+            self.file_op = File_Operation(self.file_object, self.logger_object)
 
             self.file_op.save_model(
                 self.kmeans, self.config["model_names"]["kmeans_model_name"]

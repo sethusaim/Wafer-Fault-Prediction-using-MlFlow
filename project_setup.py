@@ -462,7 +462,7 @@ def create_workflows_folder():
 def create_templates_folder():
     templates_path = "templates"
 
-    os.makedirs(templates_path,exist_ok=True)
+    os.makedirs(templates_path, exist_ok=True)
 
     index_html_file = os.path.join(templates_path, "index.html")
 
@@ -488,15 +488,10 @@ def create_other_files():
             "runtime.txt",
         ]
 
-        other_folders = [
-            "docs/EDA",
-            "docs/LLD",
-            "docs/HLD",
-            "docs/Other"
-        ]
+        other_folders = ["docs/EDA", "docs/LLD", "docs/HLD", "docs/Other"]
 
         for folder in other_folders:
-            os.makedirs(folder,exist_ok=True)
+            os.makedirs(folder, exist_ok=True)
 
         for files in other_files:
             open(file=project_dir + "/" + files, mode="a+")

@@ -2,11 +2,12 @@ import os
 
 import mlflow
 from sklearn.model_selection import train_test_split
-from src.data_preprocessing import clustering, preprocessing
-from src.data_preprocessing.data_ingestion import data_loader_train
-from src.file_operations import file_methods
-from src.model_finder import tuner
-from utils.application_logging import logger
+from src.data_preprocessing.clustering import KMeansClustering
+from src.data_preprocessing.data_ingestion.data_loader_train import Data_Getter
+from src.data_preprocessing.preprocessing import Preprocessor
+from src.file_operations.file_methods import File_Operation
+from src.model_finder.tuner import Model_Finder
+from utils.application_logging.logger import App_Logger
 from utils.read_params import read_params
 
 
@@ -19,7 +20,7 @@ class trainModel:
     """
 
     def __init__(self):
-        self.log_writer = logger.App_Logger()
+        self.log_writer = App_Logger()
 
         self.config = read_params()
 
@@ -40,13 +41,11 @@ class trainModel:
         self.log_writer.log(self.file_object, "Start of Training")
 
         try:
-            data_getter = data_loader_train.Data_Getter(
-                self.file_object, self.log_writer
-            )
+            data_getter = Data_Getter(self.file_object, self.log_writer)
 
             data = data_getter.get_data()
 
-            preprocessor = preprocessing.Preprocessor(self.file_object, self.log_writer)
+            preprocessor = Preprocessor(self.file_object, self.log_writer)
 
             data = preprocessor.remove_columns(data, ["Wafer"])
 
@@ -63,7 +62,7 @@ class trainModel:
 
             X = preprocessor.remove_columns(X, cols_to_drop)
 
-            kmeans = clustering.KMeansClustering(self.file_object, self.log_writer)
+            kmeans = KMeansClustering(self.file_object, self.log_writer)
 
             number_of_clusters = kmeans.elbow_plot(X)
 
@@ -87,7 +86,7 @@ class trainModel:
                     random_state=self.config["base"]["random_state"],
                 )
 
-                model_finder = tuner.Model_Finder(self.file_object, self.log_writer)
+                model_finder = Model_Finder(self.file_object, self.log_writer)
 
                 (
                     rf_model,
@@ -96,12 +95,12 @@ class trainModel:
                     xgb_model_score,
                 ) = model_finder.get_trained_models(x_train, y_train, x_test, y_test)
 
-                file_op = file_methods.File_Operation(self.file_object, self.log_writer)
+                file_op = File_Operation(self.file_object, self.log_writer)
 
                 saved_rf_model = file_op.save_model(
                     rf_model, self.config["model_names"]["rf_model_name"] + str(i)
                 )
-    
+
                 self.log_writer.log(
                     self.file_object,
                     "Saved "
@@ -141,10 +140,42 @@ class trainModel:
                         self.file_object,
                         "Started setting the experiment name in mlflow",
                     )
+                    try:
+                        exp_name = self.config["mlflow_config"]["experiment_name"]
 
-                    mlflow.set_experiment(
-                        experiment_name=self.config["mlflow_config"]["experiment_name"]
-                    )
+                        self.log_writer.log(self.file_object, "Got the experiment name")
+
+                        s3_bucket = self.config["mlflow_config"]["s3_bucket_config"]
+
+                        self.log_writer.log(
+                            self.file_object, "set s3 bucket configuration"
+                        )
+
+                        mlflow.create_experiment(
+                            name=exp_name, artifact_location=s3_bucket
+                        )
+
+                        self.log_writer.log(
+                            self.file_object,
+                            f"experiment name : {exp_name} has been created",
+                        )
+
+                        mlflow.set_experiment(experiment_name=exp_name)
+
+                        self.log_writer.log(
+                            self.file_object,
+                            f"Experiment name has been set to {exp_name}",
+                        )
+
+                    except:
+                        mlflow.get_experiment_by_name(
+                            self.config["mlflow_config"]["experiment_name"]
+                        )
+
+                        self.log_writer.log(
+                            self.file_object,
+                            "Experiment name already exists,using the previous one",
+                        )
 
                     self.log_writer.log(
                         self.file_object, "Setting of experiment name is done"

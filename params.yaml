@@ -89,6 +89,7 @@ mlflow_config:
   remote_server_uri : http://0.0.0.0:5000
   run_name  : mlops
   serialization_format : cloudpickle
+  s3_bucket_config: None
 
 log_dir:
   train_log_dir : logs/training_logs

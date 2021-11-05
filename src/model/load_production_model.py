@@ -3,7 +3,7 @@ import shutil
 
 import mlflow
 from mlflow.tracking import MlflowClient
-from utils.application_logging import logger
+from utils.application_logging.logger import App_Logger
 from utils.read_params import read_params
 
 
@@ -16,7 +16,7 @@ class LoadProdModel:
     """
 
     def __init__(self):
-        self.log_writer = logger.App_Logger()
+        self.log_writer = App_Logger()
 
         self.config = read_params()
 

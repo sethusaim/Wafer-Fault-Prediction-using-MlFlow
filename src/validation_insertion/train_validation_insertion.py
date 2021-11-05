@@ -3,7 +3,7 @@ import os
 from src.dataTransform.data_transformation_train import dataTransform
 from src.dataTypeValid.data_type_valid_train import dBOperation
 from src.raw_data_validation.train_data_validation import Raw_Data_validation
-from utils.application_logging import logger
+from utils.application_logging.logger import App_Logger
 from utils.read_params import read_params
 
 
@@ -31,7 +31,7 @@ class train_validation:
 
         self.file_object = open(self.train_main_log, "a+")
 
-        self.log_writer = logger.App_Logger()
+        self.log_writer = App_Logger()
 
     def train_validation(self):
         """
