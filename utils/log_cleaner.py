@@ -1,5 +1,5 @@
 import os
-from read_params import read_params
+from main_utils import read_params
 
 config = read_params()
 

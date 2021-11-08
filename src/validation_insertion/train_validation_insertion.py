@@ -4,7 +4,7 @@ from src.dataTransform.data_transformation_train import dataTransform
 from src.dataTypeValid.data_type_valid_train import dBOperation
 from src.raw_data_validation.train_data_validation import Raw_Data_validation
 from utils.application_logging.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class train_validation:

@@ -5,7 +5,7 @@ import sqlite3
 from os import listdir
 
 from utils.application_logging.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class dBOperation:

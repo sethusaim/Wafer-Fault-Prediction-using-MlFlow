@@ -8,7 +8,7 @@ from src.data_preprocessing.preprocessing import Preprocessor
 from src.file_operations import file_methods
 from src.raw_data_validation.pred_data_validation import Prediction_Data_validation
 from utils.application_logging.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class prediction:

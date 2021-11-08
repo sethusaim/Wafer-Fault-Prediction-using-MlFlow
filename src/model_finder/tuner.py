@@ -1,8 +1,8 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
-from utils.read_params import read_params
 from xgboost import XGBClassifier
+from utils.main_utils import read_params
 
 
 class Model_Finder:

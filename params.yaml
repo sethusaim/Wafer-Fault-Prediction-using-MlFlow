@@ -3,8 +3,7 @@ base:
   random_state : 355
   target_col : Output
   test_size : 0.33
-  project_dir : /home/king/Workspace/Personal Projects/Wafer-Fault-Prediction-MlOps
-
+  project_dir : /home/king/Workspace/Personal Projects/Wafer-Fault-Prediction-using-MlFlow
 data_source:
   train_data_source : data_given/training_batch_files
   pred_data_source : data_given/prediction_batch_files
@@ -84,12 +83,10 @@ model_params:
       - 200
     
 mlflow_config:
-  artifacts_dir : artifacts
   experiment_name : wafer
-  remote_server_uri : http://0.0.0.0:5000
+  remote_server_uri : http://ec2-54-158-8-53.compute-1.amazonaws.com:5000/
   run_name  : mlops
   serialization_format : cloudpickle
-  s3_bucket_config: None
 
 log_dir:
   train_log_dir : logs/training_logs

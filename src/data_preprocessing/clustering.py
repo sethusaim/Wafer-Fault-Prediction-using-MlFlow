@@ -2,7 +2,7 @@ from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from src.file_operations.file_methods import File_Operation
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class KMeansClustering:
@@ -58,6 +58,8 @@ class KMeansClustering:
             plt.ylabel("WCSS")
 
             plt.savefig(self.config["elbow_plot_fig"])
+
+            self.logger_object.log(self.file_object, "Saved elbow_plot fig")
 
             self.kn = KneeLocator(
                 range(1, self.config["kmeans_cluster"]["max_clusters"]),

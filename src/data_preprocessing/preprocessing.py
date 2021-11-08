@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class Preprocessor:

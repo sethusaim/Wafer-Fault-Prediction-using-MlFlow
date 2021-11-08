@@ -1,7 +1,7 @@
 import os
 import pickle
 
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class File_Operation:
