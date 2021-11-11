@@ -15,12 +15,9 @@ class App_Logger:
             self.current_time = self.now.strftime("%H:%M:%S")
 
             log = {
-                "Log_updated_date : ",
-                self.now,
-                "Log_updated_time : ",
-                self.current_time,
-                "Log_message : ",
-                log_message,
+                "Log_updated_date": [self.now],
+                "Log_updated_time": [self.current_time],
+                "Log_message": [log_message],
             }
 
             self.db_obj.insertRecordInCollection(
@@ -29,5 +26,6 @@ class App_Logger:
 
         except Exception as e:
             raise Exception(
-                "Expection occured in App_Logger class, method : log, Error : ", str(e)
+                "Expection occured in Class : App_Logger, Method : log, Error : ",
+                str(e),
             )

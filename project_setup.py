@@ -481,12 +481,9 @@ def create_utils_folder():
 
         os.makedirs(utils_path, exist_ok=True)
 
-        u_files = ["log_cleaner.py", "read_params.py"]
+        param_file = os.path.join(utils_path, "read_params.py")
 
-        for file in u_files:
-            temp = os.path.join(utils_path, file)
-
-            open(temp, mode="a+").close()
+        open(param_file, mode="a+").close()
 
     except Exception as e:
         print(str(e))

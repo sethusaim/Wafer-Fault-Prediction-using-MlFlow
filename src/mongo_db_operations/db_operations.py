@@ -16,7 +16,7 @@ class MongoDBOperation:
 
         except Exception as e:
             raise Exception(
-                "Error occured in Class: MongoDBOperation, \
+                "Exception occured in Class: MongoDBOperation, \
                     Method:getDataBaseClientObject, Error:Failed to create database connection object-->"
                 + str(e)
             )
@@ -27,7 +27,7 @@ class MongoDBOperation:
 
         except Exception as e:
             raise Exception(
-                "Error occured in MongoDBOperation, method : createDatabase error : "
+                "Exception occured in MongoDBOperation, method : createDatabase error : "
                 + str(e)
             )
 
@@ -37,7 +37,7 @@ class MongoDBOperation:
 
         except Exception as e:
             raise Exception(
-                "Error occured in class : MongoDBOperation method : createCollectionInDatabase error : "
+                "Exception occured in class : MongoDBOperation method : createCollectionInDatabase error : "
                 + str(e)
             )
 
@@ -49,7 +49,7 @@ class MongoDBOperation:
 
         except Exception as e:
             raise Exception(
-                "Error occured in class: MongoDBOperation method:getCollection error:Failed to find collection"
+                "Exception occured in class: MongoDBOperation method:getCollection error:Failed to find collection"
                 + str(e)
             )
 
@@ -78,21 +78,18 @@ class MongoDBOperation:
             client.close()
 
             raise Exception(
-                "Error occured in class: MongoDBOperation method:isRecordPresent error:Failed to insert record "
-                + str(e)
+                f"Exception occured in class: MongoDBOperation, Method:isRecordPresent, Error: {str(e)}"
             )
 
     def createOneRecord(self, collection, data):
         try:
             collection.insert_one(data)
-
-            print("Record inserted")
-
+            
             return 1
 
         except Exception as e:
             raise Exception(
-                "Error occured in class: MongoDBOperation method:createOneRecord error:Failed to insert record "
+                "Exception occured in class: MongoDBOperation method:createOneRecord error:Failed to insert record "
                 + str(e)
             )
 
@@ -117,6 +114,7 @@ class MongoDBOperation:
 
         except Exception as e:
             raise Exception(
-                "Error occured in class: MongoDBOperation method:insertRecordInCollection error:Failed to insert record "
+                "Exception occured in class: MongoDBOperation.\
+                    Method:insertRecordInCollection error:Failed to insert record "
                 + str(e)
             )

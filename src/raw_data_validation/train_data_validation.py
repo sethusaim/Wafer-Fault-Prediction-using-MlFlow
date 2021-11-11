@@ -27,7 +27,7 @@ class Raw_Data_validation:
 
         self.logger = App_Logger()
 
-        self.db_name = self.config["db_log"]["train_db_log"]
+        self.db_name = self.config["db_log"]["db_train_log"]
 
         self.train_values_from_schema_log = self.config["train_db_log"][
             "values_from_schema"
