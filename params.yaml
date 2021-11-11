@@ -4,6 +4,10 @@ base:
   target_col : Output
   test_size : 0.33
 
+app:
+  host : 0.0.0.0
+  port : 8080 
+
 data_source:
   train_data_source : data_given/training_batch_files
   pred_data_source  : data_given/prediction_batch_files

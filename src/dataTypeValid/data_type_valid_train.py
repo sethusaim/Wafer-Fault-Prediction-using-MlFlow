@@ -1,8 +1,7 @@
 import csv
 import os
 import shutil
-import sqlite3
-from os import listdir
+import sqlite3 as sql_db
 
 from utils.logger import App_Logger
 from utils.read_params import read_params
@@ -48,7 +47,7 @@ class dBOperation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            conn = sqlite3.connect(self.path + "/" + DatabaseName + ".db")
+            conn = sql_db.connect(self.path + "/" + DatabaseName + ".db")
 
             self.logger.log(
                 db_name=self.db_name,
@@ -167,13 +166,13 @@ class dBOperation:
 
         badFilePath = self.badFilePath
 
-        onlyfiles = [f for f in listdir(goodFilePath)]
-
-        log_file = open(self.train_db_insert_log, "a+")
+        onlyfiles = [f for f in os.listdir(goodFilePath)]
 
         for file in onlyfiles:
             try:
-                with open(goodFilePath + "/" + file, "r") as f:
+                tmp_file = os.path.join(goodFilePath, file)
+
+                with open(file=tmp_file, mode="r") as f:
                     next(f)
 
                     reader = csv.reader(f, delimiter="\n")
@@ -205,10 +204,13 @@ class dBOperation:
                 self.logger.log(
                     db_name=self.db_name,
                     collection_name=self.train_db_insert_log,
-                    log_message=f"Exception occured in Class : dbOperation, Method : insertIntoTableGoodData, Error : {str(e)}",
+                    log_message=f"Exception occured in Class : dbOperation. \
+                        Method : insertIntoTableGoodData, Error : {str(e)}",
                 )
 
-                shutil.move(goodFilePath + "/" + file, badFilePath)
+                tmp_file = os.path.join(goodFilePath, file)
+
+                shutil.move(tmp_file, badFilePath)
 
                 self.logger.log(
                     db_name=self.db_name,
@@ -231,8 +233,6 @@ class dBOperation:
         self.fileFromDb = self.config["db_file_path"]["train_db_path"]
 
         self.fileName = self.config["export_csv_file_name"]
-
-        log_file = open(self.train_export_csv_log, "a+")
 
         try:
             conn = self.dataBaseConnection(Database)

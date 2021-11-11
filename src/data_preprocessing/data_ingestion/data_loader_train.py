@@ -64,6 +64,6 @@ class Data_Getter:
             )
 
             raise Exception(
-                "Error occured in Class : Data_Getter, Method : get_data, Error : ",
+                "Exception occured in Class : Data_Getter, Method : get_data, Error : ",
                 str(e),
             )

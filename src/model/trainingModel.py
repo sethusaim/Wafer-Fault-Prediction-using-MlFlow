@@ -395,6 +395,6 @@ class trainModel:
             )
 
             raise Exception(
-                "Exception occured in Class : trainModel ,Method : trainingModel, Error : ",
+                "Exception occured in Class : trainModel, Method : trainingModel, Error : ",
                 str(e),
             )

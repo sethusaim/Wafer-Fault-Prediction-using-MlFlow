@@ -110,11 +110,6 @@ class prediction:
 
         except Exception as e:
             self.log_writer.log(
-                self.file_object,
-                "Error occured while running the prediction!! Error:: %s" % e,
-            )
-
-            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_log,
                 log_message=f"Exception occured in Class : prediction, Method : predictionFromModel, Error : {str(e)}",

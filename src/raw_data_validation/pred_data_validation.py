@@ -276,10 +276,10 @@ class Prediction_Data_validation:
             if not os.path.isdir(dest):
                 os.makedirs(dest)
 
-            files = os.os.listdir(source)
+            files = os.listdir(source)
 
             for f in files:
-                if f not in os.os.listdir(dest):
+                if f not in os.listdir(dest):
                     shutil.move(source + f, dest)
 
             self.logger.log(
@@ -300,10 +300,6 @@ class Prediction_Data_validation:
             )
 
         except OSError as e:
-            file = open(self.pred_gen_log, "a+")
-
-            self.logger.log(file, "Error while moving bad files to archive:: %s" % e)
-
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.pred_gen_log,
@@ -335,8 +331,6 @@ class Prediction_Data_validation:
         onlyfiles = [f for f in os.listdir(self.Batch_Directory)]
 
         try:
-            f = open(self.pred_name_valid_log, "a+")
-
             for filename in onlyfiles:
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
@@ -400,10 +394,6 @@ class Prediction_Data_validation:
                     )
 
         except Exception as e:
-            f = open(self.pred_name_valid_log, "a+")
-
-            self.logger.log(f, "Exception occured while validating FileName %s" % e)
-
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.pred_name_valid_log,
@@ -479,10 +469,6 @@ class Prediction_Data_validation:
             raise OSError
 
         except Exception as e:
-            f = open(self.pred_col_val_log, "a+")
-
-            self.logger.log(f, "Error Occured:: %s" % e)
-
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.pred_col_val_log,

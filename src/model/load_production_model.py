@@ -334,8 +334,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             )
 
         except Exception as e:
-            self.log_writer.log(self.file_object, str(e))
-
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,

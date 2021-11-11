@@ -107,7 +107,11 @@ class Model_Finder:
                     Exited the get_best_params_for_random_forest method of the Model Finder class",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Model_Finder. \
+                    Method : get_best_params_for_random_forest, Error : ",
+                str(e),
+            )
 
     def get_best_params_for_xgboost(self, train_x, train_y):
         """

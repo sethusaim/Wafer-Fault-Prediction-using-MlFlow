@@ -28,7 +28,7 @@ class dBOperation:
 
         self.db_name = self.config["db_log"]["db_pred_log"]
 
-        self.pred_db_conn_log = self.config["pre"]["db_conn"]
+        self.pred_db_conn_log = self.config["pred_db_log"]["db_conn"]
 
         self.pred_db_create_log = self.config["pred_db_log"]["db_create"]
 
@@ -147,12 +147,11 @@ class dBOperation:
 
         onlyfiles = [f for f in os.listdir(goodFilePath)]
 
-        log_file = open(self.pred_db_insert_log, "a+")
-
         for file in onlyfiles:
             try:
-                with open(goodFilePath + "/" + file, "r") as f:
+                good_file = os.path.join(goodFilePath, file)
 
+                with open(file=good_file, mode="r") as f:
                     next(f)
 
                     reader = csv.reader(f, delimiter="\n")

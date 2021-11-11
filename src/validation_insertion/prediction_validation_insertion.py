@@ -153,8 +153,6 @@ class pred_validation:
             self.dBOperation.selectingDatafromtableintocsv("Prediction")
 
         except Exception as e:
-            self.log_writer.log(self.file_object, "Error Occurred : " + str(e))
-
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_log,

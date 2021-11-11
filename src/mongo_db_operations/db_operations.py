@@ -84,7 +84,7 @@ class MongoDBOperation:
     def createOneRecord(self, collection, data):
         try:
             collection.insert_one(data)
-            
+
             return 1
 
         except Exception as e:

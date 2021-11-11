@@ -114,4 +114,8 @@ async def predictRouteClient(request: Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    host = config["app"]["host"]
+
+    port = config["app"]["port"]
+
+    uvicorn.run(app, host=host, port=port)
