@@ -3,33 +3,35 @@ base:
   random_state : 355
   target_col : Output
   test_size : 0.33
-  project_dir : /home/king/Workspace/Personal Projects/Wafer-Fault-Prediction-using-MlFlow
+
 data_source:
   train_data_source : data_given/training_batch_files
-  pred_data_source : data_given/prediction_batch_files
+  pred_data_source  : data_given/prediction_batch_files
 
 data:
   good:
     train : data/train/raw_valid/good
-    pred : data/prediction/raw_valid/good
+    pred  : data/prediction/raw_valid/good
   
   bad:
     train : data/train/raw_valid/bad
-    pred : data/prediction/raw_valid/bad
+    pred  : data/prediction/raw_valid/bad
 
   archived:
     train : data/train/archived  
     pred : data/pred/archived
 
+mongodb_url: localhost:27017
+
 knn_imputer:
   n_neighbors : 3
-  weights : uniform
+  weights     : uniform
 
 kmeans_cluster:
-  init : k-means++
-  max_clusters : 11
+  init          : k-means++
+  max_clusters  : 11
   knee_locator:
-    curve : convex
+    curve     : convex
     direction : decreasing
 
 models_dir:
@@ -39,8 +41,9 @@ models_dir:
 
 model_params:
   verbose : 3
-  cv : 5
-  n_jobs : -1
+  cv      : 5
+  n_jobs  : -1
+  num_of_prod_models : 3
 
   rf_model:
     n_estimators:
@@ -83,14 +86,46 @@ model_params:
       - 200
     
 mlflow_config:
-  experiment_name : wafer
-  remote_server_uri : http://ec2-54-158-8-53.compute-1.amazonaws.com:5000/
-  run_name  : mlops
+  experiment_name   : wafer
+  remote_server_uri : http://0.0.0.0:5000
+  run_name          : mlops
   serialization_format : cloudpickle
+  artifacts_path : artifacts
 
-log_dir:
-  train_log_dir : logs/training_logs
-  pred_log_dir : logs/prediction_logs
+
+db_log:
+  db_train_log : training_logs
+  db_pred_log : prediction_logs
+
+
+train_db_log:
+  model_training : modelTrainingLog
+  col_validation : columnValidationLog
+  db_conn: databaseConnectionLog
+  data_transform : dataTransform
+  db_insert : dbInsertLog
+  db_create : dbTableCreateLog
+  export_csv : ExportToCsvLog
+  general : GeneralLog
+  load_prod_model : loadProdModelLog
+  missing_values_in_col : missingValuesInColumn
+  name_validation : nameValidationLog
+  train_main : Training_Main_Log
+  values_from_schema : valuesfromSchemaValidationLog
+
+
+pred_db_log:
+  col_validation : columnValidationLog
+  db_conn: databaseConnectionLog
+  data_transform : dataTransform
+  db_insert : dbInsertLog
+  db_create : dbTableCreateLog
+  export_csv : ExportToCsvLog
+  general : GeneralLog
+  missing_values_in_col : missingValuesInColumn
+  name_validation : nameValidationLog
+  pred_main : prediction_main_log
+  values_from_schema : valuesfromSchemaValidationLog
 
 db_file:
   train_db_file : databases/Training_FileFromDB/InputFile.csv
@@ -101,8 +136,8 @@ db_file_path:
   pred_db_path : databases/Prediction_FileFromDB
 
 database_dir:
-  train_database : databases/Training_Database
-  pred_database : databases/Prediction_Database
+  train_database  : databases/Training_Database
+  pred_database   : databases/Prediction_Database
 
 schema_dir:
   train_schema_file : config/schema_training.json

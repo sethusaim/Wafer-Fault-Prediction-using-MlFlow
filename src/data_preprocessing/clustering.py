@@ -2,7 +2,8 @@ from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from src.file_operations.file_methods import File_Operation
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class KMeansClustering:
@@ -13,12 +14,14 @@ class KMeansClustering:
     Revisions   :   None
     """
 
-    def __init__(self, file_object, logger_object):
-        self.file_object = file_object
+    def __init__(self, db_name, logger_object):
+        self.db_name = db_name
 
         self.logger_object = logger_object
 
         self.config = read_params()
+
+        self.log_writter = App_Logger()
 
     def elbow_plot(self, data):
         """
@@ -30,9 +33,11 @@ class KMeansClustering:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the elbow_plot method of the KMeansClustering class",
+
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the elbow_plot method of the KMeansClustering class",
         )
 
         wcss = []
@@ -59,7 +64,11 @@ class KMeansClustering:
 
             plt.savefig(self.config["elbow_plot_fig"])
 
-            self.logger_object.log(self.file_object, "Saved elbow_plot fig")
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Saved elbow_plot fig",
+            )
 
             self.kn = KneeLocator(
                 range(1, self.config["kmeans_cluster"]["max_clusters"]),
@@ -68,9 +77,10 @@ class KMeansClustering:
                 direction=self.config["kmeans_cluster"]["knee_locator"]["direction"],
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "The optimum number of clusters is: "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="The optimum number of clusters is: "
                 + str(self.kn.knee)
                 + " . Exited the elbow_plot method of the KMeansClustering class",
             )
@@ -78,18 +88,23 @@ class KMeansClustering:
             return self.kn.knee
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in elbow_plot method of the KMeansClustering class. Exception message:  "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : KMeansClustering, Method : elbow_plot, Error : {str(e)}",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "Finding the number of clusters failed. Exited the elbow_plot method of the KMeansClustering class",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Finding the number of clusters failed. \
+                    Exited the elbow_plot method of the KMeansClustering class",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : KMeansClustering, Method : elbow_plot, Error : ",
+                str(e),
+            )
 
     def create_clusters(self, data, number_of_clusters):
         """
@@ -101,9 +116,10 @@ class KMeansClustering:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the create_clusters method of the KMeansClustering class",
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the create_clusters method of the KMeansClustering class",
         )
 
         self.data = data
@@ -117,7 +133,7 @@ class KMeansClustering:
 
             self.y_kmeans = self.kmeans.fit_predict(data)
 
-            self.file_op = File_Operation(self.file_object, self.logger_object)
+            self.file_op = File_Operation(self.db_name, self.logger_object)
 
             self.file_op.save_model(
                 self.kmeans, self.config["model_names"]["kmeans_model_name"]
@@ -125,9 +141,10 @@ class KMeansClustering:
 
             self.data["Cluster"] = self.y_kmeans
 
-            self.logger_object.log(
-                self.file_object,
-                "succesfully created "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="succesfully created "
                 + str(self.kn.knee)
                 + " clusters. Exited the create_clusters method of the KMeansClustering class",
             )
@@ -135,10 +152,10 @@ class KMeansClustering:
             return self.data, self.kmeans
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in create_clusters method of the KMeansClustering class Exception message: "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : KMeansClustering, Method : create_clusters, Error : {str(e)}",
             )
 
             self.logger_object.log(
@@ -146,4 +163,7 @@ class KMeansClustering:
                 "Fitting the data to clusters failed. Exited the create_clusters method of the KMeansClustering class",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : KMeansClustering, Method : create_clusters, Error : ",
+                str(e),
+            )

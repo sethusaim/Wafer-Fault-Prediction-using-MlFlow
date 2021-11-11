@@ -1,10 +1,8 @@
-import os
-
 from src.dataTransform.data_transformation_train import dataTransform
 from src.dataTypeValid.data_type_valid_train import dBOperation
 from src.raw_data_validation.train_data_validation import Raw_Data_validation
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class train_validation:
@@ -25,11 +23,9 @@ class train_validation:
 
         self.config = read_params()
 
-        self.train_main_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "Training_Main_Log.txt"
-        )
+        self.db_name = self.config["db_log"]["db_train_log"]
 
-        self.file_object = open(self.train_main_log, "a+")
+        self.train_main_log = self.config["train_db_log"]["train_main"]
 
         self.log_writer = App_Logger()
 
@@ -43,7 +39,11 @@ class train_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            self.log_writer.log(self.file_object, "Start of Validation on files!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Start of Validation on files!!",
+            )
 
             (
                 LengthOfDateStampInFile,
@@ -62,61 +62,104 @@ class train_validation:
 
             self.raw_data.validateMissingValuesInWholeColumn()
 
-            self.log_writer.log(self.file_object, "Raw Data Validation Complete!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Raw Data Validation Complete!!",
+            )
 
-            self.log_writer.log(self.file_object, "Starting Data Transforamtion!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Starting Data Transforamtion!!",
+            )
 
             self.dataTransform.replaceMissingWithNull()
 
-            self.log_writer.log(self.file_object, "DataTransformation Completed!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="DataTransformation Completed!!!",
+            )
 
             self.log_writer.log(
-                self.file_object,
-                "Creating Training_Database and tables on the basis of given schema!!!",
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Creating Training_Database and tables on the basis of given schema!!!",
             )
 
             self.dBOperation.createTableDb("Training", column_names)
 
-            self.log_writer.log(self.file_object, "Table creation Completed!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Table creation Completed!!",
+            )
 
             self.log_writer.log(
-                self.file_object, "Insertion of Data into Table started!!!!"
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Insertion of Data into Table started!!!!",
             )
 
             self.dBOperation.insertIntoTableGoodData("Training")
 
-            self.log_writer.log(self.file_object, "Insertion in Table completed!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Insertion in Table completed!!!",
+            )
 
-            self.log_writer.log(self.file_object, "Deleting Good Data Folder!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Deleting Good Data Folder!!!",
+            )
 
             self.raw_data.deleteExistingGoodDataTrainingFolder()
 
-            self.log_writer.log(self.file_object, "Good_Data folder deleted!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Good_Data folder deleted!!!",
+            )
 
             self.log_writer.log(
-                self.file_object,
-                "Moving bad files to Archive and deleting Bad_Data folder!!!",
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Moving bad files to Archive and deleting Bad_Data folder!!!",
             )
 
             self.raw_data.moveBadFilesToArchiveBad()
 
             self.log_writer.log(
-                self.file_object, "Bad files moved to archive!! Bad folder Deleted!!"
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Bad files moved to archive!! Bad folder Deleted!!",
             )
 
-            self.log_writer.log(self.file_object, "Validation Operation completed!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Validation Operation completed!!",
+            )
 
-            self.log_writer.log(self.file_object, "Extracting csv file from table")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message="Extracting csv file from table",
+            )
 
             self.dBOperation.selectingDatafromtableintocsv("Training")
 
-            self.file_object.close()
-
         except Exception as e:
-            self.log_writer.log(self.file_object, "Error occurred : " + str(e))
-
             self.log_writer.log(
-                self.file_object, "Error occurred in train_validation class"
+                db_name=self.db_name,
+                collection_name=self.train_main_log,
+                log_message=f"Exception occured in Class : train_validation, Method : train_validation, Error : {str(e)}",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : train_validation, Method : train_validation, Error : ",
+                str(e),
+            )

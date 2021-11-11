@@ -3,11 +3,10 @@ import os
 import re
 import shutil
 from datetime import datetime
-from os import listdir
 
 import pandas as pd
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class Prediction_Data_validation:
@@ -27,25 +26,19 @@ class Prediction_Data_validation:
 
         self.logger = App_Logger()
 
-        self.pred_schema_valid_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "valuesfromSchemaValidationLog.txt"
-        )
+        self.db_name = self.config["db_log"]["db_pred_log"]
 
-        self.pred_gen_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "GeneralLog.txt"
-        )
+        self.pred_schema_valid_log = self.config["pred_db_log"]["values_from_schema"]
 
-        self.pred_name_valid_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "nameValidationLog.txt"
-        )
+        self.pred_gen_log = self.config["pred_db_log"]["general"]
 
-        self.pred_col_val_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "columnValidationLog.txt"
-        )
+        self.pred_name_valid_log = self.config["pred_db_log"]["name_validation"]
 
-        self.pred_missing_values_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "missingValuesInColumn.txt"
-        )
+        self.pred_col_val_log = self.config["pred_db_log"]["col_validation"]
+
+        self.pred_missing_values_log = self.config["pred_db_log"][
+            "missing_values_in_col"
+        ]
 
     def valuesFromSchema(self):
         """
@@ -60,8 +53,6 @@ class Prediction_Data_validation:
             with open(self.schema_path, "r") as f:
                 dic = json.load(f)
 
-                f.close()
-
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
 
             LengthOfTimeStampInFile = dic["LengthOfTimeStampInFile"]
@@ -69,8 +60,6 @@ class Prediction_Data_validation:
             column_names = dic["ColName"]
 
             NumberofColumns = dic["NumberofColumns"]
-
-            file = open(self.pred_schema_valid_log, "a+")
 
             message = (
                 "LengthOfDateStampInFile:: %s" % LengthOfDateStampInFile
@@ -81,38 +70,43 @@ class Prediction_Data_validation:
                 + "\n"
             )
 
-            self.logger.log(file, message)
-
-            file.close()
-
-        except ValueError:
-            file = open(self.pred_schema_valid_log, "a+")
-
             self.logger.log(
-                file, "ValueError:Value not found inside schema_training.json"
+                db_name=self.db_name,
+                collection_name=self.pred_schema_valid_log,
+                log_message=message,
             )
 
-            file.close()
+        except ValueError:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_schema_valid_log,
+                log_message="ValueError:Value not found inside schema_training.json",
+            )
 
             raise ValueError
 
         except KeyError:
-            file = open(self.pred_schema_valid_log, "a+")
-
-            self.logger.log(file, "KeyError:Key value error incorrect key passed")
-
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_schema_valid_log,
+                log_message="KeyError:Key value error incorrect key passed",
+            )
 
             raise KeyError
 
         except Exception as e:
-            file = open(self.pred_schema_valid_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_schema_valid_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : valuesFromSchema, Error : {str(e)}",
+            )
 
-            self.logger.log(file, str(e))
-
-            file.close()
-
-            raise e
+            raise Exception(
+                "Exception occured in Class : Prediction_Data_validation. \
+                    Method : valuesFromSchema, Error : ",
+                str(e),
+            )
 
         return (
             LengthOfDateStampInFile,
@@ -130,9 +124,24 @@ class Prediction_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        regex = self.config["regex_pattern"]
+        try:
+            regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
 
-        return regex
+            return regex
+
+        except Exception as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : manualRegexCreation, Error : {str(e)}",
+            )
+
+            raise Exception(
+                "Exception occured in Class : Prediction_Data_validation. \
+                    Method : manualRegexCreation, Error : ",
+                str(e),
+            )
 
     def createDirectoryForGoodBadRawData(self):
         """
@@ -155,12 +164,13 @@ class Prediction_Data_validation:
             if not os.path.isdir(path):
                 os.makedirs(path)
 
-        except OSError as ex:
-            file = open(self.pred_gen_log, "a+")
-
-            self.logger.log(file, "Error while creating Directory %s:" % ex)
-
-            file.close()
+        except OSError as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : createDirectoryForGoodBadRawData, Error : {str(e)}",
+            )
 
             raise OSError
 
@@ -181,18 +191,19 @@ class Prediction_Data_validation:
             if os.path.isdir(path):
                 shutil.rmtree(path)
 
-                file = open(self.pred_gen_log, "a+")
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.pred_gen_log,
+                    log_message="GoodRaw directory deleted successfully!!!",
+                )
 
-                self.logger.log(file, "GoodRaw directory deleted successfully!!!")
-
-                file.close()
-
-        except OSError as s:
-            file = open(self.pred_gen_log, "a+")
-
-            self.logger.log(file, "Error while Deleting Directory : %s" % s)
-
-            file.close()
+        except OSError as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method :deleteExistingGoodDataTrainingFolder, Error : {str(e)}",
+            )
 
             raise OSError
 
@@ -213,20 +224,19 @@ class Prediction_Data_validation:
             if os.path.isdir(path):
                 shutil.rmtree(path)
 
-                file = open(self.pred_gen_log, "a+")
-
                 self.logger.log(
-                    file, "BadRaw directory deleted before starting validation!!!"
+                    db_name=self.db_name,
+                    collection_name=self.pred_gen_log,
+                    log_message="BadRaw directory deleted before starting validation!!!",
                 )
 
-                file.close()
-
-        except OSError as s:
-            file = open(self.pred_gen_log, "a+")
-
-            self.logger.log(file, "Error while Deleting Directory : %s" % s)
-
-            file.close()
+        except OSError as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : deleteExistingBadDataTrainingFolder, Error : {str(e)}",
+            )
 
             raise OSError
 
@@ -245,7 +255,7 @@ class Prediction_Data_validation:
 
         date = now.date()
 
-        time = now.strftime("%H%M%S")
+        time = now.strftime(self.config["data_time_format"])
 
         try:
             path = self.config["data"]["archived"]["pred"]
@@ -266,31 +276,40 @@ class Prediction_Data_validation:
             if not os.path.isdir(dest):
                 os.makedirs(dest)
 
-            files = os.listdir(source)
+            files = os.os.listdir(source)
 
             for f in files:
-                if f not in os.listdir(dest):
+                if f not in os.os.listdir(dest):
                     shutil.move(source + f, dest)
 
-            file = open(self.pred_gen_log, "a+")
-
-            self.logger.log(file, "Bad files moved to archive")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message="Bad files moved to archive",
+            )
 
             path = self.config["data"]["bad"]["pred"]
 
             if os.path.isdir(path):
                 shutil.rmtree(path)
 
-            self.logger.log(file, "Bad Raw Data Folder Deleted successfully!!")
-
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message="Bad Raw Data Folder Deleted successfully!!",
+            )
 
         except OSError as e:
             file = open(self.pred_gen_log, "a+")
 
             self.logger.log(file, "Error while moving bad files to archive:: %s" % e)
 
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : moveBadFilesToArchiveBad, Error : {str(e)}",
+            )
 
             raise OSError
 
@@ -313,13 +332,12 @@ class Prediction_Data_validation:
 
         self.createDirectoryForGoodBadRawData()
 
-        onlyfiles = [f for f in listdir(self.Batch_Directory)]
+        onlyfiles = [f for f in os.listdir(self.Batch_Directory)]
 
         try:
             f = open(self.pred_name_valid_log, "a+")
 
             for filename in onlyfiles:
-
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
 
@@ -334,8 +352,9 @@ class Prediction_Data_validation:
                             )
 
                             self.logger.log(
-                                f,
-                                "Valid File name!! File moved to GoodRaw Folder :: %s"
+                                db_name=self.db_name,
+                                collection_name=self.pred_name_valid_log,
+                                log_message="Valid File name!! File moved to GoodRaw Folder :: %s"
                                 % filename,
                             )
 
@@ -347,8 +366,9 @@ class Prediction_Data_validation:
                             )
 
                             self.logger.log(
-                                f,
-                                "Invalid File Name!! File moved to Bad Raw Folder :: %s"
+                                db_name=self.db_name,
+                                collection_name=self.pred_name_valid_log,
+                                log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
                                 % filename,
                             )
 
@@ -360,8 +380,9 @@ class Prediction_Data_validation:
                         )
 
                         self.logger.log(
-                            f,
-                            "Invalid File Name!! File moved to Bad Raw Folder :: %s"
+                            db_name=self.db_name,
+                            collection_name=self.pred_name_valid_log,
+                            log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
                             % filename,
                         )
 
@@ -372,21 +393,29 @@ class Prediction_Data_validation:
                     )
 
                     self.logger.log(
-                        f,
-                        "Invalid File Name!! File moved to Bad Raw Folder :: %s"
+                        db_name=self.db_name,
+                        collection_name=self.pred_name_valid_log,
+                        log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
                         % filename,
                     )
-
-            f.close()
 
         except Exception as e:
             f = open(self.pred_name_valid_log, "a+")
 
-            self.logger.log(f, "Error occured while validating FileName %s" % e)
+            self.logger.log(f, "Exception occured while validating FileName %s" % e)
 
-            f.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_name_valid_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : validationFileNameRaw, Error : {str(e)}",
+            )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Prediction_Data_validation. \
+                    Method : validationFileNameRaw, Error : ",
+                str(e),
+            )
 
     def validateColumnLength(self, NumberofColumns):
         """
@@ -402,11 +431,13 @@ class Prediction_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            f = open(self.pred_col_val_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_col_val_log,
+                log_message="Column Length Validation Started!!",
+            )
 
-            self.logger.log(f, "Column Length Validation Started!!")
-
-            for file in listdir(self.config["data"]["good"]["pred"]):
+            for file in os.listdir(self.config["data"]["good"]["pred"]):
                 csv = pd.read_csv(self.config["data"]["good"]["pred"] + file)
 
                 if csv.shape[1] == NumberofColumns:
@@ -425,19 +456,25 @@ class Prediction_Data_validation:
                     )
 
                     self.logger.log(
-                        f,
-                        "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
+                        db_name=self.db_name,
+                        collection_name=self.pred_col_val_log,
+                        log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
                         % file,
                     )
 
-            self.logger.log(f, "Column Length Validation Completed!!")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_col_val_log,
+                log_message="Column Length Validation Completed!!",
+            )
 
-        except OSError:
-            f = open(self.pred_col_val_log, "a+")
-
-            self.logger.log(f, "Error Occured while moving the file :: %s" % OSError)
-
-            f.close()
+        except OSError as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_col_val_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : validateColumnLength, Error : {str(e)}",
+            )
 
             raise OSError
 
@@ -446,20 +483,44 @@ class Prediction_Data_validation:
 
             self.logger.log(f, "Error Occured:: %s" % e)
 
-            f.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_col_val_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : validateColumnLength, Error : {str(e)}",
+            )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Prediction_Data_validation. \
+                    Method : validateColumnLength, Error : ",
+                str(e),
+            )
 
     def deletePredictionFile(self):
         """
-        Method Name :    deletePredictionFile
-        Description :    This methods deletes the existing prediction file
-        Written by  :     iNeuron Intelligence
-        Version     :        1.1
-        Revisions   :      modified code based on params.yaml file
+        Method Name :   deletePredictionFile
+        Description :   This methods deletes the existing prediction file
+        Written by  :   iNeuron Intelligence
+        Version     :   1.1
+        Revisions   :   modified code based on params.yaml file
         """
-        if os.path.exists(self.config["pred_output_file"]):
-            os.remove(self.config["pred_output_file"])
+        try:
+            if os.path.exists(self.config["pred_output_file"]):
+                os.remove(self.config["pred_output_file"])
+
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.pred_gen_log,
+                    log_message="Deleted the existing prediction file",
+                )
+
+        except Exception as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_gen_log,
+                log_message=f"Exception occured in Class : Prediction_Data_validation. \
+                    Method : deletePredictionFile, Error : {str(e)}",
+            )
 
     def validateMissingValuesInWholeColumn(self):
         """
@@ -473,11 +534,13 @@ class Prediction_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            f = open(self.pred_missing_values_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_missing_values_log,
+                log_message="Missing Values Validation Started!!",
+            )
 
-            self.logger.log(f, "Missing Values Validation Started!!")
-
-            for file in listdir(self.config["data"]["good"]["pred"]):
+            for file in os.listdir(self.config["data"]["good"]["pred"]):
                 csv = pd.read_csv(self.config["data"]["good"]["pred"] + file)
 
                 count = 0
@@ -492,8 +555,9 @@ class Prediction_Data_validation:
                         )
 
                         self.logger.log(
-                            f,
-                            "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
+                            db_name=self.db_name,
+                            collection_name=self.pred_missing_values_log,
+                            log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
                             % file,
                         )
 
@@ -508,20 +572,26 @@ class Prediction_Data_validation:
                         header=True,
                     )
 
-        except OSError:
-            f = open(self.pred_missing_values_log, "a+")
-
-            self.logger.log(f, "Error Occured while moving the file :: %s" % OSError)
-
-            f.close()
+        except OSError as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_missing_values_log,
+                log_message=f"Exceptioon occured in Class : Prediction_Data_validation. \
+                    Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
+            )
 
             raise OSError
 
         except Exception as e:
-            f = open(self.pred_missing_values_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.pred_missing_values_log,
+                log_message=f"Exceptioon occured in Class : Prediction_Data_validation. \
+                    Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
+            )
 
-            self.logger.log(f, "Error Occured:: %s" % e)
-
-            f.close()
-
-            raise e
+            raise Exception(
+                "Exceptioon occured in Class : Prediction_Data_validation. \
+                    Method : validateMissingValuesInWholeColumn, Error : ",
+                str(e),
+            )

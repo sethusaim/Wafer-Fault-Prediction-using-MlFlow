@@ -4,8 +4,8 @@ import shutil
 import sqlite3
 from os import listdir
 
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class dBOperation:
@@ -27,21 +27,15 @@ class dBOperation:
 
         self.logger = App_Logger()
 
-        self.train_db_conn_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "DataBaseConnectionLog.txt"
-        )
+        self.db_name = self.config["db_log"]["db_train_log"]
 
-        self.train_db_create_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "DbTableCreateLog.txt"
-        )
+        self.train_db_conn_log = self.config["train_db_log"]["db_conn"]
 
-        self.train_db_insert_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "DbInsertLog.txt"
-        )
+        self.train_db_create_log = self.config["train_db_log"]["db_create"]
 
-        self.train_export_csv_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "ExportToCsv.txt"
-        )
+        self.train_db_insert_log = self.config["train_db_log"]["db_insert"]
+
+        self.train_export_csv_log = self.config["train_db_log"]["export_csv"]
 
     def dataBaseConnection(self, DatabaseName):
         """
@@ -56,20 +50,18 @@ class dBOperation:
         try:
             conn = sqlite3.connect(self.path + "/" + DatabaseName + ".db")
 
-            file = open(self.train_db_conn_log, "a+")
-
-            self.logger.log(file, "Opened %s database successfully" % DatabaseName)
-
-            file.close()
-
-        except ConnectionError:
-            file = open(self.train_db_conn_log, "a+")
-
             self.logger.log(
-                file, "Error while connecting to database: %s" % ConnectionError
+                db_name=self.db_name,
+                collection_name=self.train_db_conn_log,
+                log_message="Opened %s database successfully" % DatabaseName,
             )
 
-            file.close()
+        except ConnectionError:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_db_conn_log,
+                log_message="Error while connecting to database: %s" % ConnectionError,
+            )
 
             raise ConnectionError
 
@@ -96,17 +88,17 @@ class dBOperation:
             if c.fetchone()[0] == 1:
                 conn.close()
 
-                file = open(self.train_db_create_log, "a+")
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_create_log,
+                    log_message="Tables created successfully!!",
+                )
 
-                self.logger.log(file, "Tables created successfully!!")
-
-                file.close()
-
-                file = open(self.train_db_conn_log, "a+")
-
-                self.logger.log(file, "Closed %s database successfully" % DatabaseName)
-
-                file.close()
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_conn_log,
+                    log_message="Closed %s database successfully" % DatabaseName,
+                )
 
             else:
                 for key in column_names.keys():
@@ -128,34 +120,37 @@ class dBOperation:
 
                 conn.close()
 
-                file = open(self.train_db_create_log, "a+")
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_create_log,
+                    log_message="Tables created successfully!!",
+                )
 
-                self.logger.log(file, "Tables created successfully!!")
-
-                file.close()
-
-                file = open(self.train_db_conn_log, "a+")
-
-                self.logger.log(file, "Closed %s database successfully" % DatabaseName)
-
-                file.close()
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_conn_log,
+                    log_message="Closed %s database successfully" % DatabaseName,
+                )
 
         except Exception as e:
-            file = open(self.train_db_create_log, "a+")
-
-            self.logger.log(file, "Error while creating table: %s " % e)
-
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_db_create_log,
+                log_message=f"Exception occured in Class : dBOperation, Method : createTableDb, Error : {str(e)}",
+            )
 
             conn.close()
 
-            file = open(self.train_db_conn_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_db_conn_log,
+                log_message="Closed %s database successfully" % DatabaseName,
+            )
 
-            self.logger.log(file, "Closed %s database successfully" % DatabaseName)
-
-            file.close()
-
-            raise e
+            raise Exception(
+                "Exception occured in Class : dBOperation, Method : createTableDb, Error : ",
+                str(e),
+            )
 
     def insertIntoTableGoodData(self, Database):
         """
@@ -193,7 +188,10 @@ class dBOperation:
                                 )
 
                                 self.logger.log(
-                                    log_file, " %s: File loaded successfully!!" % file
+                                    db_name=self.db_name,
+                                    collection_name=self.train_db_insert_log,
+                                    log_message=" %s: File loaded successfully!!"
+                                    % file,
                                 )
 
                                 conn.commit()
@@ -204,19 +202,23 @@ class dBOperation:
             except Exception as e:
                 conn.rollback()
 
-                self.logger.log(log_file, "Error while creating table: %s " % e)
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_insert_log,
+                    log_message=f"Exception occured in Class : dbOperation, Method : insertIntoTableGoodData, Error : {str(e)}",
+                )
 
                 shutil.move(goodFilePath + "/" + file, badFilePath)
 
-                self.logger.log(log_file, "File Moved Successfully %s" % file)
-
-                log_file.close()
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_insert_log,
+                    log_message="File Moved Successfully %s" % file,
+                )
 
                 conn.close()
 
         conn.close()
-
-        log_file.close()
 
     def selectingDatafromtableintocsv(self, Database):
         """
@@ -260,11 +262,20 @@ class dBOperation:
 
             csvFile.writerows(results)
 
-            self.logger.log(log_file, "File exported successfully!!!")
-
-            log_file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_export_csv_log,
+                log_message="File exported successfully!!!",
+            )
 
         except Exception as e:
-            self.logger.log(log_file, "File exporting failed. Error : %s" % e)
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_export_csv_log,
+                log_message=f"Exception occured in Class : dbOperation, Method : selectingDatafromtableintocsv, Error : {str(e)}",
+            )
 
-            log_file.close()
+            raise Exception(
+                "Exception occured in Class : dbOperation, Method : selectingDatafromtableintocsv, Error : ",
+                str(e),
+            )

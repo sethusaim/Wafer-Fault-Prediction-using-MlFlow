@@ -1,14 +1,12 @@
-import os
-
 import pandas as pd
 from src.data_preprocessing.data_ingestion.data_loader_prediction import (
     Data_Getter_Pred,
 )
 from src.data_preprocessing.preprocessing import Preprocessor
-from src.file_operations import file_methods
+from src.file_operations.file_methods import File_Operation
 from src.raw_data_validation.pred_data_validation import Prediction_Data_validation
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class prediction:
@@ -23,11 +21,9 @@ class prediction:
     def __init__(self, path):
         self.config = read_params()
 
-        self.pred_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "Prediction_Log.txt"
-        )
+        self.pred_log = self.config["pred_db_log"]["pred_main"]
 
-        self.file_object = open(self.pred_log, "a+")
+        self.db_name = self.config["db_log"]["db_pred_log"]
 
         self.log_writer = App_Logger()
 
@@ -46,13 +42,17 @@ class prediction:
         try:
             self.pred_data_val.deletePredictionFile()
 
-            self.log_writer.log(self.file_object, "Start of Prediction")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Start of Prediction",
+            )
 
-            data_getter = Data_Getter_Pred(self.file_object, self.log_writer)
+            data_getter = Data_Getter_Pred(self.db_name, self.pred_log)
 
             data = data_getter.get_data()
 
-            preprocessor = Preprocessor(self.file_object, self.log_writer)
+            preprocessor = Preprocessor(self.db_name, self.pred_log)
 
             is_null_present = preprocessor.is_null_present(data)
 
@@ -63,7 +63,7 @@ class prediction:
 
             data = preprocessor.remove_columns(data, cols_to_drop)
 
-            file_loader = file_methods.File_Operation(self.file_object, self.log_writer)
+            file_loader = File_Operation(self.db_name, self.pred_log)
 
             kmeans = file_loader.load_model(
                 self.config["model_names"]["kmeans_model_name"]
@@ -102,14 +102,27 @@ class prediction:
                     mode="a+",
                 )
 
-            self.log_writer.log(self.file_object, "End of Prediction")
-
-        except Exception as ex:
             self.log_writer.log(
-                self.file_object,
-                "Error occured while running the prediction!! Error:: %s" % ex,
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="End of Prediction",
             )
 
-            raise ex
+        except Exception as e:
+            self.log_writer.log(
+                self.file_object,
+                "Error occured while running the prediction!! Error:: %s" % e,
+            )
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message=f"Exception occured in Class : prediction, Method : predictionFromModel, Error : {str(e)}",
+            )
+
+            raise Exception(
+                "Exception occured in Class : prediction, Method : predictionFromModel, Error : ",
+                str(e),
+            )
 
         return path, result.head().to_json(orient="records")

@@ -1,8 +1,9 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
+from utils.logger import App_Logger
+from utils.read_params import read_params
 from xgboost import XGBClassifier
-from utils.main_utils import read_params
 
 
 class Model_Finder:
@@ -15,12 +16,14 @@ class Model_Finder:
                     modified code based on params.yaml file
     """
 
-    def __init__(self, file_object, logger_object):
-        self.file_object = file_object
+    def __init__(self, db_name, logger_object):
+        self.db_name = db_name
 
         self.logger_object = logger_object
 
         self.config = read_params()
+
+        self.log_writter = App_Logger()
 
         self.clf = RandomForestClassifier()
 
@@ -37,9 +40,10 @@ class Model_Finder:
         Version     :   1.1
         Revisions   :   modified code based on config file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the get_best_params_for_random_forest method of Model_Finder class",
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the get_best_params_for_random_forest method of Model_Finder class",
         )
 
         try:
@@ -78,9 +82,10 @@ class Model_Finder:
 
             self.clf.fit(train_x, train_y)
 
-            self.logger_object.log(
-                self.file_object,
-                "Random Forest best params: "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Random Forest best params: "
                 + str(self.grid.best_params_)
                 + ". Exited the get_best_params_for_random_forest method of the Model Finder class",
             )
@@ -88,15 +93,18 @@ class Model_Finder:
             return self.clf
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in get_best_params_for_random_forest method of the Model Finder class"
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : Model_Finder. \
+                    Method : get_best_params_for_random_forest, Error : {str(e)}",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "Random forest parameter tuning failed. Exited the get_best_params_for_random_forest method of the Model Finder class",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Random forest parameter tuning failed. \
+                    Exited the get_best_params_for_random_forest method of the Model Finder class",
             )
 
             raise e
@@ -112,9 +120,11 @@ class Model_Finder:
         Version     :   1.1
         Revisions   :   modified code based on the config file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the get_best_params_for_xgboost method of the Model Finder class",
+
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the get_best_params_for_xgboost method of the Model Finder class",
         )
 
         try:
@@ -153,9 +163,10 @@ class Model_Finder:
 
             self.xgb.fit(train_x, train_y)
 
-            self.logger_object.log(
-                self.file_object,
-                "XGBoost best params: "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="XGBoost best params: "
                 + str(self.grid.best_params_)
                 + ". exited the get_best_params_for_xgboost method of the Model Finder class",
             )
@@ -163,18 +174,24 @@ class Model_Finder:
             return self.xgb
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occurred in get_best_params_for_xgboost method of the Model Finder class "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : Model_Finder. \
+                    Method : get_best_params_for_xgboost, Error : {str(e)} ",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "XGBoost parameter tuning failed. Exited the get_best_params_for_xgboost method of the Model Finder class",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="XGBoost parameter tuning failed. Exited the get_best_params_for_xgboost method of the Model Finder class",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Model_Finder. \
+                    Method : get_best_params_for_xgboost, Error : ",
+                str(e),
+            )
 
     def get_trained_models(self, train_x, train_y, test_x, test_y):
         """
@@ -186,48 +203,58 @@ class Model_Finder:
         Version     :   1.1
         Revisions   :   modified code based on the config file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the get_trained_models method of the Model Finder class",
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the get_trained_models method of the Model Finder class",
         )
 
         try:
             ## creating the xgboost model
             self.xgboost = self.get_best_params_for_xgboost(train_x, train_y)
 
-            self.logger_object.log(
-                self.file_object, "Started prediction using xgboost model"
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Started prediction using xgboost model",
             )
 
             self.pred_xgboost = self.xgboost.predict(test_x)
 
-            self.logger_object.log(
-                self.file_object, "Prediction done using xgboost model"
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Prediction done using xgboost model",
             )
 
             if len(test_y.unique()) == 1:
-                self.logger_object.log(
-                    self.file_object,
-                    "Started calculating the accuracy score of xgb_model",
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Started calculating the accuracy score of xgb_model",
                 )
 
                 self.xgboost_score = accuracy_score(test_y, self.pred_xgboost)
 
-                self.logger_object.log(
-                    self.file_object, "Accuracy for XGBoost: " + str(self.xgboost_score)
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Accuracy for XGBoost: " + str(self.xgboost_score),
                 )
 
             else:
-                self.logger_object.log(
-                    self.file_object,
-                    "Started calculating the roc auc score of xgb_model",
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Started calculating the roc auc score of xgb_model",
                 )
 
                 self.xgboost_score = roc_auc_score(test_y, self.pred_xgboost)
 
-                self.logger_object.log(
-                    self.file_object,
-                    "AUC score for XGBoost: " + str(self.xgboost_score),
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="AUC score for XGBoost: " + str(self.xgboost_score),
                 )
 
             ## creating the random forest model
@@ -235,38 +262,48 @@ class Model_Finder:
                 train_x, train_y
             )
 
-            self.logger_object.log(
-                self.file_object, "Started prediction using random forest model"
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Started prediction using random forest model",
             )
 
             self.pred_rf = self.random_forest.predict(test_x)
 
-            self.logger_object.log(
-                self.file_object, "Prediction done using random forest model"
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Prediction done using random forest model",
             )
 
             if len(test_y.unique()) == 1:
-                self.logger_object.log(
-                    self.file_object,
-                    "Started calculating accuracy score of random forest model",
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Started calculating accuracy score of random forest model",
                 )
 
                 self.rf_score = accuracy_score(test_y, self.pred_rf)
 
-                self.logger_object.log(
-                    self.file_object, "Accuracy score for RF: " + str(self.rf_score)
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Accuracy score for RF: " + str(self.rf_score),
                 )
 
             else:
-                self.logger_object.log(
-                    self.file_object,
-                    "Started calculating roc auc score of random forest model",
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Started calculating roc auc score of random forest model",
                 )
 
                 self.rf_score = roc_auc_score(test_y, self.pred_rf)
 
-                self.logger_object.log(
-                    self.file_object, "AUC score for XGB: " + str(self.rf_score)
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="AUC score for XGB: " + str(self.rf_score),
                 )
 
             return self.random_forest, self.rf_score, self.xgboost, self.xgboost_score
@@ -278,9 +315,19 @@ class Model_Finder:
                 + str(e),
             )
 
-            self.logger_object.log(
-                self.logger_object,
-                "Model training failed. Exited the get_trained_models method of the Model Finder class",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : Model Finder, Method : get_trained_models, Error : {str(e)}",
             )
 
-            raise e
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Model training failed. Exited the get_trained_models method of the Model Finder class",
+            )
+
+            raise Exception(
+                "Exception occured in Class : Model Finder, Method : get_trained_models, Error : ",
+                str(e),
+            )

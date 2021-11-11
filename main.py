@@ -12,7 +12,7 @@ from src.model.predictionFromModel import prediction
 from src.model.trainingModel import trainModel
 from src.validation_insertion.prediction_validation_insertion import pred_validation
 from src.validation_insertion.train_validation_insertion import train_validation
-from utils.main_utils import read_params
+from utils.read_params import read_params
 
 os.putenv("LANG", "en_US.UTF-8")
 os.putenv("LC_ALL", "en_US.UTF-8")

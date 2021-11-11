@@ -1,5 +1,6 @@
 import pandas as pd
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class Data_Getter:
@@ -10,14 +11,16 @@ class Data_Getter:
     Revisions   :   None
     """
 
-    def __init__(self, file_object, logger_object):
+    def __init__(self, db_name, logger_object):
         self.config = read_params()
 
         self.training_file = self.config["db_file"]["train_db_file"]
 
-        self.file_object = file_object
+        self.db_name = db_name
 
         self.logger_object = logger_object
+
+        self.log_writter = App_Logger()
 
     def get_data(self):
         """
@@ -29,30 +32,38 @@ class Data_Getter:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.logger_object.log(
-            self.file_object, "Entered the get_data method of the Data_Getter class"
+
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the get_data method of the Data_Getter class",
         )
 
         try:
             self.data = pd.read_csv(self.training_file)
 
-            self.logger_object.log(
-                self.file_object,
-                "Data Load Successful.Exited the get_data method of the Data_Getter class",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Data Load Successful.Exited the get_data method of the Data_Getter class",
             )
 
             return self.data
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in get_data method of the Data_Getter class. Exception message: "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : Data_Getter, Method : get_data, Error : {str(e)}",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 
-            raise e
+            raise Exception(
+                "Error occured in Class : Data_Getter, Method : get_data, Error : ",
+                str(e),
+            )

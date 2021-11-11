@@ -1,7 +1,8 @@
 import os
 import pickle
 
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class File_Operation:
@@ -13,12 +14,14 @@ class File_Operation:
     Revisions   :   None
     """
 
-    def __init__(self, file_object, logger_object):
-        self.file_object = file_object
+    def __init__(self, db_name, logger_object):
+        self.db_name = db_name
 
         self.logger_object = logger_object
 
         self.config = read_params()
+
+        self.log_writter = App_Logger()
 
         self.train_models_dir = self.config["models_dir"]["trained_models_dir"]
 
@@ -35,20 +38,25 @@ class File_Operation:
         Output      :   model file get saved
         Revisions   :   modified code based on params.yaml file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the save_model method of the File_Operation class",
+
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the save_model method of the File_Operation class",
         )
 
         try:
-            with open(
-                self.train_models_dir + "/" + filename + self.file_format, "wb"
-            ) as f:
+            self.model_file = os.path.join(
+                self.train_models_dir, filename + self.file_format
+            )
+
+            with open(file=self.model_file, mode="wb") as f:
                 pickle.dump(model, f)
 
-            self.logger_object.log(
-                self.file_object,
-                "Model File "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Model File "
                 + filename
                 + " saved. Exited the save_model method of the Model_Finder class",
             )
@@ -56,20 +64,24 @@ class File_Operation:
             return "success"
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in save_model method of the Model_Finder class. Exception message:  "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : Model_Finder, Method : save_model, Error : {str(e)}",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "Model File "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Model File "
                 + filename
                 + " could not be saved. Exited the save_model method of the Model_Finder class",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Model_Finder, Method : save_model, Error : ",
+                str(e),
+            )
 
     def load_model(self, filename):
         """
@@ -79,18 +91,22 @@ class File_Operation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the load_model method of the File_Operation class",
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the load_model method of the File_Operation class",
         )
 
         try:
-            with open(
-                self.prod_model_dir + "/" + filename + self.file_format, "rb"
-            ) as f:
-                self.logger_object.log(
-                    self.file_object,
-                    "Model File "
+            self.prod_model_file = os.path.join(
+                self.prod_model_dir, filename + self.file_format
+            )
+
+            with open(file=self.prod_model_file, mode="rb") as f:
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.logger_object,
+                    log_message="Model File "
                     + filename
                     + " loaded. Exited the load_model method of the Model_Finder class",
                 )
@@ -98,20 +114,24 @@ class File_Operation:
                 return pickle.load(f)
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in load_model method of the Model_Finder class. Exception message:  "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message=f"Exception occured in Class : Model_Finder,Method : load_model, Error : {str(e)}",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "Model File "
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Model File "
                 + filename
                 + " could not be saved. Exited the load_model method of the Model_Finder class",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Model_Finder,Method : load_model, Error : ",
+                str(e),
+            )
 
     def find_correct_model_file(self, cluster_number):
         """
@@ -122,9 +142,11 @@ class File_Operation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.logger_object.log(
-            self.file_object,
-            "Entered the find_correct_model_file method of the File_Operation class",
+
+        self.log_writter.log(
+            db_name=self.db_name,
+            collection_name=self.logger_object,
+            log_message="Entered the find_correct_model_file method of the File_Operation class",
         )
 
         try:
@@ -144,23 +166,27 @@ class File_Operation:
 
             self.model_name = self.model_name.split(".")[0]
 
-            self.logger_object.log(
-                self.file_object,
-                "Exited the find_correct_model_file method of the Model_Finder class.",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Exited the find_correct_model_file method of the Model_Finder class.",
             )
 
             return self.model_name
 
         except Exception as e:
-            self.logger_object.log(
-                self.file_object,
-                "Exception occured in find_correct_model_file method of the Model_Finder class. Exception message:  "
-                + str(e),
+            self.log_writter.log(
+                db_name=self.logger_object,
+                log_message=f"Exception occured in Class : Model_Finder,Method : find_correct_model_file, Error : {str(e)}",
             )
 
-            self.logger_object.log(
-                self.file_object,
-                "Exited the find_correct_model_file method of the Model_Finder class with Failure",
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.logger_object,
+                log_message="Exited the find_correct_model_file method of the Model_Finder class with Failure",
             )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Model_Finder,Method : find_correct_model_file, Error : ",
+                str(e),
+            )

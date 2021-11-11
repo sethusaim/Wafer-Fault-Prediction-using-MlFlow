@@ -22,8 +22,10 @@ def create_project_dir():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(base_data, f)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_config_folder():
@@ -35,7 +37,7 @@ def create_config_folder():
         schema_files = ["schema_training.json", "schema_prediction.json"]
 
         for files in schema_files:
-            open(file=config_path + "/" + files, mode="a+")
+            open(file=config_path + "/" + files, mode="a+").close()
 
         schema_data = {
             "schema_dir": {
@@ -47,8 +49,84 @@ def create_config_folder():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(schema_data, f, line_break=2)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
+
+
+def create_main_db_logs():
+    try:
+        main_db_logs = {
+            "db_log": {
+                "db_train_log": "training_logs",
+                "db_pred_log": "prediction_logs",
+            }
+        }
+
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(main_db_logs, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
+
+
+def create_train_db_logs():
+    try:
+        train_db_log_data = {
+            "train_db_log": {
+                "model_training": "modelTrainingLog",
+                "col_validation": "columnValidationLog",
+                "db_conn": "databaseConnectionLog",
+                "data_transform": "dataTransform",
+                "db_insert": "dbInsertLog",
+                "db_create": "dbTableCreateLog",
+                "export_csv": "ExportToCsvLog",
+                "general": "GeneralLog",
+                "load_prod_model": "loadProdModelLog",
+                "missing_values_in_col": "missingValuesInColumn",
+                "name_validation": "nameValidationLog",
+                "train_main": "Training_Main_Log",
+                "values_from_schema": "valuesfromSchemaValidationLog",
+            }
+        }
+
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(train_db_log_data, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
+
+
+def create_pred_db_logs():
+    try:
+        pred_db_log_data = {
+            "pred_db_log": {
+                "col_validation": "columnValidationLog",
+                "db_conn": "databaseConnectionLog",
+                "data_transform": "dataTransform",
+                "db_insert": "dbInsertLog",
+                "db_create": "dbTableCreateLog",
+                "export_csv": "ExportToCsvLog",
+                "general": "GeneralLog",
+                "pred_main": "prediction_main_log",
+                "missing_values_in_col": "missingValuesInColumn",
+                "name_validation": "nameValidationLog",
+                "values_from_schema": "valuesfromSchemaValidationLog",
+            }
+        }
+
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(pred_db_log_data, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_data_folder():
@@ -63,6 +141,8 @@ def create_data_folder():
 
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(elbow_plot_fig, f)
+
+        f.close()
 
         temp = ["train", "pred"]
 
@@ -99,15 +179,23 @@ def create_data_folder():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(data_yaml, f)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_regex():
-    regex_data = {"regex_pattern": "null"}
+    try:
+        regex_data = {"regex_pattern": "null"}
 
-    with open(file="params.yaml", mode="a+") as f:
-        yaml.dump(regex_data, f)
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(regex_data, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_raw_data_folder():
@@ -133,8 +221,10 @@ def create_raw_data_folder():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(data_source_yaml, f)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_databases_folder():
@@ -175,73 +265,10 @@ def create_databases_folder():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(databases_folder_data, f)
 
-    except Exception as e:
-        raise e
-
-
-def create_logs_folder():
-    try:
-        log_path = "logs"
-
-        logs_list = ["training_logs", "prediction_logs"]
-
-        for log in logs_list:
-            log_dir = os.path.join(log_path, log)
-
-            os.makedirs(log_dir, exist_ok=True)
-
-        train_logs_list = [
-            "columnValidationLog.txt",
-            "DatabaseConnectionLog.txt",
-            "dataTransformLog.txt",
-            "DbInsertLog.txt",
-            "DbTableCreateLog.txt",
-            "ExportToCsv.txt",
-            "GeneralLog.txt",
-            "missingValuesInColumn.txt",
-            "ModelTrainingLog.txt",
-            "nameValidationLog.txt",
-            "Training_Main_log.txt",
-            "valuesfromSchemaValidationLog.txt",
-            "loadProdModelLog.txt",
-        ]
-
-        pred_logs_list = [
-            "columnValidationLog.txt",
-            "DatabaseConnectionLog.txt",
-            "dataTransformLog.txt",
-            "DbInsertLog.txt",
-            "DbTableCreateLog.txt",
-            "ExportToCsv.txt",
-            "GeneralLog.txt",
-            "missingValuesInColumn.txt",
-            "nameValidationLog.txt",
-            "Prediction_log.txt",
-            "valuesfromSchemaValidationLog.txt",
-        ]
-
-        for log in train_logs_list:
-            train_log = os.path.join(log_path, logs_list[0], log)
-
-            open(file=train_log, mode="a+")
-
-        for log in pred_logs_list:
-            pred_log = os.path.join(log_path, logs_list[1], log)
-
-            open(file=pred_log, mode="a+")
-
-        log_folder_data = {
-            "log_dir": {
-                "train_log_dir": os.path.join(log_path, logs_list[0]),
-                "pred_log_dir": os.path.join(log_path, logs_list[1]),
-            }
-        }
-
-        with open(file="params.yaml", mode="a+") as f:
-            yaml.dump(log_folder_data, f)
+        f.close()
 
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_models_folder():
@@ -266,22 +293,30 @@ def create_models_folder():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(model_folder_data, f)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_mlflow_config():
-    mlflow_config_data = {
-        "mlflow_config": {
-            "artifacts_dir": "null",
-            "experiment_name": "null",
-            "remote_server_uri": "null",
-            "run_name": "null",
+    try:
+        mlflow_config_data = {
+            "mlflow_config": {
+                "artifacts_dir": "null",
+                "experiment_name": "null",
+                "remote_server_uri": "null",
+                "run_name": "null",
+            }
         }
-    }
 
-    with open(file="params.yaml", mode="a+") as f:
-        yaml.dump(mlflow_config_data, f)
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(mlflow_config_data, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_output_folder():
@@ -292,7 +327,7 @@ def create_output_folder():
 
         pred_file = os.path.join(output_folder_path, "Predictions.csv")
 
-        open(pred_file, mode="a+")
+        open(pred_file, mode="a+").close()
 
         output_folder_data = {
             "pred_output_file": os.path.join(output_folder_path, "Predictions.csv")
@@ -301,8 +336,10 @@ def create_output_folder():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(output_folder_data, f)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_src_folder():
@@ -316,7 +353,7 @@ def create_src_folder():
         di_files = ["data_loader_prediction.py", "data_loader_train.py"]
 
         for files in di_files:
-            open(file=data_ingestion_path + "/" + files, mode="a+")
+            open(file=data_ingestion_path + "/" + files, mode="a+").close()
 
         data_preprocessing_path = os.path.join("src", "data_preprocessing")
 
@@ -325,7 +362,9 @@ def create_src_folder():
         dp_files = ["clustering.py", "preprocessing.py"]
 
         for files in dp_files:
-            open(file=data_preprocessing_path + "/" + files, mode="a+")
+            tmp_file = os.path.join(data_preprocessing_path, files)
+
+            open(file=tmp_file, mode="a+").close()
 
         data_transform_path = os.path.join("src", "dataTransform")
 
@@ -334,7 +373,9 @@ def create_src_folder():
         dt_files = ["data_transformation_pred.py", "data_transformation_train.py"]
 
         for files in dt_files:
-            open(file=data_transform_path + "/" + files, mode="a+")
+            tmp_file = os.path.join(data_transform_path, files)
+
+            open(file=tmp_file, mode="a+").close()
 
         dataTypeValid_path = os.path.join("src", "dataTypeValid")
 
@@ -343,7 +384,9 @@ def create_src_folder():
         dtv_files = ["data_type_valid_pred.py", "data_type_valid_train.py"]
 
         for files in dtv_files:
-            open(file=dataTypeValid_path + "/" + files, mode="a+")
+            tmp_file = os.path.join(dataTypeValid_path, files)
+
+            open(file=tmp_file, mode="a+").close()
 
         file_operations_folder_path = os.path.join("src", "file_operations")
 
@@ -351,7 +394,7 @@ def create_src_folder():
 
         file_method_file = os.path.join(file_operations_folder_path, "file_methods.py")
 
-        open(file_method_file, mode="a+")
+        open(file_method_file, mode="a+").close()
 
         model_file_path = os.path.join("src", "model")
 
@@ -364,7 +407,9 @@ def create_src_folder():
         ]
 
         for model in model_files:
-            open(file=model_file_path + "/" + model, mode="a+")
+            tmp_file = os.path.join(model_file_path, model)
+
+            open(file=tmp_file, mode="a+").close()
 
         model_finder_folder_path = os.path.join("src", "model_finder")
 
@@ -372,7 +417,7 @@ def create_src_folder():
 
         tuner_file = os.path.join(model_finder_folder_path, "tuner.py")
 
-        open(tuner_file, mode="a+")
+        open(tuner_file, mode="a+").close()
 
         raw_data_validation_path = os.path.join("src", "raw_data_validation")
 
@@ -381,7 +426,9 @@ def create_src_folder():
         rdv_files = ["pred_data_validation.py", "train_data_validation.py"]
 
         for files in rdv_files:
-            open(file=raw_data_validation_path + "/" + files, mode="a+")
+            tmp_file = os.path.join(raw_data_validation_path, files)
+
+            open(file=tmp_file, mode="a+").close()
 
         validation_insertion_path = os.path.join("src", "validation_insertion")
 
@@ -393,23 +440,31 @@ def create_src_folder():
         ]
 
         for files in vi_files:
-            open(file=validation_insertion_path + "/" + files, mode="a+")
+            tmp_file = os.path.join(validation_insertion_path, files)
+
+            open(file=tmp_file, mode="a+").close()
 
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_kmeans_cluster():
-    kmeans_cluster_data = {
-        "kmeans_cluster": {
-            "init": "null",
-            "max_clusters": "null",
-            "knee_locator": {"curve": "null", "direction": "null"},
+    try:
+        kmeans_cluster_data = {
+            "kmeans_cluster": {
+                "init": "null",
+                "max_clusters": "null",
+                "knee_locator": {"curve": "null", "direction": "null"},
+            }
         }
-    }
 
-    with open(file="params.yaml", mode="a+") as f:
-        yaml.dump(kmeans_cluster_data, f)
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(kmeans_cluster_data, f)
+
+            f.close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_utils_folder():
@@ -420,7 +475,7 @@ def create_utils_folder():
 
         logger_file = os.path.join(app_logging_path, "logger.py")
 
-        open(logger_file, mode="a+")
+        open(logger_file, mode="a+").close()
 
         utils_path = "utils"
 
@@ -431,49 +486,65 @@ def create_utils_folder():
         for file in u_files:
             temp = os.path.join(utils_path, file)
 
-            open(temp, mode="a+")
+            open(temp, mode="a+").close()
 
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 def create_knn_data():
-    knn_data = {
-        "knn_imputer": {
-            "n_neighbors": "null",
-            "weights": "null",
+    try:
+        knn_data = {
+            "knn_imputer": {
+                "n_neighbors": "null",
+                "weights": "null",
+            }
         }
-    }
 
-    with open(file="params.yaml", mode="a+") as f:
-        yaml.dump(knn_data, f)
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(knn_data, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_workflows_folder():
-    workflows_path = os.path.join(".github", "workflows")
+    try:
+        workflows_path = os.path.join(".github", "workflows")
 
-    os.makedirs(workflows_path, exist_ok=True)
+        os.makedirs(workflows_path, exist_ok=True)
 
-    ci_file = os.path.join(workflows_path, "ci.yml")
+        ci_file = os.path.join(workflows_path, "ci.yml")
 
-    open(file=ci_file, mode="a+")
+        open(file=ci_file, mode="a+").close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_templates_folder():
-    templates_path = "templates"
+    try:
+        templates_path = "templates"
 
-    os.makedirs(templates_path, exist_ok=True)
+        os.makedirs(templates_path, exist_ok=True)
 
-    index_html_file = os.path.join(templates_path, "index.html")
+        index_html_file = os.path.join(templates_path, "index.html")
 
-    open(index_html_file)
+        open(file=index_html_file, mode="a+").close()
 
-    templates_data = {
-        "templates": {"dir": templates_path, "index_html_file": index_html_file}
-    }
+        templates_data = {
+            "templates": {"dir": templates_path, "index_html_file": index_html_file}
+        }
 
-    with open(file="params.yaml", mode="a+") as f:
-        yaml.dump(templates_data, f)
+        with open(file="params.yaml", mode="a+") as f:
+            yaml.dump(templates_data, f)
+
+        f.close()
+
+    except Exception as e:
+        print(str(e))
 
 
 def create_other_files():
@@ -494,7 +565,9 @@ def create_other_files():
             os.makedirs(folder, exist_ok=True)
 
         for files in other_files:
-            open(file=project_dir + "/" + files, mode="a+")
+            tmp_file = os.path.join(project_dir, files)
+
+            open(file=tmp_file, mode="a+").close()
 
         other_data = {
             "null_values_csv_file": os.path.join(
@@ -509,8 +582,10 @@ def create_other_files():
         with open(file="params.yaml", mode="a+") as f:
             yaml.dump(other_data, f)
 
+        f.close()
+
     except Exception as e:
-        raise e
+        print(str(e))
 
 
 if __name__ == "__main__":
@@ -528,8 +603,6 @@ if __name__ == "__main__":
 
     create_kmeans_cluster()
 
-    create_logs_folder()
-
     create_models_folder()
 
     create_workflows_folder()
@@ -537,6 +610,12 @@ if __name__ == "__main__":
     create_mlflow_config()
 
     create_output_folder()
+
+    create_train_db_logs
+
+    create_pred_db_logs
+
+    create_main_db_logs()
 
     create_src_folder()
 

@@ -1,10 +1,8 @@
-import os
-
 from src.dataTransform.data_transformation_pred import dataTransformPredict
 from src.dataTypeValid.data_type_valid_pred import dBOperation
 from src.raw_data_validation.pred_data_validation import Prediction_Data_validation
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class pred_validation:
@@ -25,11 +23,9 @@ class pred_validation:
 
         self.config = read_params()
 
-        self.pred_log = os.path.join(
-            self.config["log_dir"]["pred_log_dir"], "Prediction_Log.txt"
-        )
+        self.db_name = self.config["db_log"]["db_pred_log"]
 
-        self.file_object = open(self.pred_log, "a+")
+        self.pred_log = self.config["pred_db_log"]["pred_main"]
 
         self.log_writer = App_Logger()
 
@@ -44,7 +40,9 @@ class pred_validation:
         """
         try:
             self.log_writer.log(
-                self.file_object, "Start of Validation on files for prediction!!"
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Start of Validation on files for prediction!!",
             )
 
             (
@@ -64,55 +62,108 @@ class pred_validation:
 
             self.raw_data.validateMissingValuesInWholeColumn()
 
-            self.log_writer.log(self.file_object, "Raw Data Validation Complete!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Raw Data Validation Complete!!",
+            )
 
-            self.log_writer.log(self.file_object, "Starting Data Transforamtion!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Starting Data Transforamtion!!",
+            )
 
             self.dataTransform.replaceMissingWithNull()
 
-            self.log_writer.log(self.file_object, "DataTransformation Completed!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="DataTransformation Completed!!!",
+            )
 
             self.log_writer.log(
-                self.file_object,
-                "Creating Prediction_Database and tables on the basis of given schema!!!",
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Creating Prediction_Database and tables on the basis of given schema!!!",
             )
 
             self.dBOperation.createTableDb("Prediction", column_names)
 
-            self.log_writer.log(self.file_object, "Table creation Completed!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Table creation Completed!!",
+            )
 
             self.log_writer.log(
-                self.file_object, "Insertion of Data into Table started!!!!"
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Insertion of Data into Table started!!!!",
             )
 
             self.dBOperation.insertIntoTableGoodData("Prediction")
 
-            self.log_writer.log(self.file_object, "Insertion in Table completed!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Insertion in Table completed!!!",
+            )
 
-            self.log_writer.log(self.file_object, "Deleting Good Data Folder!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Deleting Good Data Folder!!!",
+            )
 
             self.raw_data.deleteExistingGoodDataTrainingFolder()
 
-            self.log_writer.log(self.file_object, "Good_Data folder deleted!!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Good_Data folder deleted!!!",
+            )
 
             self.log_writer.log(
-                self.file_object,
-                "Moving bad files to Archive and deleting Bad_Data folder!!!",
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Moving bad files to Archive and deleting Bad_Data folder!!!",
             )
 
             self.raw_data.moveBadFilesToArchiveBad()
 
             self.log_writer.log(
-                self.file_object, "Bad files moved to archive!! Bad folder Deleted!!"
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Bad files moved to archive!! Bad folder Deleted!!",
             )
 
-            self.log_writer.log(self.file_object, "Validation Operation completed!!")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Validation Operation completed!!",
+            )
 
-            self.log_writer.log(self.file_object, "Extracting csv file from table")
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Extracting csv file from table",
+            )
 
             self.dBOperation.selectingDatafromtableintocsv("Prediction")
 
         except Exception as e:
             self.log_writer.log(self.file_object, "Error Occurred : " + str(e))
 
-            raise e
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message=f"Exception occured in Class : pred_validation. \
+                    Method : prediction_validation, Error : {str(e)}",
+            )
+
+            raise Exception(
+                "Exception occured in Class : pred_validation. \
+                    Method : prediction_validation, Error : ",
+                str(e),
+            )

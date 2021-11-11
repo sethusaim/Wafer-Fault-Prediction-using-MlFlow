@@ -1,9 +1,8 @@
 import os
-from os import listdir
 
 import pandas
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class dataTransform:
@@ -22,9 +21,9 @@ class dataTransform:
 
         self.logger = App_Logger()
 
-        self.train_data_transform_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "dataTransformLog.txt"
-        )
+        self.db_name = self.config["db_log"]["db_train_log"]
+
+        self.train_data_transform_log = self.config["train_db_log"]["data_transform"]
 
     def replaceMissingWithNull(self):
         """
@@ -36,10 +35,8 @@ class dataTransform:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        log_file = open(self.train_data_transform_log, "a+")
-
         try:
-            onlyfiles = [f for f in listdir(self.goodDataPath)]
+            onlyfiles = [f for f in os.listdir(self.goodDataPath)]
 
             for file in onlyfiles:
                 csv = pandas.read_csv(self.goodDataPath + "/" + file)
@@ -50,11 +47,20 @@ class dataTransform:
 
                 csv.to_csv(self.goodDataPath + "/" + file, index=None, header=True)
 
-                self.logger.log(log_file, " %s: File Transformed successfully!!" % file)
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                    log_message=" %s: File Transformed successfully!!" % file,
+                )
 
         except Exception as e:
-            self.logger.log(log_file, "Data Transformation failed because:: %s" % e)
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_data_transform_log,
+                log_message=f"Exception occured in Class : dataTransform, Method : replaceMissingWithNull, Error : {str(e)}",
+            )
 
-            log_file.close()
-
-        log_file.close()
+            raise Exception(
+                "Exception occured in Class : dataTransform, Method : replaceMissingWithNull, Error : ",
+                str(e),
+            )

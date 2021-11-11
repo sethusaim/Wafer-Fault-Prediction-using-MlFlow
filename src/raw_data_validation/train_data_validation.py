@@ -6,8 +6,8 @@ from datetime import datetime
 from os import listdir
 
 import pandas as pd
-from utils.application_logging.logger import App_Logger
-from utils.main_utils import read_params
+from utils.logger import App_Logger
+from utils.read_params import read_params
 
 
 class Raw_Data_validation:
@@ -27,25 +27,21 @@ class Raw_Data_validation:
 
         self.logger = App_Logger()
 
-        self.train_values_from_schema_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "valuesfromSchemaValidationLog.txt"
-        )
+        self.db_name = self.config["db_log"]["train_db_log"]
 
-        self.train_gen_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "GeneralLog.txt"
-        )
+        self.train_values_from_schema_log = self.config["train_db_log"][
+            "values_from_schema"
+        ]
 
-        self.train_name_valid_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "nameValidationLog.txt"
-        )
+        self.train_gen_log = self.config["train_db_log"]["general"]
 
-        self.train_col_valid_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "columnValidationLog.txt"
-        )
+        self.train_name_valid_log = self.config["train_db_log"]["name_validation"]
 
-        self.train_missing_value_log = os.path.join(
-            self.config["log_dir"]["train_log_dir"], "missingValuesInColumn.txt"
-        )
+        self.train_col_valid_log = self.config["train_db_log"]["col_validation"]
+
+        self.train_missing_value_log = self.config["train_db_log"][
+            "missing_values_in_col"
+        ]
 
     def valuesFromSchema(self):
         """
@@ -60,8 +56,6 @@ class Raw_Data_validation:
             with open(self.schema_path, "r") as f:
                 dic = json.load(f)
 
-                f.close()
-
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
 
             LengthOfTimeStampInFile = dic["LengthOfTimeStampInFile"]
@@ -69,7 +63,6 @@ class Raw_Data_validation:
             column_names = dic["ColName"]
 
             NumberofColumns = dic["NumberofColumns"]
-            file = open(self.train_values_from_schema_log, "a+")
 
             message = (
                 "LengthOfDateStampInFile:: %s" % LengthOfDateStampInFile
@@ -80,38 +73,43 @@ class Raw_Data_validation:
                 + "\n"
             )
 
-            self.logger.log(file, message)
-
-            file.close()
-
-        except ValueError:
-            file = open(self.train_values_from_schema_log, "a+")
-
             self.logger.log(
-                file, "ValueError:Value not found inside schema_training.json"
+                db_name=self.db_name,
+                collection_name=self.train_values_from_schema_log,
+                log_message=message,
             )
 
-            file.close()
+        except ValueError:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_values_from_schema_log,
+                log_message="Exception occured in Class : Raw Data Validation,  \
+                    Method : valuesfromschema, Error : ValueError:Value not found inside schema_training.json",
+            )
 
             raise ValueError
 
         except KeyError:
-            file = open(self.train_values_from_schema_log, "a+")
-
-            self.logger.log(file, "KeyError:Key value error incorrect key passed")
-
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_values_from_schema_log,
+                log_message="Exception occured in class : Raw Data Validation,  \
+                    Method : valuesfromschema, Error : KeyError:Key value error incorrect key passed",
+            )
 
             raise KeyError
 
         except Exception as e:
-            file = open(self.train_values_from_schema_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_values_from_schema_log,
+                log_message=f"Exception occured in Class : Raw Data Validation, \
+                     Method : valuesfromSchema, Error : {str(e)}",
+            )
 
-            self.logger.log(file, str(e))
-
-            file.close()
-
-            raise e
+            raise Exception(
+                f"Exception occured in Class : Raw Data Validation,Method : valuesfromSchema, Error : {str(e)}"
+            )
 
         return (
             LengthOfDateStampInFile,
@@ -135,13 +133,17 @@ class Raw_Data_validation:
             return regex
 
         except Exception as e:
-            file = open(self.train_gen_log, mode="a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+                log_message=f"Exception occured in Class : Raw_data_validation, \
+                    Method :manualRegexCreation, Error : {str(e)}",
+            )
 
-            self.logger.log(file, "Error Occured in regex creation " + str(e))
-
-            file.close()
-
-            raise e
+            raise Exception(
+                "Exception occured in Class : Raw_data_validation,Method :manualRegexCreation, Error :",
+                str(e),
+            )
 
     def createDirectoryForGoodBadRawData(self):
         """
@@ -164,14 +166,19 @@ class Raw_Data_validation:
             if not os.path.isdir(path):
                 os.makedirs(path)
 
-        except Exception as ex:
+        except Exception as e:
             file = open(self.train_gen_log, "a+")
 
-            self.logger.log(file, "Error while creating Directory %s:" % ex)
+            self.logger.log(file, "Error while creating Directory %s:" % e)
 
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+                log_message=f"Exception occured in Class : Raw_data_validation, \
+                    Method : createDirectoryForGoodBadRawData, Error : {str(e)}",
+            )
 
-            raise ex
+            raise e
 
     def deleteExistingGoodDataTrainingFolder(self):
         """
@@ -190,20 +197,25 @@ class Raw_Data_validation:
             if os.path.isdir(path):
                 shutil.rmtree(path)
 
-                file = open(self.train_gen_log, "a+")
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_gen_log,
+                    log_message="GoodRaw directory deleted successfully!!!",
+                )
 
-                self.logger.log(file, "GoodRaw directory deleted successfully!!!")
+        except Exception as e:
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+                log_message=f"Exception occured in Class : Raw_data_validation, \
+                    Method : deleteExistingGoodDataTrainingFolder, Error : {str(e)}",
+            )
 
-                file.close()
-
-        except Exception as s:
-            file = open(self.train_gen_log, "a+")
-
-            self.logger.log(file, "Error while Deleting Directory : %s" % s)
-
-            file.close()
-
-            raise s
+            raise Exception(
+                "Exception occured in Class : Raw_data_validation, \
+                    Method : deleteExistingGoodDataTrainingFolder, Error : ",
+                str(e),
+            )
 
     def deleteExistingBadDataTrainingFolder(self):
         """
@@ -222,22 +234,25 @@ class Raw_Data_validation:
             if os.path.isdir(path):
                 shutil.rmtree(path)
 
-                file = open(self.train_gen_log, "a+")
-
                 self.logger.log(
-                    file, "BadRaw directory deleted before starting validation!!!"
+                    db_name=self.db_name,
+                    collection_name=self.train_gen_log,
+                    log_message="BadRaw directory deleted before starting validation!!!",
                 )
 
-                file.close()
-
-        except Exception as s:
+        except Exception as e:
             file = open(self.train_gen_log, "a+")
 
-            self.logger.log(file, "Error while Deleting Directory : %s" % s)
+            self.logger.log(file, "Error while Deleting Directory : %s" % e)
 
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+                log_message=f"Exception occured in Class : Raw_data_validation, \
+                    Method : deleteExistingBadDataTrainingFolder, Exception occured : {str(e)}",
+            )
 
-            raise s
+            raise e
 
     def moveBadFilesToArchiveBad(self):
         """
@@ -279,27 +294,39 @@ class Raw_Data_validation:
                     if f not in os.listdir(dest):
                         shutil.move(source + "/" + f, dest)
 
-                file = open(self.train_gen_log, "a+")
-
-                self.logger.log(file, "Bad files moved to archive")
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_gen_log,
+                    log_message="Bad files moved to archive",
+                )
 
                 path = self.config["data"]["bad"]["train"]
 
                 if os.path.isdir(path):
                     shutil.rmtree(path)
 
-                self.logger.log(file, "Bad Raw Data Folder Deleted successfully!!")
-
-                file.close()
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_gen_log,
+                    log_message="Bad Raw Data Folder Deleted successfully!!",
+                )
 
         except Exception as e:
             file = open(self.train_gen_log, "a+")
 
             self.logger.log(file, "Error while moving bad files to archive:: %s" % e)
 
-            file.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+                log_message=f"Exception occured in class : Raw_data_validation \
+                    Method : moveBadFilesToArchiveBad, Error : {str(e)}",
+            )
 
-            raise e
+            raise Exception(
+                "Exception occured in class : Raw_data_validation,, Method : moveBadFilesToArchiveBad, Error :",
+                str(e),
+            )
 
     def validationFileNameRaw(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
@@ -323,15 +350,13 @@ class Raw_Data_validation:
         onlyfiles = [f for f in listdir(self.Batch_Directory)]
 
         try:
-            f = open(self.train_name_valid_log, "a+")
-
             for filename in onlyfiles:
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
+
                     splitAtDot = re.split("_", splitAtDot[0])
 
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
-
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
                             shutil.copy(
                                 self.config["data_source"]["train_data_source"]
@@ -341,8 +366,9 @@ class Raw_Data_validation:
                             )
 
                             self.logger.log(
-                                f,
-                                "Valid File name!! File moved to GoodRaw Folder :: %s"
+                                db_name=self.db_name,
+                                collection_name=self.train_name_valid_log,
+                                log_message="Valid File name!! File moved to GoodRaw Folder :: %s"
                                 % filename,
                             )
 
@@ -355,8 +381,9 @@ class Raw_Data_validation:
                             )
 
                             self.logger.log(
-                                f,
-                                "Invalid File Name!! File moved to Bad Raw Folder :: %s"
+                                db_name=self.db_name,
+                                collection_name=self.train_name_valid_log,
+                                log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
                                 % filename,
                             )
 
@@ -369,8 +396,9 @@ class Raw_Data_validation:
                         )
 
                         self.logger.log(
-                            f,
-                            "Invalid File Name!! File moved to Bad Raw Folder :: %s"
+                            db_name=self.db_name,
+                            collection_name=self.train_name_valid_log,
+                            log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
                             % filename,
                         )
 
@@ -383,21 +411,29 @@ class Raw_Data_validation:
                     )
 
                     self.logger.log(
-                        f,
-                        "Invalid File Name!! File moved to Bad Raw Folder :: %s"
+                        db_name=self.db_name,
+                        collection_name=self.train_name_valid_log,
+                        log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
                         % filename,
                     )
-
-            f.close()
 
         except Exception as e:
             f = open(self.train_name_valid_log, "a+")
 
-            self.logger.log(f, "Error occured while validating FileName %s" % e)
+            self.logger.log(f, "Exception occured while validating FileName %s" % e)
 
-            f.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_name_valid_log,
+                log_message=f"Exception occured in Class : Raw_data_validation \
+                    Method : validationFileNameRaw, Error : {str(e)} ",
+            )
 
-            raise e
+            raise Exception(
+                "Exception occured in Class : Raw_data_validation \
+                    Method : validationFileNameRaw, Error : ",
+                str(e),
+            )
 
     def validateColumnLength(self, NumberofColumns):
         """
@@ -415,7 +451,11 @@ class Raw_Data_validation:
         try:
             f = open(self.train_col_valid_log, "a+")
 
-            self.logger.log(f, "Column Length Validation Started!!")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_col_valid_log,
+                log_message="Column Length Validation Started!!",
+            )
 
             for file in listdir(self.config["data"]["good"]["train"]):
                 csv = pd.read_csv(self.config["data"]["good"]["train"] + "/" + file)
@@ -430,21 +470,30 @@ class Raw_Data_validation:
                     )
 
                     self.logger.log(
-                        f,
-                        "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
+                        db_name=self.db_name,
+                        collection_name=self.train_col_valid_log,
+                        log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
                         % file,
                     )
 
-            self.logger.log(f, "Column Length Validation Completed!!")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_col_valid_log,
+                log_message="Column Length Validation Completed!!",
+            )
 
         except Exception as e:
-            f = open(self.train_col_valid_log, "a+")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_col_valid_log,
+                log_message=f"Exception occured in Class : Raw_data_validation, \
+                    Method : validateColumnLength, Error : {str(e)}",
+            )
 
-            self.logger.log(f, "Error Occured:: %s" % e)
-
-            f.close()
-
-            raise e
+            raise Exception(
+                "Exception occured in Class : Raw_data_validation, Method : validateColumnLength, Error :",
+                str(e),
+            )
 
     def validateMissingValuesInWholeColumn(self):
         """
@@ -459,7 +508,11 @@ class Raw_Data_validation:
         try:
             f = open(self.train_missing_value_log, "a+")
 
-            self.logger.log(f, "Missing Values Validation Started!!")
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_missing_value_log,
+                log_message="Missing Values Validation Started!!",
+            )
 
             for file in listdir(self.config["data"]["good"]["train"]):
                 csv = pd.read_csv(self.config["data"]["good"]["train"] + "/" + file)
@@ -476,8 +529,9 @@ class Raw_Data_validation:
                         )
 
                         self.logger.log(
-                            f,
-                            "Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
+                            db_name=self.db_name,
+                            collection_name=self.train_missing_value_log,
+                            log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
                             % file,
                         )
 
@@ -497,6 +551,15 @@ class Raw_Data_validation:
 
             self.logger.log(f, "Error Occured:: %s" % e)
 
-            f.close()
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_missing_value_log,
+                log_message=f"Exception occured in class Raw_data_validation, \
+                    Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
+            )
 
-            raise e
+            raise Exception(
+                "Exception occured in class Raw_data_validation, \
+                    Method : validateMissingValuesInWholeColumn, Error : ",
+                str(e),
+            )
