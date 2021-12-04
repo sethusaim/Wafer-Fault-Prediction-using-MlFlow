@@ -142,15 +142,29 @@ class trainModel:
                         log_message="Set the remote server uri",
                     )
 
-                    mlflow.set_experiment(
-                        experiment_name=self.config["mlflow_config"]["experiment_name"]
-                    )
+                    s3_bucket = self.config["mlflow_config"]["s3_bucket"]
 
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message=f"Experiment name has been set to {self.config['mlflow_config']['experiment_name']}",
-                    )
+                    exp_name = self.config["mlflow_config"]["experiment_name"]
+
+                    try:
+                        mlflow.create_experiment(
+                            name=exp_name, artifact_location=s3_bucket
+                        )
+
+                        self.log_writer.log(
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                            log_message=f"Created experiment with name {self.config['mlflow_config']['experiment_name']}",
+                        )
+
+                    except:
+                        mlflow.get_experiment_by_name(name=exp_name)
+
+                        self.log_writer.log(
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                            log_message=f"Got the experiment name {self.config['mlflow_config']['experiment_name']}",
+                        )
 
                     self.log_writer.log(
                         db_name=self.db_name,

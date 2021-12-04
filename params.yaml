@@ -91,16 +91,17 @@ model_params:
     
 mlflow_config:
   experiment_name : wafer-test-demo
-  remote_server_uri : 
+  remote_server_uri : http://ec2-3-87-213-181.compute-1.amazonaws.com
   run_name : mlops
   serialization_format : cloudpickle
-  artifacts_path : s3://test-aiops-demo
+  s3_bucket : s3://test-demo-aiops
+  artifacts_path: artifacts
   exp_id : 1
   num_of_prod_models : 3
 
 db_log:
-  db_train_log : training_logs
-  db_pred_log : prediction_logs
+  db_train_log : wafer-training_logs
+  db_pred_log : wafer-prediction_logs
 
 
 train_db_log:
