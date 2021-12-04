@@ -6,6 +6,11 @@ from src.data_preprocessing.preprocessing import Preprocessor
 from src.file_operations.file_methods import File_Operation
 from src.model_finder.tuner import Model_Finder
 from utils.logger import App_Logger
+from utils.main_utils import (
+    log_metric_to_mlflow,
+    log_model_to_mlflow,
+    log_param_to_mlflow,
+)
 from utils.read_params import read_params
 
 
@@ -157,189 +162,97 @@ class trainModel:
                     with mlflow.start_run(
                         run_name=self.config["mlflow_config"]["run_name"]
                     ):
-                        mlflow.sklearn.log_model(
-                            sk_model=kmeans_model,
-                            serialization_format=self.config["mlflow_config"][
-                                "serialization_format"
-                            ],
-                            registered_model_name=self.config["model_names"][
-                                "kmeans_model_name"
-                            ],
-                            artifact_path=self.config["mlflow_config"][
-                                "artifacts_path"
-                            ],
-                        )
-
-                        self.log_writer.log(
+                        log_model_to_mlflow(
+                            model=kmeans_model,
+                            model_name=self.config["model_names"]["kmeans_model_name"],
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
-                            log_message="Logged kmeans model in mlflow",
                         )
 
-                        mlflow.log_param(
-                            key=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + "-learning_rate",
-                            value=xgb_model.learning_rate,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " learning rate logged in mlflow",
-                        )
-
-                        mlflow.log_param(
-                            key=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + "-max_depth",
-                            value=xgb_model.max_depth,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " max_depth logged in mlflow",
-                        )
-
-                        mlflow.log_param(
-                            key=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + "-n_estimators",
-                            value=xgb_model.n_estimators,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " n_estimators logged in mlflow",
-                        )
-
-                        mlflow.log_param(
-                            key=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + "-criterion",
-                            value=rf_model.criterion,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " criterion logged in mlflow",
-                        )
-
-                        mlflow.log_param(
-                            key=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + "-max_depth",
-                            value=rf_model.max_depth,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + "-max_features logge in mlflow",
-                        )
-
-                        mlflow.log_param(
-                            key=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + "-n_estimators",
-                            value=rf_model.n_estimators,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " n_estimators logged in mlflow",
-                        )
-
-                        mlflow.log_metric(
-                            self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + "-best_score",
-                            xgb_model_score,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " best_score in mlflow",
-                        )
-
-                        mlflow.log_metric(
-                            self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + "-best_score",
-                            rf_model_score,
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " best_score logged in mlflow",
-                        )
-
-                        mlflow.sklearn.log_model(
-                            sk_model=xgb_model,
-                            serialization_format=self.config["mlflow_config"][
-                                "serialization_format"
-                            ],
-                            registered_model_name=self.config["model_names"][
-                                "xgb_model_name"
-                            ]
+                        log_param_to_mlflow(
+                            model=xgb_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
-                            artifact_path=self.config["mlflow_config"][
-                                "artifacts_path"
-                            ],
-                        )
-
-                        self.log_writer.log(
+                            param_name="learning_rate",
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
-                            log_message="Logged "
-                            + self.config["model_names"]["xgb_model_name"]
-                            + str(i)
-                            + " in mlflow",
                         )
 
-                        mlflow.sklearn.log_model(
-                            sk_model=rf_model,
-                            serialization_format=self.config["mlflow_config"][
-                                "serialization_format"
-                            ],
-                            registered_model_name=self.config["model_names"][
-                                "rf_model_name"
-                            ]
+                        log_param_to_mlflow(
+                            model=xgb_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
-                            artifact_path=self.config["mlflow_config"][
-                                "artifacts_path"
-                            ],
-                        )
-
-                        self.log_writer.log(
+                            param_name="max_depth",
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
-                            log_message="Logged "
-                            + self.config["model_names"]["rf_model_name"]
-                            + str(i)
-                            + " in mlflow",
+                        )
+
+                        log_param_to_mlflow(
+                            model=xgb_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            param_name="n_estimators",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_param_to_mlflow(
+                            model=rf_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            param_name="criterion",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_param_to_mlflow(
+                            model=rf_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            param_name="max_features",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_param_to_mlflow(
+                            model=rf_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            param_name="n_estimators",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_metric_to_mlflow(
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            metric=xgb_model_score,
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_metric_to_mlflow(
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            metric=rf_model_score,
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_model_to_mlflow(
+                            model=xgb_model,
+                            model_name=self.config["model_names"]["xgb_model_name"]
+                            + str(i),
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
+
+                        log_model_to_mlflow(
+                            model=rf_model,
+                            model_name=self.config["model_names"]["rf_model_name"]
+                            + str(i),
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
                         )
 
                         self.log_writer.log(

@@ -56,12 +56,14 @@ class LoadProdModel:
                 log_message="Started searching for runs in mlflow with experiment ids as 1",
             )
 
-            runs = mlflow.search_runs(experiment_ids=1)
+            runs = mlflow.search_runs(
+                experiment_ids=self.config["mlflow_config"]["exp_id"]
+            )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message="Completed searchiing for runs in mlflow with experiment ids as 1",
+                log_message=f"Completed searchiing for runs in mlflow with experiment ids as {self.config['mlflow_config']['exp_id']}",
             )
 
             cols, top_mn_lst = [], []

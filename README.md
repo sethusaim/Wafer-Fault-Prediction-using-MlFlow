@@ -38,7 +38,7 @@ Before running the project atleast in local environment (personal pc or laptop)
 run this command in new terminal, basically run the mlflow server.
 
 ```bash
-mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root artifacts --host 0.0.0.0 -p 5000
+mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root s3://test-aiops-demo/ --host 0.0.0.0 -p 5000
 ```
 After running the mlflow server in new terminal, open another terminal and run the following command, since we are using fastapi. The command to run the application will change a bit
 
