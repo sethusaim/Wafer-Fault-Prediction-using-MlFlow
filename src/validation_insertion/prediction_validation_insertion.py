@@ -25,7 +25,7 @@ class pred_validation:
 
         self.db_name = self.config["db_log"]["db_pred_log"]
 
-        self.pred_log = self.config["pred_db_log"]["pred_main"]
+        self.pred_main_log = self.config["pred_db_log"]["pred_main"]
 
         self.log_writer = App_Logger()
 
@@ -41,7 +41,7 @@ class pred_validation:
         try:
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Start of Validation on files for prediction!!",
             )
 
@@ -64,13 +64,13 @@ class pred_validation:
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Raw Data Validation Complete!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Starting Data Transforamtion!!",
             )
 
@@ -78,13 +78,13 @@ class pred_validation:
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="DataTransformation Completed!!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Creating Prediction_Database and tables on the basis of given schema!!!",
             )
 
@@ -92,13 +92,13 @@ class pred_validation:
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Table creation Completed!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Insertion of Data into Table started!!!!",
             )
 
@@ -106,13 +106,13 @@ class pred_validation:
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Insertion in Table completed!!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Deleting Good Data Folder!!!",
             )
 
@@ -120,13 +120,13 @@ class pred_validation:
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Good_Data folder deleted!!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Moving bad files to Archive and deleting Bad_Data folder!!!",
             )
 
@@ -134,19 +134,19 @@ class pred_validation:
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Bad files moved to archive!! Bad folder Deleted!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Validation Operation completed!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message="Extracting csv file from table",
             )
 
@@ -155,7 +155,7 @@ class pred_validation:
         except Exception as e:
             self.log_writer.log(
                 db_name=self.db_name,
-                collection_name=self.pred_log,
+                collection_name=self.pred_main_log,
                 log_message=f"Exception occured in Class : pred_validation. \
                     Method : prediction_validation, Error : {str(e)}",
             )

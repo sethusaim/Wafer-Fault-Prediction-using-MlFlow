@@ -28,9 +28,7 @@ class Raw_Data_validation:
 
         self.db_name = self.config["db_log"]["db_train_log"]
 
-        self.train_values_from_schema_log = self.config["train_db_log"][
-            "values_from_schema"
-        ]
+        self.train_schema_log = self.config["train_db_log"]["values_from_schema"]
 
         self.train_gen_log = self.config["train_db_log"]["general"]
 
@@ -74,7 +72,7 @@ class Raw_Data_validation:
 
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_values_from_schema_log,
+                collection_name=self.train_schema_log,
                 log_message=message,
             )
 
@@ -83,7 +81,7 @@ class Raw_Data_validation:
         except ValueError:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_values_from_schema_log,
+                collection_name=self.train_schema_log,
                 log_message="Exception occured in Class : Raw Data Validation,  \
                     Method : valuesfromschema, Error : ValueError:Value not found inside schema_training.json",
             )
@@ -95,7 +93,7 @@ class Raw_Data_validation:
         except KeyError:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_values_from_schema_log,
+                collection_name=self.train_schema_log,
                 log_message="Exception occured in class : Raw Data Validation,  \
                     Method : valuesfromschema, Error : KeyError:Key value error incorrect key passed",
             )
@@ -105,7 +103,7 @@ class Raw_Data_validation:
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_values_from_schema_log,
+                collection_name=self.train_schema_log,
                 log_message=f"Exception occured in Class : Raw Data Validation, \
                      Method : valuesfromSchema, Error : {str(e)}",
             )

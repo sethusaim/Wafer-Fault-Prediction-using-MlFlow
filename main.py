@@ -76,10 +76,7 @@ async def predictRouteClient(request: Request):
 
             pred = prediction(path)
 
-            (
-                path,
-                json_predictions,
-            ) = pred.predictionFromModel()
+            path, json_predictions = pred.predictionFromModel()
 
             return Response(
                 "Prediction File created at !!!"

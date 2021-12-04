@@ -48,6 +48,7 @@ model_params:
   cv      : 5
   n_jobs  : -1
   num_of_prod_models : 3
+  save_format : .sav
 
   rf_model:
     n_estimators:
@@ -90,12 +91,11 @@ model_params:
       - 200
     
 mlflow_config:
-  experiment_name   : wafer
-  remote_server_uri : http://0.0.0.0:5000
-  run_name          : mlops
+  experiment_name : wafer-test-demo
+  remote_server_uri : 
+  run_name : mlops
   serialization_format : cloudpickle
-  artifacts_path : artifacts
-
+  artifacts_path : s3://test-aiops-demo
 
 db_log:
   db_train_log : training_logs
@@ -104,7 +104,7 @@ db_log:
 
 train_db_log:
   model_training : modelTrainingLog
-  col_validation : columnValidationLog
+  col_validation : columnValidationLogs
   db_conn: databaseConnectionLog
   data_transform : dataTransform
   db_insert : dbInsertLog
@@ -152,8 +152,6 @@ model_names:
   rf_model_name : RandomForest
   kmeans_model_name : KMeans
   
-model_save_format : .sav
-
 elbow_plot_fig : data/preprocessing_data/K-Means_Elbow.PNG
 
 null_values_csv_file : data/preprocessing_data/null_values.csv
@@ -165,5 +163,3 @@ export_csv_file_name : InputFile.csv
 templates:
   dir : templates
   index_html_file : index.html
-
-  

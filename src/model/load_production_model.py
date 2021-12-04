@@ -192,16 +192,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                     if mv.name in top_mn_lst:
                         current_version = mv.version
 
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Started transitioning "
-                            + mv.name
-                            + " with version "
-                            + current_version
-                            + " into production",
-                        )
-
                         client.transition_model_version_stage(
                             name=mv.name, version=current_version, stage="Production"
                         )
@@ -281,16 +271,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                     else:
                         current_version = mv.version
 
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Started transitioning "
-                            + mv.name
-                            + " with version "
-                            + current_version
-                            + " into staging",
-                        )
-
                         client.transition_model_version_stage(
                             name=mv.name, version=current_version, stage="Staging"
                         )
@@ -301,14 +281,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             log_message="Transitioned "
                             + mv.name
                             + "to staging in mlflow",
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Started copying "
-                            + mv.name
-                            + " from trained model folder to stag model folder",
                         )
 
                         self.stag_model_file = os.path.join(

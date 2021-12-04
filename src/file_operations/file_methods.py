@@ -27,7 +27,7 @@ class File_Operation:
 
         self.prod_model_dir = self.config["models_dir"]["prod_models_dir"]
 
-        self.file_format = self.config["model_save_format"]
+        self.file_format = self.config["model_params"]["save_format"]
 
     def save_model(self, model, filename):
         """
