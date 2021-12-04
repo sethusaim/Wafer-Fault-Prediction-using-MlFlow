@@ -1,5 +1,3 @@
-import os
-
 import mlflow
 
 from utils.logger import App_Logger
@@ -16,10 +14,7 @@ def log_model_to_mlflow(model, model_name, db_name, collection_name):
             sk_model=model,
             serialization_format=config["mlflow_config"]["serialization_format"],
             registered_model_name=model_name,
-            artifact_path=os.path.join(
-                config["mlflow_config"]["artifacts_path"],
-                model_name, 
-            ),
+            artifact_path=model_name,
         )
 
         log_writter.log(

@@ -185,6 +185,30 @@ class trainModel:
 
                         log_param_to_mlflow(
                             model=xgb_model,
+                            model_name=self.config["model_names"]["xgb_model_name"],
+                            param_name="learning_Rate",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log
+                        )
+
+                        log_param_to_mlflow(
+                            model=xgb_model,
+                            model_name=self.config["model_names"]["xgb_model_name"],
+                            param_name="max_depth",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log
+                        )
+
+                        log_param_to_mlflow(
+                            model=xgb_model,
+                            model_name=self.config["model_names"]["xgb_model_name"],
+                            param_name="n_estimators",
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log                            
+                        )
+
+                        log_param_to_mlflow(
+                            model=xgb_model,
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
                             param_name="learning_rate",

@@ -100,8 +100,8 @@ mlflow_config:
   num_of_prod_models : 3
 
 db_log:
-  db_train_log : wafer-training_logs
-  db_pred_log : wafer-prediction_logs
+  db_train_log : wafer_training_logs
+  db_pred_log : wafer_prediction_logs
 
 
 train_db_log:
