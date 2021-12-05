@@ -54,9 +54,9 @@ async def trainRouteClient():
 
         num_clusters = trainModelObj.trainingModel()
 
-        loadProdModelObj = LoadProdModel()
+        loadProdModelObj = LoadProdModel(num_clusters=num_clusters)
 
-        loadProdModelObj.load_production_model(num_clusters)
+        loadProdModelObj.load_production_model()
 
     except Exception as e:
         return "Error Occurred! %s" % e

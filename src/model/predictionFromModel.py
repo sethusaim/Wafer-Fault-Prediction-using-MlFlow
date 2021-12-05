@@ -1,7 +1,5 @@
 import pandas as pd
-from src.data_preprocessing.data_ingestion.data_loader_prediction import (
-    Data_Getter_Pred,
-)
+from src.data_ingestion.data_loader_prediction import Data_Getter_Pred
 from src.data_preprocessing.preprocessing import Preprocessor
 from src.file_operations.file_methods import File_Operation
 from src.raw_data_validation.pred_data_validation import Prediction_Data_validation

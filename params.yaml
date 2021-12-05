@@ -25,7 +25,7 @@ data:
     train : data/train/archived  
     pred : data/pred/archived
 
-mongodb_url: localhost:27017
+mongodb_url: 
 
 knn_imputer:
   n_neighbors : 3
@@ -91,12 +91,9 @@ model_params:
     
 mlflow_config:
   experiment_name : wafer-test-demo
-  remote_server_uri : http://ec2-3-87-213-181.compute-1.amazonaws.com
+  remote_server_uri : 
   run_name : mlops
   serialization_format : cloudpickle
-  s3_bucket : s3://test-demo-aiops
-  artifacts_path: artifacts
-  exp_id : 1
   num_of_prod_models : 3
 
 db_log:

@@ -1,7 +1,7 @@
 import mlflow
 from sklearn.model_selection import train_test_split
+from src.data_ingestion.data_loader_train import Data_Getter
 from src.data_preprocessing.clustering import KMeansClustering
-from src.data_preprocessing.data_ingestion.data_loader_train import Data_Getter
 from src.data_preprocessing.preprocessing import Preprocessor
 from src.file_operations.file_methods import File_Operation
 from src.model_finder.tuner import Model_Finder
@@ -142,29 +142,9 @@ class trainModel:
                         log_message="Set the remote server uri",
                     )
 
-                    s3_bucket = self.config["mlflow_config"]["s3_bucket"]
-
-                    exp_name = self.config["mlflow_config"]["experiment_name"]
-
-                    try:
-                        mlflow.create_experiment(
-                            name=exp_name, artifact_location=s3_bucket
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=f"Created experiment with name {self.config['mlflow_config']['experiment_name']}",
-                        )
-
-                    except:
-                        mlflow.get_experiment_by_name(name=exp_name)
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message=f"Got the experiment name {self.config['mlflow_config']['experiment_name']}",
-                        )
+                    mlflow.set_experiment(
+                        experiment_name=self.config["mlflow_config"]["experiment_name"]
+                    )
 
                     self.log_writer.log(
                         db_name=self.db_name,
@@ -186,9 +166,9 @@ class trainModel:
                         log_param_to_mlflow(
                             model=xgb_model,
                             model_name=self.config["model_names"]["xgb_model_name"],
-                            param_name="learning_Rate",
+                            param_name="learning_rate",
                             db_name=self.db_name,
-                            collection_name=self.model_train_log
+                            collection_name=self.model_train_log,
                         )
 
                         log_param_to_mlflow(
@@ -196,22 +176,13 @@ class trainModel:
                             model_name=self.config["model_names"]["xgb_model_name"],
                             param_name="max_depth",
                             db_name=self.db_name,
-                            collection_name=self.model_train_log
+                            collection_name=self.model_train_log,
                         )
 
                         log_param_to_mlflow(
                             model=xgb_model,
                             model_name=self.config["model_names"]["xgb_model_name"],
                             param_name="n_estimators",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log                            
-                        )
-
-                        log_param_to_mlflow(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            param_name="learning_rate",
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
                         )
@@ -252,11 +223,10 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
-                            model=rf_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
+                        log_metric_to_mlflow(
+                            model_name=self.config["model_names"]["xgb_model_name"]
                             + str(i),
-                            param_name="n_estimators",
+                            metric=float(xgb_model_score),
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
                         )
@@ -264,15 +234,7 @@ class trainModel:
                         log_metric_to_mlflow(
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
-                            metric=xgb_model_score,
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_metric_to_mlflow(
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            metric=rf_model_score,
+                            metric=float(rf_model_score),
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
                         )

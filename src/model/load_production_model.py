@@ -4,7 +4,7 @@ import shutil
 import mlflow
 from mlflow.tracking import MlflowClient
 from utils.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class LoadProdModel:
@@ -15,16 +15,18 @@ class LoadProdModel:
     Revisions   :   None
     """
 
-    def __init__(self):
+    def __init__(self, num_clusters):
         self.log_writer = App_Logger()
 
         self.config = read_params()
+
+        self.num_clusters = num_clusters
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
 
         self.db_name = self.config["db_log"]["db_train_log"]
 
-    def load_production_model(self, num_clusters):
+    def load_production_model(self):
         """
         Method Name :   load_production_model
         Description :   This method is responsible for moving the models from the trained models dir to
@@ -44,26 +46,24 @@ class LoadProdModel:
 
             mlflow.set_tracking_uri(remote_server_uri)
 
+            client = MlflowClient(tracking_uri=remote_server_uri)
+
+            exp = client.get_experiment_by_name(
+                name=self.config["mlflow_config"]["experiment_name"]
+            )
+
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
                 log_message="Set remote server uri",
             )
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Started searching for runs in mlflow with experiment ids as 1",
-            )
-
-            runs = mlflow.search_runs(
-                experiment_ids=self.config["mlflow_config"]["exp_id"]
-            )
+            runs = mlflow.search_runs(experiment_ids=exp.experiment_id)
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message=f"Completed searchiing for runs in mlflow with experiment ids as {self.config['mlflow_config']['exp_id']}",
+                log_message=f"Completed searchiing for runs in mlflow with experiment ids as {exp.experiment_id}",
             )
 
             cols, top_mn_lst = [], []
@@ -79,13 +79,7 @@ class LoadProdModel:
             Eg- metrics.XGBoost1-best_score
             """
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Started finding all the registered models based on the metrics",
-            )
-
-            for i in range(0, num_clusters):
+            for i in range(0, self.num_clusters):
                 for model in self.config["model_names"].values():
                     if model != self.config["model_names"]["kmeans_model_name"]:
                         temp = "metrics." + str(model) + str(i) + "-best_score"
@@ -139,17 +133,15 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 runs[cols]
                 .max()
                 .sort_values(ascending=False)[
-                    : self.config["model_params"]["num_of_prod_models"]
+                    : self.config["mlflow_config"]["num_of_prod_models"]
                 ]
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message="Got top 3 model names based on the metrics",
+                log_message=f"Got top {self.config['mlflow_config']['num_of_prod_models']} model names based on the metrics",
             )
-
-            client = MlflowClient()
 
             ## best_metrics will store the value of metrics, but we want the names of the models,
             ## so best_metrics.index will return the name of the metric as registered in mlflow
@@ -157,12 +149,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             ## Eg. metrics.XGBoost1-best_score
 
             ## top_mn_lst - will store the top 3 model names
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Getting the top 3 model names",
-            )
 
             for mn in best_metrics.index:
                 top_mn = mn.split("-")[0].split(".")[1]
@@ -175,13 +161,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message="Got top 3 models based on the model names",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Started transitioning the models based on the results obtained",
+                log_message=f"Got the top {self.config['mlflow_config']['num_of_prod_models']} model names",
             )
 
             ## results - This will store all the registered models in mlflow
@@ -218,7 +198,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
 
                         self.prod_model_file = os.path.join(
                             self.config["models_dir"]["trained_models_dir"],
-                            mv.name + self.config["model_save_format"],
+                            mv.name + self.config["model_params"]["save_format"],
                         )
 
                         shutil.copy(
@@ -254,7 +234,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
 
                         self.kmeans_model_file = os.path.join(
                             self.config["models_dir"]["trained_models_dir"],
-                            mv.name + self.config["model_save_format"],
+                            mv.name + self.config["model_params"]["save_format"],
                         )
 
                         shutil.copy(
@@ -287,7 +267,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
 
                         self.stag_model_file = os.path.join(
                             self.config["models_dir"]["trained_models_dir"],
-                            mv.name + self.config["model_save_format"],
+                            mv.name + self.config["model_params"]["save_format"],
                         )
 
                         shutil.copy(
