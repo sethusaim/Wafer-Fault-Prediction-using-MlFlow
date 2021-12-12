@@ -163,15 +163,11 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            path = self.good_train_data_path
+            if not os.path.isdir(self.good_train_data_path):
+                os.makedirs(self.good_train_data_path)
 
-            if not os.path.isdir(path):
-                os.makedirs(path)
-
-            path = self.bad_train_data_path
-
-            if not os.path.isdir(path):
-                os.makedirs(path)
+            if not os.path.isdir(self.bad_train_data_path):
+                os.makedirs(self.bad_train_data_path)
 
         except Exception as e:
             self.logger.log(
@@ -199,10 +195,8 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            path = self.good_train_data_path
-
-            if os.path.isdir(path):
-                shutil.rmtree(path)
+            if os.path.isdir(self.good_train_data_path):
+                shutil.rmtree(self.good_train_data_path)
 
                 self.logger.log(
                     db_name=self.db_name,
@@ -236,10 +230,8 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            path = self.bad_train_data_path
-
-            if os.path.isdir(path):
-                shutil.rmtree(path)
+            if os.path.isdir(self.bad_train_data_path):
+                shutil.rmtree(self.bad_train_data_path)
 
                 self.logger.log(
                     db_name=self.db_name,
@@ -287,10 +279,7 @@ class Raw_Data_validation:
                 if not os.path.isdir(path):
                     os.makedirs(path)
 
-                dest = os.path.join(
-                    self.archived_train_data_path,
-                    "BadData_" + str(date) + "_" + str(time),
-                )
+                dest = os.path.join(self.archived_train_data_path,"BadData_" + str(date) + "_" + str(time))
 
                 if not os.path.isdir(dest):
                     os.makedirs(dest)
