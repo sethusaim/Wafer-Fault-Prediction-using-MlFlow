@@ -4,11 +4,11 @@ import boto3
 def get_file_from_s3(bucket):
     s3 = boto3.resource("s3")
 
-    bucket = s3.Bucket("test-wafer")
+    s3_bucket = s3.Bucket(bucket)
 
-    for obj in bucket.objects.all():
+    for obj in s3_bucket.objects.all():
         key = obj.key
 
-        schema = obj.get()["Body"].read().decode()
+        file_content = obj.get()["Body"].read().decode()
 
-        return schema, key
+    return file_content

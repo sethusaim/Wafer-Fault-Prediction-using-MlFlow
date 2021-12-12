@@ -1,8 +1,8 @@
-from src.dataTransform.data_transformation_train import dataTransform
-from src.dataTypeValid.data_type_valid_train import dBOperation
-from src.raw_data_validation.train_data_validation import Raw_Data_validation
 from utils.logger import App_Logger
 from utils.read_params import read_params
+from wafer.dataTransform.data_transformation_train import dataTransform
+from wafer.dataTypeValid.data_type_valid_train import dBOperation
+from wafer.raw_data_validation.train_data_validation import Raw_Data_validation
 
 
 class train_validation:

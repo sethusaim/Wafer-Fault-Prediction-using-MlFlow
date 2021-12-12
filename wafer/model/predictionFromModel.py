@@ -1,10 +1,10 @@
 import pandas as pd
-from src.data_ingestion.data_loader_prediction import Data_Getter_Pred
-from src.data_preprocessing.preprocessing import Preprocessor
-from src.file_operations.file_methods import File_Operation
-from src.raw_data_validation.pred_data_validation import Prediction_Data_validation
 from utils.logger import App_Logger
 from utils.read_params import read_params
+from wafer.data_ingestion.data_loader_prediction import Data_Getter_Pred
+from wafer.data_preprocessing.preprocessing import Preprocessor
+from wafer.file_operations.file_methods import File_Operation
+from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
 
 
 class prediction:
