@@ -4,7 +4,7 @@
 This is an end to end machine learning system with MLFlow integration for predicting the quality of wafer sensors.
 
 ## Demo
-- Link
+- 
 
 ## Table of Contents
 - Problem Statement
@@ -126,4 +126,4 @@ The prediction pipeline will be triggered following prediction validation and pr
 - ROC AUC score
 
 ### Cloud Deployment 
-- AWS 
+- AWS EC2 instance
