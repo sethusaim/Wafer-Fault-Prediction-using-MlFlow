@@ -1,17 +1,17 @@
 import mlflow
 from sklearn.model_selection import train_test_split
-from src.data_ingestion.data_loader_train import Data_Getter
-from src.data_preprocessing.clustering import KMeansClustering
-from src.data_preprocessing.preprocessing import Preprocessor
-from src.file_operations.file_methods import File_Operation
-from src.model_finder.tuner import Model_Finder
 from utils.logger import App_Logger
-from utils.main_utils import (
+from utils.mlflow_utils import (
     log_metric_to_mlflow,
     log_model_to_mlflow,
     log_param_to_mlflow,
 )
 from utils.read_params import read_params
+from wafer.data_ingestion.data_loader_train import Data_Getter
+from wafer.data_preprocessing.clustering import KMeansClustering
+from wafer.data_preprocessing.preprocessing import Preprocessor
+from wafer.file_operations.file_methods import File_Operation
+from wafer.model_finder.tuner import Model_Finder
 
 
 class trainModel:

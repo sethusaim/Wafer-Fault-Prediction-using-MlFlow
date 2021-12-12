@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.mongo_db_operations.db_operations import MongoDBOperation
+from wafer.mongo_db_operations.db_operations import MongoDBOperation
 
 
 class App_Logger:
