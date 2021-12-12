@@ -40,6 +40,12 @@ class Raw_Data_validation:
             "missing_values_in_col"
         ]
 
+        self.good_train_data_path = self.config["data"]["good"]["train"]
+
+        self.bad_train_data_path = self.config["data"]["bad"]["train"]
+
+        self.archived_train_data_path = self.config["data"]["archived"]["train"]
+
     def valuesFromSchema(self):
         """
         Method Name :   valuesFromSchema
@@ -157,12 +163,12 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            path = self.config["data"]["good"]["train"]
+            path = self.good_train_data_path
 
             if not os.path.isdir(path):
                 os.makedirs(path)
 
-            path = self.config["data"]["bad"]["train"]
+            path = self.bad_train_data_path
 
             if not os.path.isdir(path):
                 os.makedirs(path)
@@ -193,7 +199,7 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            path = self.config["data"]["good"]["train"]
+            path = self.good_train_data_path
 
             if os.path.isdir(path):
                 shutil.rmtree(path)
@@ -230,7 +236,7 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            path = self.config["data"]["bad"]["train"]
+            path = self.bad_train_data_path
 
             if os.path.isdir(path):
                 shutil.rmtree(path)
@@ -273,16 +279,16 @@ class Raw_Data_validation:
         time = now.strftime("%H%M%S")
 
         try:
-            source = self.config["data"]["bad"]["train"]
+            source = self.bad_train_data_path
 
             if os.path.isdir(source):
-                path = self.config["data"]["archived"]["train"]
+                path = self.archived_train_data_path
 
                 if not os.path.isdir(path):
                     os.makedirs(path)
 
                 dest = os.path.join(
-                    self.config["data"]["archived"]["train"],
+                    self.archived_train_data_path,
                     "BadData_" + str(date) + "_" + str(time),
                 )
 
@@ -293,7 +299,9 @@ class Raw_Data_validation:
 
                 for f in files:
                     if f not in os.listdir(dest):
-                        shutil.move(source + "/" + f, dest)
+                        file = os.path.join(source, f)
+
+                        shutil.move(file, dest)
 
                 self.logger.log(
                     db_name=self.db_name,
@@ -301,7 +309,7 @@ class Raw_Data_validation:
                     log_message="Bad files moved to archive",
                 )
 
-                path = self.config["data"]["bad"]["train"]
+                path = self.bad_train_data_path
 
                 if os.path.isdir(path):
                     shutil.rmtree(path)
@@ -359,7 +367,7 @@ class Raw_Data_validation:
                                 self.config["data_source"]["train_data_source"]
                                 + "/"
                                 + filename,
-                                self.config["data"]["good"]["train"],
+                                self.good_train_data_path,
                             )
 
                             self.logger.log(
@@ -374,7 +382,7 @@ class Raw_Data_validation:
                                 self.config["data_source"]["train_data_source"]
                                 + "/"
                                 + filename,
-                                self.config["data"]["bad"]["train"],
+                                self.bad_train_data_path,
                             )
 
                             self.logger.log(
@@ -389,7 +397,7 @@ class Raw_Data_validation:
                             self.config["data_source"]["train_data_source"]
                             + "/"
                             + filename,
-                            self.config["data"]["bad"]["train"],
+                            self.bad_train_data_path,
                         )
 
                         self.logger.log(
@@ -404,7 +412,7 @@ class Raw_Data_validation:
                         self.config["data_source"]["train_data_source"]
                         + "/"
                         + filename,
-                        self.config["data"]["bad"]["train"],
+                        self.bad_train_data_path,
                     )
 
                     self.logger.log(
@@ -448,17 +456,16 @@ class Raw_Data_validation:
                 log_message="Column Length Validation Started!!",
             )
 
-            for file in os.listdir(self.config["data"]["good"]["train"]):
-                csv = pd.read_csv(self.config["data"]["good"]["train"] + "/" + file)
+            for file in os.listdir(self.good_train_data_path):
+                csv = pd.read_csv(self.good_train_data_path + "/" + file)
 
                 if csv.shape[1] == NumberofColumns:
                     pass
 
                 else:
-                    shutil.move(
-                        self.config["data"]["good"]["train"] + "/" + file,
-                        self.config["data"]["bad"]["train"],
-                    )
+                    train_file = os.path.join(self.good_train_data_path, file)
+
+                    shutil.move(train_file, self.bad_train_data_path)
 
                     self.logger.log(
                         db_name=self.db_name,
@@ -503,8 +510,10 @@ class Raw_Data_validation:
                 log_message="Missing Values Validation Started!!",
             )
 
-            for file in os.listdir(self.config["data"]["good"]["train"]):
-                csv = pd.read_csv(self.config["data"]["good"]["train"] + "/" + file)
+            for file in os.listdir(self.good_train_data_path):
+                csv_file = os.path.join(self.good_train_data_path, file)
+
+                csv = pd.read_csv(csv_file)
 
                 count = 0
 
@@ -512,10 +521,9 @@ class Raw_Data_validation:
                     if (len(csv[columns]) - csv[columns].count()) == len(csv[columns]):
                         count += 1
 
-                        shutil.move(
-                            self.config["data"]["good"]["train"] + "/" + file,
-                            self.config["data"]["bad"]["train"],
-                        )
+                        f = os.path.join(self.good_train_data_path, file)
+
+                        shutil.move(f, self.bad_train_data_path)
 
                         self.logger.log(
                             db_name=self.db_name,
@@ -529,11 +537,9 @@ class Raw_Data_validation:
                 if count == 0:
                     csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
 
-                    csv.to_csv(
-                        self.config["data"]["good"]["train"] + "/" + file,
-                        index=None,
-                        header=True,
-                    )
+                    f = os.path.join(self.good_train_data_path, file)
+
+                    csv.to_csv(f, index=None, header=True)
 
         except Exception as e:
             self.logger.log(

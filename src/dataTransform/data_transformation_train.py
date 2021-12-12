@@ -1,6 +1,6 @@
 import os
 
-import pandas
+import pandas as pd
 from utils.logger import App_Logger
 from utils.read_params import read_params
 
@@ -39,13 +39,17 @@ class dataTransform:
             onlyfiles = [f for f in os.listdir(self.goodDataPath)]
 
             for file in onlyfiles:
-                csv = pandas.read_csv(self.goodDataPath + "/" + file)
+                f = os.path.join(self.goodDataPath, file)
+
+                csv = pd.read_csv(f)
 
                 csv.fillna("NULL", inplace=True)
 
                 csv["Wafer"] = csv["Wafer"].str[6:]
 
-                csv.to_csv(self.goodDataPath + "/" + file, index=None, header=True)
+                file = os.path.join(self.goodDataPath, file)
+
+                csv.to_csv(file, index=None, header=True)
 
                 self.logger.log(
                     db_name=self.db_name,

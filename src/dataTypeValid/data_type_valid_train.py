@@ -47,7 +47,7 @@ class dBOperation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            db = os.path.join(self.path,DatabaseName,".db")
+            db = os.path.join(self.path, DatabaseName, ".db")
 
             conn = sql_db.connect(db)
 
