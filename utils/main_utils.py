@@ -1,4 +1,16 @@
+from io import StringIO
 import yaml
+
+def make_readable(data):
+    try:
+        f = StringIO(data)
+
+        return f
+
+    except Exception as e:
+        raise Exception(
+            f"Exception occured in main_utils.py, Method : make_readable, Error : {str(e)}"
+        )
 
 
 def read_params(config_path="params.yaml"):

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 
-from utils.read_params import read_params
+from utils.main_utils import read_params
 from wafer.model.load_production_model import LoadProdModel
 from wafer.model.predictionFromModel import prediction
 from wafer.model.trainingModel import trainModel

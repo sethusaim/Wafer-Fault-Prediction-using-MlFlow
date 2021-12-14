@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pandas as pd
 from utils.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class Raw_Data_validation:
@@ -82,8 +82,6 @@ class Raw_Data_validation:
                 log_message=message,
             )
 
-            f.close()
-
         except ValueError:
             self.logger.log(
                 db_name=self.db_name,
@@ -91,8 +89,6 @@ class Raw_Data_validation:
                 log_message="Exception occured in Class : Raw Data Validation,  \
                     Method : valuesfromschema, Error : ValueError:Value not found inside schema_training.json",
             )
-
-            f.close()
 
             raise ValueError
 
@@ -152,107 +148,6 @@ class Raw_Data_validation:
                 str(e),
             )
 
-    def createDirectoryForGoodBadRawData(self):
-        """
-        Method Name :   createDirectoryForGoodBadRawData
-        Description :   This method creates a directories to store the good data and bad data after
-                        validating the prediction data
-        Written by  :   iNeuron Intelligence
-        On Failure  :   OS error
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            if not os.path.isdir(self.good_train_data_path):
-                os.makedirs(self.good_train_data_path)
-
-            if not os.path.isdir(self.bad_train_data_path):
-                os.makedirs(self.bad_train_data_path)
-
-        except Exception as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.train_gen_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, \
-                    Method : createDirectoryForGoodBadRawData, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Raw_data_validation, \
-                    Method : createDirectoryForGoodBadRawData, Error : ",
-                str(e),
-            )
-
-    def deleteExistingGoodDataTrainingFolder(self):
-        """
-        Method Name :   deleteExistingGoodDataTrainingFolder
-        Description :   This method deletes the directory made to store the good data after loading
-                        the data in the table. Once the good files are loaded in the DB,
-                        deleting the directory ensures space optimization
-        Written by  :   iNeuron Intelligence
-        On Failure  :   OS error
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            if os.path.isdir(self.good_train_data_path):
-                shutil.rmtree(self.good_train_data_path)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_gen_log,
-                    log_message="GoodRaw directory deleted successfully!!!",
-                )
-
-        except Exception as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.train_gen_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, \
-                    Method : deleteExistingGoodDataTrainingFolder, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Raw_data_validation, \
-                    Method : deleteExistingGoodDataTrainingFolder, Error : ",
-                str(e),
-            )
-
-    def deleteExistingBadDataTrainingFolder(self):
-        """
-        Method Name :   deleteExistingBadDataTrainingFolder
-        Description :   This method deletes the directory made to store the good data after loading
-                        the data in the table. Once the good files are loaded in the DB,deleting the directory
-                        ensure space optimization
-        Written by  :   iNeuron Intelligence
-        On Failure  :   OS error
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            if os.path.isdir(self.bad_train_data_path):
-                shutil.rmtree(self.bad_train_data_path)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_gen_log,
-                    log_message="BadRaw directory deleted before starting validation!!!",
-                )
-
-        except Exception as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.train_gen_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, \
-                    Method : deleteExistingBadDataTrainingFolder, Exception occured : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Raw_data_validation, \
-                    Method : deleteExistingBadDataTrainingFolder, Exception occured : ",
-                str(e),
-            )
-
     def moveBadFilesToArchiveBad(self):
         """
         Method Name :   moveBadFilesToArchiveBad
@@ -279,7 +174,10 @@ class Raw_Data_validation:
                 if not os.path.isdir(path):
                     os.makedirs(path)
 
-                dest = os.path.join(self.archived_train_data_path,"BadData_" + str(date) + "_" + str(time))
+                dest = os.path.join(
+                    self.archived_train_data_path,
+                    "BadData_" + str(date) + "_" + str(time),
+                )
 
                 if not os.path.isdir(dest):
                     os.makedirs(dest)
@@ -335,11 +233,6 @@ class Raw_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.deleteExistingBadDataTrainingFolder()
-
-        self.deleteExistingGoodDataTrainingFolder()
-
-        self.createDirectoryForGoodBadRawData()
 
         onlyfiles = [f for f in os.listdir(self.Batch_Directory)]
 
@@ -352,12 +245,13 @@ class Raw_Data_validation:
 
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
-                            shutil.copy(
-                                self.config["data_source"]["train_data_source"]
-                                + "/"
-                                + filename,
-                                self.good_train_data_path,
+
+                            f = os.path.join(
+                                self.config["data_source"]["train_data_source"],
+                                filename,
                             )
+
+                            shutil.copy(f, self.good_train_data_path)
 
                             self.logger.log(
                                 db_name=self.db_name,
@@ -367,12 +261,11 @@ class Raw_Data_validation:
                             )
 
                         else:
-                            shutil.copy(
-                                self.config["data_source"]["train_data_source"]
-                                + "/"
-                                + filename,
-                                self.bad_train_data_path,
+                            f = os.path.join(
+                                self.config["data"]["train_data_source"], filename
                             )
+
+                            shutil.copy(f, self.bad_train_data_path)
 
                             self.logger.log(
                                 db_name=self.db_name,
@@ -397,12 +290,11 @@ class Raw_Data_validation:
                         )
 
                 else:
-                    shutil.copy(
-                        self.config["data_source"]["train_data_source"]
-                        + "/"
-                        + filename,
-                        self.bad_train_data_path,
+                    file = os.path.join(
+                        self.config["data_source"]["train_data_source"], filename
                     )
+
+                    shutil.copy(file, self.bad_train_data_path)
 
                     self.logger.log(
                         db_name=self.db_name,
@@ -446,7 +338,9 @@ class Raw_Data_validation:
             )
 
             for file in os.listdir(self.good_train_data_path):
-                csv = pd.read_csv(self.good_train_data_path + "/" + file)
+                f = os.path.join(self.good_train_data_path, file)
+
+                csv = pd.read_csv(f)
 
                 if csv.shape[1] == NumberofColumns:
                     pass

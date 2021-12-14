@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from wafer.file_operations.file_methods import File_Operation
 from utils.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class KMeansClustering:

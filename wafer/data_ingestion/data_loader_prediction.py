@@ -1,6 +1,6 @@
 import pandas as pd
 from utils.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 
 
 class Data_Getter_Pred:

@@ -1,7 +1,7 @@
 import mlflow
 
+from main_utils import read_params
 from utils.logger import App_Logger
-from utils.read_params import read_params
 
 config = read_params()
 

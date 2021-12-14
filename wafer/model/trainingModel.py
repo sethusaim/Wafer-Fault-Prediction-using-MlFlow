@@ -6,7 +6,7 @@ from utils.mlflow_utils import (
     log_model_to_mlflow,
     log_param_to_mlflow,
 )
-from utils.read_params import read_params
+from utils.main_utils import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
 from wafer.data_preprocessing.preprocessing import Preprocessor

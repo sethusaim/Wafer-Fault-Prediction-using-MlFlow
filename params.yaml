@@ -43,6 +43,11 @@ models_dir:
   prod_models_dir : models/prod
   stag_models_dir : models/stag
 
+
+s3:
+  data_given_train_bucket: wafer-raw-data-train
+  data_given_pred_bucket: wafer-raw-data-test
+
 model_params:
   verbose : 3
   cv      : 5
