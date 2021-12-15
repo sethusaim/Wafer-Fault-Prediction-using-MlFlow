@@ -1,9 +1,9 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
-from wafer.file_operations.file_methods import File_Operation
 from utils.logger import App_Logger
 from utils.main_utils import read_params
+from wafer.file_operations.file_methods import File_Operation
 
 
 class KMeansClustering:
@@ -156,11 +156,6 @@ class KMeansClustering:
                 db_name=self.db_name,
                 collection_name=self.logger_object,
                 log_message=f"Exception occured in Class : KMeansClustering, Method : create_clusters, Error : {str(e)}",
-            )
-
-            self.logger_object.log(
-                self.file_object,
-                "Fitting the data to clusters failed. Exited the create_clusters method of the KMeansClustering class",
             )
 
             raise Exception(

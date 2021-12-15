@@ -1,5 +1,4 @@
 import boto3
-from utils.main_utils import make_readable
 
 
 class S3_Operations:
@@ -46,13 +45,6 @@ class S3_Operations:
             s3_bucket = self.s3.Bucket(bucket)
 
             for obj in s3_bucket.objects.all():
-
-                # key = obj.key
-
-                # file_content = obj.get()["Body"].read().decode()
-
-                # data = make_readable(file_content)
-
                 lst_obj.append(obj)
 
             return lst_obj
