@@ -15,13 +15,22 @@ class S3_Operations:
                 f"Exception occured in Class : S3_Operations, Method : upload_to_s3, Error : {str(e)}"
             )
 
-    def move_data_to_other_bucket(self, src_bucket, src_file, dest_bucket, dest_file):
+    def copy_data_to_other_bucket(self, src_bucket, src_file, dest_bucket, dest_file):
         try:
             copy_source = {"Bucket": src_bucket, "Key": src_file}
 
             bucket = self.s3.Bucket(dest_bucket)
 
             bucket.copy(copy_source, dest_file)
+
+        except Exception as e:
+            raise Exception(
+                f"Exception occured in Class : S3_Operations, Method : copy_data_to_other_bucket, Error : {str(e)}"
+            )
+
+    def move_data_to_other_bucket(self, src_bucket, src_file, dest_bucket, dest_file):
+        try:
+            self.copy_data_to_other_bucket(src_bucket, src_file, dest_bucket, dest_file)
 
             self.s3.Object(src_bucket, src_file).delete()
 
@@ -30,22 +39,27 @@ class S3_Operations:
                 f"Exception occured in Class : S3_Operations, Method : move_data_to_other_bucket, Error : {str(e)}"
             )
 
-    def read_csv_from_s3(self, bucket):
+    def get_csv_objs_from_s3(self, bucket):
+        lst_obj = []
+
         try:
             s3_bucket = self.s3.Bucket(bucket)
 
             for obj in s3_bucket.objects.all():
-                key = obj.key
 
-                file_content = obj.get()["Body"].read().decode()
+                # key = obj.key
 
-                data = make_readable(file_content)
+                # file_content = obj.get()["Body"].read().decode()
 
-                return data
+                # data = make_readable(file_content)
+
+                lst_obj.append(obj)
+
+            return lst_obj
 
         except Exception as e:
             raise Exception(
-                f"Exception occured in Class : S3_Operations, Method : read_csv_from_s3, Error : {str(e)}"
+                f"Exception occured in Class : S3_Operations, Method : get_csv_objs_from_s3, Error : {str(e)}"
             )
 
     def list_files_in_s3(self, bucket):
@@ -55,7 +69,7 @@ class S3_Operations:
             s3_bucket = self.s3.Bucket(bucket)
 
             for my_bucket_object in s3_bucket.objects.all():
-                f = my_bucket_object.key.split("/")[1]
+                f = my_bucket_object.key
 
                 list_of_files.append(f)
 
@@ -73,9 +87,9 @@ class S3_Operations:
             for obj in s3_bucket.objects.filter(Prefix=filename):
                 key = obj.key
 
-                file_content = obj.get()["Body"].read().decode()
+                content = obj.get()["Body"].read().decode()
 
-            return file_content
+                return content
 
         except Exception as e:
             raise Exception(

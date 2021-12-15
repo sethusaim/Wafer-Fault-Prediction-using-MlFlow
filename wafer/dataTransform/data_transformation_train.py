@@ -2,7 +2,8 @@ import os
 
 import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.main_utils import make_readable, read_params
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class dataTransform:
@@ -17,7 +18,9 @@ class dataTransform:
     def __init__(self):
         self.config = read_params()
 
-        self.goodDataPath = self.config["data"]["good"]["train"]
+        self.good_data_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+
+        self.s3_obj = S3_Operations()
 
         self.logger = App_Logger()
 
@@ -36,26 +39,30 @@ class dataTransform:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            onlyfiles = [f for f in os.listdir(self.goodDataPath)]
+            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+                bucket=self.good_data_bucket
+            )
 
-            for file in onlyfiles:
-                f = os.path.join(self.goodDataPath, file)
+            for f in csv_file_objs:
+                file = f.key
 
-                csv = pd.read_csv(f)
+                file_content = f.get()["Body"].read().decode()
+
+                data = make_readable(file_content)
+
+                csv = pd.read_csv(data)
 
                 csv.fillna("NULL", inplace=True)
 
                 csv["Wafer"] = csv["Wafer"].str[6:]
 
-                file = os.path.join(self.goodDataPath, file)
-
                 csv.to_csv(file, index=None, header=True)
 
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=" %s: File Transformed successfully!!" % file,
+                self.s3_obj.upload_to_s3(
+                    src_file=file, bucket=self.good_data_bucket, dest_file=file
                 )
+
+                os.remove(file)
 
         except Exception as e:
             self.logger.log(

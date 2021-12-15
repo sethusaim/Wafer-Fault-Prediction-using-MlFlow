@@ -14,8 +14,8 @@ class train_validation:
     Revisions   :   None
     """
 
-    def __init__(self, path):
-        self.raw_data = Raw_Data_validation(path)
+    def __init__(self, raw_data_bucket_name):
+        self.raw_data = Raw_Data_validation(raw_data_bucket_name)
 
         self.dataTransform = dataTransform()
 
@@ -108,20 +108,6 @@ class train_validation:
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
                 log_message="Insertion in Table completed!!!",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_main_log,
-                log_message="Moving bad files to Archive and deleting Bad_Data folder!!!",
-            )
-
-            self.raw_data.moveBadFilesToArchiveBad()
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_main_log,
-                log_message="Bad files moved to archive!! Bad folder Deleted!!",
             )
 
             self.log_writer.log(

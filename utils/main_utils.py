@@ -1,6 +1,7 @@
 from io import StringIO
 import yaml
 
+
 def make_readable(data):
     try:
         f = StringIO(data)

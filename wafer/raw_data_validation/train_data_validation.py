@@ -1,12 +1,11 @@
 import json
 import os
 import re
-import shutil
-from datetime import datetime
 
 import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.main_utils import make_readable, read_params
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class Raw_Data_validation:
@@ -17,14 +16,18 @@ class Raw_Data_validation:
     Revisions   :   None
     """
 
-    def __init__(self, path):
-        self.Batch_Directory = path
-
+    def __init__(self, raw_data_bucket_name):
         self.config = read_params()
 
-        self.schema_path = self.config["schema_dir"]["train_schema_file"]
+        self.raw_data_bucket_name = raw_data_bucket_name
 
         self.logger = App_Logger()
+
+        self.s3_obj = S3_Operations()
+
+        self.good_data_train_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+
+        self.bad_data_train_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
 
         self.db_name = self.config["db_log"]["db_train_log"]
 
@@ -40,12 +43,6 @@ class Raw_Data_validation:
             "missing_values_in_col"
         ]
 
-        self.good_train_data_path = self.config["data"]["good"]["train"]
-
-        self.bad_train_data_path = self.config["data"]["bad"]["train"]
-
-        self.archived_train_data_path = self.config["data"]["archived"]["train"]
-
     def valuesFromSchema(self):
         """
         Method Name :   valuesFromSchema
@@ -56,8 +53,12 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            with open(file=self.schema_path, mode="r") as f:
-                dic = json.load(f)
+            res = self.s3_obj.get_file_content_from_s3(
+                bucket=self.config["s3_bucket"]["schema_bucket"],
+                filename=self.config["schema_file"]["train_schema_file"],
+            )
+
+            dic = json.loads(res)
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
 
@@ -148,78 +149,6 @@ class Raw_Data_validation:
                 str(e),
             )
 
-    def moveBadFilesToArchiveBad(self):
-        """
-        Method Name :   moveBadFilesToArchiveBad
-        Description :   This method deletes the directory made to store the bad data after moving the data
-                        in an archive folder. We archive the bad files to send them back to the client for
-                        invalid data issue
-        On Failure  :   OS error
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        now = datetime.now()
-
-        date = now.date()
-
-        time = now.strftime("%H%M%S")
-
-        try:
-            source = self.bad_train_data_path
-
-            if os.path.isdir(source):
-                path = self.archived_train_data_path
-
-                if not os.path.isdir(path):
-                    os.makedirs(path)
-
-                dest = os.path.join(
-                    self.archived_train_data_path,
-                    "BadData_" + str(date) + "_" + str(time),
-                )
-
-                if not os.path.isdir(dest):
-                    os.makedirs(dest)
-
-                files = os.listdir(source)
-
-                for f in files:
-                    if f not in os.listdir(dest):
-                        file = os.path.join(source, f)
-
-                        shutil.move(file, dest)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_gen_log,
-                    log_message="Bad files moved to archive",
-                )
-
-                path = self.bad_train_data_path
-
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_gen_log,
-                    log_message="Bad Raw Data Folder Deleted successfully!!",
-                )
-
-        except Exception as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.train_gen_log,
-                log_message=f"Exception occured in class : Raw_data_validation \
-                    Method : moveBadFilesToArchiveBad, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in class : Raw_data_validation,, Method : moveBadFilesToArchiveBad, Error :",
-                str(e),
-            )
-
     def validationFileNameRaw(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
     ):
@@ -234,7 +163,7 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
 
-        onlyfiles = [f for f in os.listdir(self.Batch_Directory)]
+        onlyfiles = self.s3_obj.list_files_in_s3(bucket=self.raw_data_bucket_name)
 
         try:
             for filename in onlyfiles:
@@ -245,75 +174,65 @@ class Raw_Data_validation:
 
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
-
-                            f = os.path.join(
-                                self.config["data_source"]["train_data_source"],
-                                filename,
+                            self.s3_obj.copy_data_to_other_bucket(
+                                src_bucket=self.raw_data_bucket_name,
+                                src_file=filename,
+                                dest_bucket=self.good_data_train_bucket,
+                                dest_file=filename,
                             )
-
-                            shutil.copy(f, self.good_train_data_path)
 
                             self.logger.log(
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
-                                log_message="Valid File name!! File moved to GoodRaw Folder :: %s"
-                                % filename,
+                                log_message=f"Valid file name !! File copied to {self.good_data_train_bucket} :: {filename}",
                             )
 
                         else:
-                            f = os.path.join(
-                                self.config["data"]["train_data_source"], filename
+                            self.s3_obj.copy_data_to_other_bucket(
+                                src_bucket=self.raw_data_bucket_name,
+                                src_file=filename,
+                                dest_bucket=self.bad_data_train_bucket,
+                                dest_file=filename,
                             )
-
-                            shutil.copy(f, self.bad_train_data_path)
 
                             self.logger.log(
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
-                                log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
-                                % filename,
+                                log_message=f"Invalid file name ! File copied to {self.bad_data_train_bucket} :: {filename}",
                             )
 
                     else:
-                        shutil.copy(
-                            self.config["data_source"]["train_data_source"]
-                            + "/"
-                            + filename,
-                            self.bad_train_data_path,
-                        )
-
-                        self.logger.log(
-                            db_name=self.db_name,
-                            collection_name=self.train_name_valid_log,
-                            log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
-                            % filename,
+                        self.s3_obj.copy_data_to_other_bucket(
+                            src_bucket=self.raw_data_bucket_name,
+                            src_file=filename,
+                            dest_bucket=self.bad_data_train_bucket,
+                            dest_file=filename,
                         )
 
                 else:
-                    file = os.path.join(
-                        self.config["data_source"]["train_data_source"], filename
+                    self.s3_obj.copy_data_to_other_bucket(
+                        src_bucket=self.raw_data_bucket_name,
+                        src_file=filename,
+                        dest_bucket=self.bad_data_train_bucket,
+                        dest_file=filename,
                     )
-
-                    shutil.copy(file, self.bad_train_data_path)
 
                     self.logger.log(
                         db_name=self.db_name,
                         collection_name=self.train_name_valid_log,
-                        log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
-                        % filename,
+                        log_message=f"Invalid file name ! File copied to {self.bad_data_train_bucket} :: {filename}",
                     )
 
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_name_valid_log,
-                log_message=f"Exception occured in Class : Raw_data_validation \
-                    Method : validationFileNameRaw, Error : {str(e)} ",
+                log_message=f"Exception occured in Class : Raw_data_validation, Method : validationFileNameRaw, Error : {str(e)}",
             )
 
             raise Exception(
                 "Exception occured in Class : Raw_data_validation \
-                    Method : validationFileNameRaw, Error : ",
+                            Method : validationFileNameRaw, Error : ",
                 str(e),
             )
 
@@ -334,41 +253,50 @@ class Raw_Data_validation:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message="Column Length Validation Started!!",
+                log_message="Column Length Validation Started !!",
             )
 
-            for file in os.listdir(self.good_train_data_path):
-                f = os.path.join(self.good_train_data_path, file)
+            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+                bucket=self.good_data_train_bucket
+            )
 
-                csv = pd.read_csv(f)
+            for f in csv_file_objs:
+                file = f.key
+
+                file_content = f.get()["Body"].read().decode()
+
+                data = make_readable(file_content)
+
+                csv = pd.read_csv(data)
 
                 if csv.shape[1] == NumberofColumns:
                     pass
 
                 else:
-                    train_file = os.path.join(self.good_train_data_path, file)
-
-                    shutil.move(train_file, self.bad_train_data_path)
+                    self.s3_obj.move_data_to_other_bucket(
+                        src_bucket=self.good_data_train_bucket,
+                        src_file=file,
+                        dest_bucket=self.bad_data_train_bucket,
+                        dest_file=file,
+                    )
 
                     self.logger.log(
                         db_name=self.db_name,
                         collection_name=self.train_col_valid_log,
-                        log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
-                        % file,
+                        log_message=f"Invalid Column Length for the file !!. File moved to {self.bad_data_train_bucket} :: {file}",
                     )
 
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message="Column Length Validation Completed!!",
+                log_message="Column Length Validation completed !!",
             )
 
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, \
-                    Method : validateColumnLength, Error : {str(e)}",
+                log_message=f"Exception occured in Class : Raw_data_validation, Method : validateColumnLength, Error : {str(e)}",
             )
 
             raise Exception(
@@ -393,26 +321,36 @@ class Raw_Data_validation:
                 log_message="Missing Values Validation Started!!",
             )
 
-            for file in os.listdir(self.good_train_data_path):
-                csv_file = os.path.join(self.good_train_data_path, file)
+            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+                bucket=self.good_data_train_bucket
+            )
 
-                csv = pd.read_csv(csv_file)
+            for f in csv_file_objs:
+                file = f.key
+
+                file_content = f.get()["Body"].read().decode()
+
+                data = make_readable(file_content)
+
+                csv = pd.read_csv(data)
 
                 count = 0
 
-                for columns in csv:
-                    if (len(csv[columns]) - csv[columns].count()) == len(csv[columns]):
+                for cols in csv:
+                    if (len(csv[cols]) - csv[cols].count()) == len(csv[cols]):
                         count += 1
 
-                        f = os.path.join(self.good_train_data_path, file)
-
-                        shutil.move(f, self.bad_train_data_path)
+                        self.s3_obj.move_data_to_other_bucket(
+                            src_bucket=self.good_data_train_bucket,
+                            src_file=file,
+                            dest_bucket=self.bad_data_train_bucket,
+                            dest_file=file,
+                        )
 
                         self.logger.log(
                             db_name=self.db_name,
                             collection_name=self.train_missing_value_log,
-                            log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
-                            % file,
+                            log_message=f"Invalud column length for the file !! File moved to Bad raw folder :: {file}",
                         )
 
                         break
@@ -420,20 +358,32 @@ class Raw_Data_validation:
                 if count == 0:
                     csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
 
-                    f = os.path.join(self.good_train_data_path, file)
+                    csv.to_csv(file, index=None, header=True)
 
-                    csv.to_csv(f, index=None, header=True)
+                    self.s3_obj.upload_to_s3(
+                        src_file=file,
+                        bucket=self.good_data_train_bucket,
+                        dest_file=file,
+                    )
+
+                    os.remove(file)
+
+                    self.logger.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_missing_value_log,
+                        log_message="Wafer column added to files",
+                    )
 
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
                 log_message=f"Exception occured in class Raw_data_validation, \
-                    Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
+                        Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
             )
 
             raise Exception(
                 "Exception occured in class Raw_data_validation, \
-                    Method : validateMissingValuesInWholeColumn, Error : ",
+                        Method : validateMissingValuesInWholeColumn, Error : ",
                 str(e),
             )

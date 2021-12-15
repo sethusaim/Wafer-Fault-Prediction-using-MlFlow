@@ -44,9 +44,9 @@ async def index(request: Request):
 @app.get("/train")
 async def trainRouteClient():
     try:
-        path = config["data_source"]["train_data_source"]
+        raw_data_bucket_name = config["s3_bucket"]["data_given_train_bucket"]
 
-        train_valObj = train_validation(path)
+        train_valObj = train_validation(raw_data_bucket_name)
 
         train_valObj.train_validation()
 

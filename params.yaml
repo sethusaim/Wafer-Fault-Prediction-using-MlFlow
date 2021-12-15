@@ -9,23 +9,19 @@ app:
   port : 8080 
 
 data_source:
-  train_data_source : data_given/training_batch_files
-  pred_data_source  : data_given/prediction_batch_files
+  train_data_source : training_batch_files
+  pred_data_source  : prediction_batch_files
 
 data:
   good:
-    train : data/train/raw_valid/good
-    pred  : data/prediction/raw_valid/good
+    train : training_good_data
+    pred : prediction_good_data 
   
   bad:
-    train : data/train/raw_valid/bad
-    pred  : data/prediction/raw_valid/bad
+    train : training_bad_data
+    pred : prediction_bad_data 
 
-  archived:
-    train : data/train/archived  
-    pred : data/pred/archived
-
-mongodb_url: 
+mongodb_url: localhost:27017
 
 knn_imputer:
   n_neighbors : 3
@@ -44,9 +40,14 @@ models_dir:
   stag_models_dir : models/stag
 
 
-s3:
+s3_bucket:
   data_given_train_bucket: wafer-raw-data-train
   data_given_pred_bucket: wafer-raw-data-test
+  data_bad_train_bucket : wafer-bad-data-train
+  data_bad_pred_bucket: wafer-bad-data-pred
+  data_good_train_bucket: wafer-good-data-train
+  data_good_pred_bucket: wafer-good-data-pred
+  schema_bucket: wafer-schema
 
 model_params:
   verbose : 3
@@ -147,9 +148,9 @@ database_dir:
   train_database  : databases/Training_Database
   pred_database   : databases/Prediction_Database
 
-schema_dir:
-  train_schema_file : config/schema_training.json
-  pred_schema_file : config/schema_prediction.json
+schema_file:
+  train_schema_file : schema_training.json
+  pred_schema_file : schema_prediction.json
 
 model_names:
   xgb_model_name : XGBoost
