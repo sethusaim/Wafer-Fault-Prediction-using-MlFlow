@@ -1,5 +1,4 @@
 import boto3
-from utils.main_utils import convert_object_to_bytes
 
 
 class S3_Operations:

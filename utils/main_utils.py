@@ -1,7 +1,7 @@
+import json
 from io import StringIO
 
 import pandas as pd
-import yaml
 
 
 def make_readable(data):
@@ -16,21 +16,10 @@ def make_readable(data):
         )
 
 
-def read_params(config_path="params.yaml"):
+def convert_object_to_dataframe(obj):
     try:
-        with open(config_path) as f:
-            config = yaml.safe_load(f)
+        content = convert_object_to_bytes(obj)
 
-        return config
-
-    except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : read_params, Error : {str(e)}"
-        )
-
-
-def get_dataframe_from_bytes(content):
-    try:
         data = make_readable(content)
 
         df = pd.read_csv(data)
@@ -39,7 +28,7 @@ def get_dataframe_from_bytes(content):
 
     except Exception as e:
         raise Exception(
-            f"Exception occured in main_utils.py, Method : read_params, Error : {str(e)}"
+            f"Exception occured in main_utils.py, Method : convert_object_to_dataframe, Error : {str(e)}"
         )
 
 
@@ -51,5 +40,19 @@ def convert_object_to_bytes(obj):
 
     except Exception as e:
         raise Exception(
-            f"Exception occured in Class : S3_Operations, Method : convert_object_to_bytes, Error : {str(e)}"
+            f"Exception occured in main_utils.py, Method : convert_object_to_bytes, Error : {str(e)}"
+        )
+
+
+def convert_obj_to_json(obj):
+    try:
+        res = convert_object_to_bytes(obj)
+
+        dic = json.loads(res)
+
+        return dic
+
+    except Exception as e:
+        raise Exception(
+            f"Exception occured in main_utils.py, Method : convert_obj_to_json, Error : {str(e)}"
         )

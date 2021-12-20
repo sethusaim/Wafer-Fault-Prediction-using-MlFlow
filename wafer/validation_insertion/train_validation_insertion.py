@@ -1,5 +1,5 @@
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.read_params import read_params
 from wafer.dataTransform.data_transformation_train import dataTransform
 from wafer.dataTypeValid.data_type_valid_train import dBOperation
 from wafer.raw_data_validation.train_data_validation import Raw_Data_validation
@@ -87,12 +87,6 @@ class train_validation:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
-                log_message="Creating Training_Database and tables on the basis of given schema!!!",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_main_log,
                 log_message="Insertion of Data into mongodb started!!!!",
             )
 
@@ -105,12 +99,6 @@ class train_validation:
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
                 log_message="Insertion in Table completed!!!",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_main_log,
-                log_message="Validation Operation completed!!",
             )
 
             self.log_writer.log(

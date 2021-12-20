@@ -1,13 +1,9 @@
-import json
 import os
 import re
 
 from utils.logger import App_Logger
-from utils.main_utils import (
-    convert_object_to_bytes,
-    get_dataframe_from_bytes,
-    read_params,
-)
+from utils.main_utils import convert_obj_to_json, convert_object_to_dataframe
+from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -56,7 +52,7 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            res = self.s3_obj.get_file_content_from_s3(
+            res = self.s3_obj.get_file_object_from_s3(
                 bucket=self.config["s3_bucket"]["schema_bucket"],
                 filename=self.config["schema_file"]["train_schema_file"],
             )
@@ -67,7 +63,7 @@ class Raw_Data_validation:
                 log_message="Got schema content from s3 bucket",
             )
 
-            dic = json.loads(res)
+            dic = convert_obj_to_json(res)
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
 
@@ -290,9 +286,7 @@ class Raw_Data_validation:
             for f in csv_file_objs:
                 file = f.key
 
-                file_content = convert_object_to_bytes(f)
-
-                csv = get_dataframe_from_bytes(file_content)
+                csv = convert_object_to_dataframe(f)
 
                 if csv.shape[1] == NumberofColumns:
                     pass
@@ -359,9 +353,7 @@ class Raw_Data_validation:
             for f in csv_file_objs:
                 file = f.key
 
-                file_content = convert_object_to_bytes(f)
-
-                csv = get_dataframe_from_bytes(file_content)
+                csv = convert_object_to_dataframe(f)
 
                 count = 0
 

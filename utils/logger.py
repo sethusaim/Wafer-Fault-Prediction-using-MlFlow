@@ -20,7 +20,7 @@ class App_Logger:
                 "Log_message": log_message,
             }
 
-            self.db_obj.insertRecordInCollection(
+            self.db_obj.insert_one_record(
                 db_name=db_name, collection_name=collection_name, record=log
             )
 

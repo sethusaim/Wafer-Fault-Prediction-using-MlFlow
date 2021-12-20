@@ -1,13 +1,8 @@
 import os
 
-import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import (
-    convert_object_to_bytes,
-    get_dataframe_from_bytes,
-    make_readable,
-    read_params,
-)
+from utils.main_utils import convert_object_to_dataframe
+from utils.read_params import read_params
 from wafer.mongo_db_operations.db_operations import MongoDBOperation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -33,9 +28,9 @@ class dBOperation:
 
         self.logger = App_Logger()
 
-        self.bad_data_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+        self.bad_data_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
 
-        self.good_data_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
+        self.good_data_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
@@ -56,14 +51,26 @@ class dBOperation:
             )
 
             for f in csv_files:
-                file_data = convert_object_to_bytes(f)
+                file_name = f.key
 
-                df = get_dataframe_from_bytes(file_data)
+                df = convert_object_to_dataframe(f)
+
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_insert_log,
+                    log_message=f"Converted {file_name} to dataframe",
+                )
 
                 self.db_op.insert_dataframe_as_record(
                     db_name=db_name,
                     collection_name=collection_name,
                     data_frame=df,
+                )
+
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_insert_log,
+                    log_message=f"Inserted {file_name} data as record to mongodb",
                 )
 
             self.logger.log(
@@ -86,7 +93,7 @@ class dBOperation:
 
     def export_collection_to_csv(self, db_name, collection_name):
         try:
-            df = self.db_op.get_collection_as_dataframe(
+            df = self.db_op.convert_collection_to_dataframe(
                 db_name=db_name, collection_name=collection_name
             )
 

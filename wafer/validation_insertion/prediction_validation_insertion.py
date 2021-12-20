@@ -1,5 +1,5 @@
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.read_params import read_params
 from wafer.dataTransform.data_transformation_pred import dataTransformPredict
 from wafer.dataTypeValid.data_type_valid_pred import dBOperation
 from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation

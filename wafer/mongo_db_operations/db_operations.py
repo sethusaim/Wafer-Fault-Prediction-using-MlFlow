@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 from pymongo import MongoClient
-from utils.main_utils import read_params
+from utils.read_params import read_params
 
 
 class MongoDBOperation:
@@ -51,7 +51,7 @@ class MongoDBOperation:
                 f"Exception occured in class: MongoDBOperation Method : get_collection, Error : {str(e)}"
             )
 
-    def get_collection_as_dataframe(self, db_name, collection_name):
+    def convert_collection_to_dataframe(self, db_name, collection_name):
         client = self.get_client()
 
         database = self.create_db(client, db_name)
@@ -105,24 +105,22 @@ class MongoDBOperation:
 
     def insert_dataframe_as_record(self, db_name, collection_name, data_frame):
         try:
-            records = list(json.loads(data_frame.T.to_json()).values())
+            records = json.loads(data_frame.T.to_json()).values()
 
             client = self.get_client()
 
             database = self.create_db(client, db_name)
 
-            collection = self.get_collection(collection_name, database)
+            collection = database.get_collection(collection_name)
 
             collection.insert_many(records)
-
-            return len(records)
 
         except Exception as e:
             raise Exception(
                 f"Error occured in class: MongoDBOperation, Method:insertDataFrame, Error: {str(e)}"
             )
 
-    def insertRecordInCollection(self, db_name, collection_name, record):
+    def insert_one_record(self, db_name, collection_name, record):
         try:
             client = self.get_client()
 

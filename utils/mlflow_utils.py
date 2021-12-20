@@ -1,6 +1,6 @@
 import mlflow
 
-from main_utils import read_params
+from read_params import read_params
 from utils.logger import App_Logger
 
 config = read_params()
@@ -8,7 +8,7 @@ config = read_params()
 log_writter = App_Logger()
 
 
-def log_model_to_mlflow(model, model_name, db_name, collection_name):
+def log_model(model, model_name, db_name, collection_name):
     try:
         mlflow.sklearn.log_model(
             sk_model=model,
@@ -25,12 +25,12 @@ def log_model_to_mlflow(model, model_name, db_name, collection_name):
 
     except Exception as e:
         raise Exception(
-            "Exception occured in main_utils..py, Method : log_model_to_mlflow, Error : ",
+            "Exception occured in main_utils..py, Method : log_model, Error : ",
             str(e),
         )
 
 
-def log_param_to_mlflow(model, model_name, param_name, db_name, collection_name):
+def log_param(model, model_name, param_name, db_name, collection_name):
     try:
         mlflow.log_param(
             key=model_name + "-" + param_name, value=model.__dict__[param_name]
@@ -44,12 +44,12 @@ def log_param_to_mlflow(model, model_name, param_name, db_name, collection_name)
 
     except Exception as e:
         raise Exception(
-            "Exception occured in main_utils.py, Method : log_param_to_mlflow, Error : ",
+            "Exception occured in main_utils.py, Method : log_param, Error : ",
             str(e),
         )
 
 
-def log_metric_to_mlflow(model_name, metric, db_name, collection_name):
+def log_metric(model_name, metric, db_name, collection_name):
     try:
         mlflow.log_metric(key=model_name + "-best_score", value=metric)
 
@@ -61,6 +61,6 @@ def log_metric_to_mlflow(model_name, metric, db_name, collection_name):
 
     except Exception as e:
         raise Exception(
-            "Exception occured in main_utils.py, Method : log_metric_to_mlflow, Error : ",
+            "Exception occured in main_utils.py, Method : log_metric, Error : ",
             str(e),
         )

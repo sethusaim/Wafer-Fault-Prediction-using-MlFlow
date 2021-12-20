@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.read_params import read_params
 
 
 class Prediction_Data_validation:

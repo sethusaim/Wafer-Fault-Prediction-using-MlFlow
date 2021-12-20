@@ -114,13 +114,11 @@ db_log:
 
 train_db_log:
   model_training : modelTrainingLog
-  col_validation : columnValidationLogs
-  db_conn: databaseConnectionLog
+  col_validation : columnValidationLog
   data_transform : dataTransform
-  db_insert : dbInsertLog
-  db_create : dbTableCreateLog
   export_csv : ExportToCsvLog
   general : GeneralLog
+  db_insert: dbInsertLog
   load_prod_model : loadProdModelLog
   missing_values_in_col : missingValuesInColumn
   name_validation : nameValidationLog

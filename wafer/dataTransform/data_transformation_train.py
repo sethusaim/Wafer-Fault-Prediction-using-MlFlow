@@ -1,13 +1,8 @@
 import os
 
-import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import (
-    convert_object_to_bytes,
-    get_dataframe_from_bytes,
-    make_readable,
-    read_params,
-)
+from utils.main_utils import convert_object_to_dataframe
+from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -63,9 +58,7 @@ class dataTransform:
             for f in csv_file_objs:
                 file = f.key
 
-                file_content = convert_object_to_bytes(f)
-
-                csv = get_dataframe_from_bytes(file_content)
+                csv = convert_object_to_dataframe(f)
 
                 csv.fillna("NULL", inplace=True)
 

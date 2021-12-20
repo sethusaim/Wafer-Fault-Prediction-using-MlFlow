@@ -1,12 +1,8 @@
 import mlflow
 from sklearn.model_selection import train_test_split
 from utils.logger import App_Logger
-from utils.mlflow_utils import (
-    log_metric_to_mlflow,
-    log_model_to_mlflow,
-    log_param_to_mlflow,
-)
-from utils.main_utils import read_params
+from utils.mlflow_utils import log_metric, log_model, log_param
+from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
 from wafer.data_preprocessing.preprocessing import Preprocessor
@@ -156,14 +152,14 @@ class trainModel:
                     with mlflow.start_run(
                         run_name=self.config["mlflow_config"]["run_name"]
                     ):
-                        log_model_to_mlflow(
+                        log_model(
                             model=kmeans_model,
                             model_name=self.config["model_names"]["kmeans_model_name"],
                             db_name=self.db_name,
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=xgb_model,
                             model_name=self.config["model_names"]["xgb_model_name"],
                             param_name="learning_rate",
@@ -171,7 +167,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=xgb_model,
                             model_name=self.config["model_names"]["xgb_model_name"],
                             param_name="max_depth",
@@ -179,7 +175,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=xgb_model,
                             model_name=self.config["model_names"]["xgb_model_name"],
                             param_name="n_estimators",
@@ -187,7 +183,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=xgb_model,
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
@@ -196,7 +192,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=xgb_model,
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
@@ -205,7 +201,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=rf_model,
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
@@ -214,7 +210,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_param_to_mlflow(
+                        log_param(
                             model=rf_model,
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
@@ -223,7 +219,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_metric_to_mlflow(
+                        log_metric(
                             model_name=self.config["model_names"]["xgb_model_name"]
                             + str(i),
                             metric=float(xgb_model_score),
@@ -231,7 +227,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_metric_to_mlflow(
+                        log_metric(
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
                             metric=float(rf_model_score),
@@ -239,7 +235,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_model_to_mlflow(
+                        log_model(
                             model=xgb_model,
                             model_name=self.config["model_names"]["xgb_model_name"]
                             + str(i),
@@ -247,7 +243,7 @@ class trainModel:
                             collection_name=self.model_train_log,
                         )
 
-                        log_model_to_mlflow(
+                        log_model(
                             model=rf_model,
                             model_name=self.config["model_names"]["rf_model_name"]
                             + str(i),
