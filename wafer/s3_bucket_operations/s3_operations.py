@@ -1,4 +1,5 @@
 import boto3
+from utils.main_utils import convert_object_to_bytes
 
 
 class S3_Operations:
@@ -72,16 +73,12 @@ class S3_Operations:
                 f"Exception occured in Class : S3_Operations, Method : read_csv_from_s3, Error : {str(e)}"
             )
 
-    def get_file_content_from_s3(self, bucket, filename):
+    def get_file_object_from_s3(self, bucket, filename):
         try:
             s3_bucket = self.s3.Bucket(bucket)
 
             for obj in s3_bucket.objects.filter(Prefix=filename):
-                key = obj.key
-
-                content = obj.get()["Body"].read().decode()
-
-                return content
+                return obj
 
         except Exception as e:
             raise Exception(

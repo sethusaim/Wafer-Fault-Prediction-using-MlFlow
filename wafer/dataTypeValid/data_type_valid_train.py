@@ -1,10 +1,15 @@
-import csv
 import os
-import shutil
-import sqlite3 as sql_db
 
+import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.main_utils import (
+    convert_object_to_bytes,
+    get_dataframe_from_bytes,
+    make_readable,
+    read_params,
+)
+from wafer.mongo_db_operations.db_operations import MongoDBOperation
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class dBOperation:
@@ -18,266 +23,117 @@ class dBOperation:
     def __init__(self):
         self.config = read_params()
 
-        self.path = self.config["database_dir"]["train_database"]
-
         self.badFilePath = self.config["data"]["bad"]["train"]
 
         self.goodFilePath = self.config["data"]["good"]["train"]
 
+        self.s3_obj = S3_Operations()
+
+        self.db_op = MongoDBOperation()
+
         self.logger = App_Logger()
 
+        self.bad_data_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+
+        self.good_data_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
+
+        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
         self.db_name = self.config["db_log"]["db_train_log"]
-
-        self.train_db_conn_log = self.config["train_db_log"]["db_conn"]
-
-        self.train_db_create_log = self.config["train_db_log"]["db_create"]
 
         self.train_db_insert_log = self.config["train_db_log"]["db_insert"]
 
         self.train_export_csv_log = self.config["train_db_log"]["export_csv"]
 
-    def dataBaseConnection(self, DatabaseName):
-        """
-        Method Name :   dataBaseConnection
-        Description :   This method creates the database with the given name and if Database already exists
-                        then opens the connection to the db
-        Written by  :   iNeuron Intelligence
-        Output      :   Connection to the db
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
+    def insert_good_data_as_record(self, db_name, collection_name):
         try:
-            db = os.path.join(self.path, DatabaseName, ".db")
-
-            conn = sql_db.connect(db)
+            csv_files = self.s3_obj.get_csv_objs_from_s3(bucket=self.good_data_bucket)
 
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_db_conn_log,
-                log_message="Opened %s database successfully" % DatabaseName,
+                collection_name=self.train_db_insert_log,
+                log_message="Got csv objects from s3 bucket",
             )
 
-        except ConnectionError:
+            for f in csv_files:
+                file_data = convert_object_to_bytes(f)
+
+                df = get_dataframe_from_bytes(file_data)
+
+                self.db_op.insert_dataframe_as_record(
+                    db_name=db_name,
+                    collection_name=collection_name,
+                    data_frame=df,
+                )
+
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_db_conn_log,
-                log_message="Error while connecting to database: %s" % ConnectionError,
+                collection_name=self.train_db_insert_log,
+                log_message="Inserted dataframe as collection record in mongodb",
             )
-
-            raise ConnectionError
-
-        return conn
-
-    def createTableDb(self, DatabaseName, column_names):
-        """
-        Method Name :   createTableDb
-        Description :   This method creates a table in the given database which will be used to insert the
-                        Good data after raw data validation
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            conn = self.dataBaseConnection(DatabaseName)
-
-            c = conn.cursor()
-
-            c.execute(
-                "SELECT count(name)  FROM sqlite_master WHERE type = 'table' AND name = 'Good_Raw_Data'"
-            )
-
-            if c.fetchone()[0] == 1:
-                conn.close()
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_db_create_log,
-                    log_message="Tables created successfully!!",
-                )
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_db_conn_log,
-                    log_message="Closed %s database successfully" % DatabaseName,
-                )
-
-            else:
-                for key in column_names.keys():
-                    type = column_names[key]
-
-                    try:
-                        conn.execute(
-                            'ALTER TABLE Good_Raw_Data ADD COLUMN "{column_name}" {dataType}'.format(
-                                column_name=key, dataType=type
-                            )
-                        )
-
-                    except:
-                        conn.execute(
-                            "CREATE TABLE  Good_Raw_Data ({column_name} {dataType})".format(
-                                column_name=key, dataType=type
-                            )
-                        )
-
-                conn.close()
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_db_create_log,
-                    log_message="Tables created successfully!!",
-                )
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_db_conn_log,
-                    log_message="Closed %s database successfully" % DatabaseName,
-                )
 
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.train_db_create_log,
-                log_message=f"Exception occured in Class : dBOperation, Method : createTableDb, Error : {str(e)}",
-            )
-
-            conn.close()
-
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.train_db_conn_log,
-                log_message="Closed %s database successfully" % DatabaseName,
+                collection_name=self.train_export_csv_log,
+                log_message=f"Exception occured in Class : dbOperation, Method : insert_good_data_as_record, Error : {str(e)}",
             )
 
             raise Exception(
-                "Exception occured in Class : dBOperation, Method : createTableDb, Error : ",
+                "Exception occured in Class : dbOperation, Method : insert_good_data_as_record, Error : ",
                 str(e),
             )
 
-    def insertIntoTableGoodData(self, Database):
-        """
-        Method Name :   insertIntoTableGoodData
-        Description :   This method inserts the Good data files from the Good_raw folder into the above created
-                        table
-        Written by  :   iNeuron Intelligence
-        Versions    :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        conn = self.dataBaseConnection(Database)
-
-        goodFilePath = self.goodFilePath
-
-        badFilePath = self.badFilePath
-
-        onlyfiles = [f for f in os.listdir(goodFilePath)]
-
-        for file in onlyfiles:
-            try:
-                tmp_file = os.path.join(goodFilePath, file)
-
-                with open(file=tmp_file, mode="r") as f:
-                    next(f)
-
-                    reader = csv.reader(f, delimiter="\n")
-
-                    for line in enumerate(reader):
-                        for list_ in line[1]:
-                            try:
-                                conn.execute(
-                                    "INSERT INTO Good_Raw_Data values ({values})".format(
-                                        values=(list_)
-                                    )
-                                )
-
-                                self.logger.log(
-                                    db_name=self.db_name,
-                                    collection_name=self.train_db_insert_log,
-                                    log_message=" %s: File loaded successfully!!"
-                                    % file,
-                                )
-
-                                conn.commit()
-
-                            except Exception as e:
-                                raise e
-
-            except Exception as e:
-                conn.rollback()
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_db_insert_log,
-                    log_message=f"Exception occured in Class : dbOperation. \
-                        Method : insertIntoTableGoodData, Error : {str(e)}",
-                )
-
-                tmp_file = os.path.join(goodFilePath, file)
-
-                shutil.move(tmp_file, badFilePath)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_db_insert_log,
-                    log_message="File Moved Successfully %s" % file,
-                )
-
-                conn.close()
-
-        conn.close()
-
-    def selectingDatafromtableintocsv(self, Database):
-        """
-        Method Name :   selectingDatafromtableintocsv
-        Description :   This method exports the data in GoodData table as a csv file in a given location
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        self.fileFromDb = self.config["db_file_path"]["train_db_path"]
-
-        self.fileName = self.config["export_csv_file_name"]
-
+    def export_collection_to_csv(self, db_name, collection_name):
         try:
-            conn = self.dataBaseConnection(Database)
-
-            sqlSelect = "SELECT * FROM Good_Raw_Data"
-
-            cursor = conn.cursor()
-
-            cursor.execute(sqlSelect)
-
-            results = cursor.fetchall()
-
-            headers = [i[0] for i in cursor.description]
-
-            if not os.path.isdir(self.fileFromDb):
-                os.makedirs(self.fileFromDb)
-
-            csvFile = csv.writer(
-                open(self.fileFromDb + "/" + self.fileName, "w", newline=""),
-                delimiter=",",
-                lineterminator="\r\n",
-                quoting=csv.QUOTE_ALL,
-                escapechar="\\",
+            df = self.db_op.get_collection_as_dataframe(
+                db_name=db_name, collection_name=collection_name
             )
-
-            csvFile.writerow(headers)
-
-            csvFile.writerows(results)
 
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_export_csv_log,
-                log_message="File exported successfully!!!",
+                log_message="Got the collection as dataframe",
+            )
+
+            csv_file = self.config["export_train_csv_file"]
+
+            df.to_csv(csv_file, index=False, header=True)
+
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_export_csv_log,
+                log_message="Dataframe is converted to csv file and local copy is created",
+            )
+
+            self.s3_obj.upload_to_s3(
+                src_file=csv_file,
+                bucket=self.input_files_bucket,
+                dest_file=csv_file,
+            )
+
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_export_csv_log,
+                log_message=f"csv file uploaded to {self.input_files_bucket}",
+            )
+
+            os.remove(csv_file)
+
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_export_csv_log,
+                log_message="local copy of the csv file is removed",
             )
 
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_export_csv_log,
-                log_message=f"Exception occured in Class : dbOperation, Method : selectingDatafromtableintocsv, Error : {str(e)}",
+                log_message=f"Exception occured in Class : dbOperation, Method : export_collection_to_csv, Error : {str(e)}",
             )
 
             raise Exception(
-                "Exception occured in Class : dbOperation, Method : selectingDatafromtableintocsv, Error : ",
+                "Exception occured in Class : dbOperation, Method : export_collection_to_csv, Error : ",
                 str(e),
             )

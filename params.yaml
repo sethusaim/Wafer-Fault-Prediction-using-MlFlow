@@ -21,7 +21,11 @@ data:
     train : training_bad_data
     pred : prediction_bad_data 
 
-mongodb_url: localhost:27017
+mongodb:
+  url: localhost:27017
+  wafer_data_db_name: wafer-data
+  wafer_train_data_collection: wafer-train-data
+  wafer_pred_data_collection: wafer-pred-data
 
 knn_imputer:
   n_neighbors : 3
@@ -48,6 +52,7 @@ s3_bucket:
   data_good_train_bucket: wafer-good-data-train
   data_good_pred_bucket: wafer-good-data-pred
   schema_bucket: wafer-schema
+  input_files_bucket: input-files-for-train-and-pred
 
 model_params:
   verbose : 3
@@ -96,7 +101,7 @@ model_params:
       - 200
     
 mlflow_config:
-  experiment_name : wafer-test-demo
+  experiment_name : wafer-mlflow
   remote_server_uri : 
   run_name : mlops
   serialization_format : cloudpickle
@@ -136,17 +141,9 @@ pred_db_log:
   pred_main : prediction_main_log
   values_from_schema : valuesfromSchemaValidationLog
 
-db_file:
-  train_db_file : databases/Training_FileFromDB/InputFile.csv
-  pred_db_file : databases/Prediction_FileFromDB/InputFile.csv
-
-db_file_path:   
-  train_db_path : databases/Training_FileFromDB
-  pred_db_path : databases/Prediction_FileFromDB
-
-database_dir:
-  train_database  : databases/Training_Database
-  pred_database   : databases/Prediction_Database
+db_name:
+  train_db_name: wafer_training_db
+  pred_db_name: wafer_prediction_db
 
 schema_file:
   train_schema_file : schema_training.json
@@ -157,13 +154,15 @@ model_names:
   rf_model_name : RandomForest
   kmeans_model_name : KMeans
   
-elbow_plot_fig : data/preprocessing_data/K-Means_Elbow.PNG
+elbow_plot_fig : K-Means_Elbow.PNG
 
-null_values_csv_file : data/preprocessing_data/null_values.csv
+null_values_csv_file : null_values.csv
 
-pred_output_file : output/Prediction_Output_File/Predictions.csv
+pred_output_file : predictions.csv
 
-export_csv_file_name : InputFile.csv
+export_train_csv_file : train_input_file.csv
+
+export_pred_csv_file : pred_input_file.csv
 
 templates:
   dir : templates

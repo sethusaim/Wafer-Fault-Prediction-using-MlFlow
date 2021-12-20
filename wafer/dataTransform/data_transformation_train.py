@@ -2,7 +2,12 @@ import os
 
 import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import make_readable, read_params
+from utils.main_utils import (
+    convert_object_to_bytes,
+    get_dataframe_from_bytes,
+    make_readable,
+    read_params,
+)
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -43,26 +48,60 @@ class dataTransform:
                 bucket=self.good_data_bucket
             )
 
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_data_transform_log,
+                log_message=f"Got csv objects from s3 bucket : {self.good_data_bucket}",
+            )
+
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_data_transform_log,
+                log_message="File transformation started",
+            )
+
             for f in csv_file_objs:
                 file = f.key
 
-                file_content = f.get()["Body"].read().decode()
+                file_content = convert_object_to_bytes(f)
 
-                data = make_readable(file_content)
-
-                csv = pd.read_csv(data)
+                csv = get_dataframe_from_bytes(file_content)
 
                 csv.fillna("NULL", inplace=True)
 
                 csv["Wafer"] = csv["Wafer"].str[6:]
 
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                    log_message=f"Data transformation for the file {file} is done",
+                )
+
                 csv.to_csv(file, index=None, header=True)
+
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                    log_message=f"Converted {file} to csv and local copy copy is created",
+                )
 
                 self.s3_obj.upload_to_s3(
                     src_file=file, bucket=self.good_data_bucket, dest_file=file
                 )
 
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                    log_message=f"Uploaded {file} to s3 bucket : {self.good_data_bucket}",
+                )
+
                 os.remove(file)
+
+                self.logger.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                    log_message=f"Removed the local copy of {file}",
+                )
 
         except Exception as e:
             self.logger.log(

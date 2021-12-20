@@ -23,6 +23,8 @@ class train_validation:
 
         self.config = read_params()
 
+        self.train_db_name = self.config["db_name"]["train_db_name"]
+
         self.db_name = self.config["db_log"]["db_train_log"]
 
         self.train_main_log = self.config["train_db_log"]["train_main"]
@@ -88,21 +90,16 @@ class train_validation:
                 log_message="Creating Training_Database and tables on the basis of given schema!!!",
             )
 
-            self.dBOperation.createTableDb("Training", column_names)
-
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
-                log_message="Table creation Completed!!",
+                log_message="Insertion of Data into mongodb started!!!!",
             )
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_main_log,
-                log_message="Insertion of Data into Table started!!!!",
+            self.dBOperation.insert_good_data_as_record(
+                db_name=self.config["mongodb"]["wafer_data_db_name"],
+                collection_name=self.config["mongodb"]["wafer_train_data_collection"],
             )
-
-            self.dBOperation.insertIntoTableGoodData("Training")
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -122,7 +119,10 @@ class train_validation:
                 log_message="Extracting csv file from table",
             )
 
-            self.dBOperation.selectingDatafromtableintocsv("Training")
+            self.dBOperation.export_collection_to_csv(
+                db_name=self.config["mongodb"]["wafer_data_db_name"],
+                collection_name=self.config["mongodb"]["wafer_train_data_collection"],
+            )
 
         except Exception as e:
             self.log_writer.log(

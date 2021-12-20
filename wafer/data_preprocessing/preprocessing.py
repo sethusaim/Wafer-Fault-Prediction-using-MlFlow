@@ -159,6 +159,8 @@ class Preprocessor:
 
                 dataframe_with_null.to_csv(self.config["null_values_csv_file"])
 
+                ## upload
+
             self.log_writter.log(
                 db_name=self.db_name,
                 collection_name=self.logger_object,

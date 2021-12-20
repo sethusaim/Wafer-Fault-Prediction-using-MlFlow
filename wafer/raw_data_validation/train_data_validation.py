@@ -2,9 +2,12 @@ import json
 import os
 import re
 
-import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import make_readable, read_params
+from utils.main_utils import (
+    convert_object_to_bytes,
+    get_dataframe_from_bytes,
+    read_params,
+)
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -56,6 +59,12 @@ class Raw_Data_validation:
             res = self.s3_obj.get_file_content_from_s3(
                 bucket=self.config["s3_bucket"]["schema_bucket"],
                 filename=self.config["schema_file"]["train_schema_file"],
+            )
+
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_schema_log,
+                log_message="Got schema content from s3 bucket",
             )
 
             dic = json.loads(res)
@@ -163,9 +172,15 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
 
-        onlyfiles = self.s3_obj.list_files_in_s3(bucket=self.raw_data_bucket_name)
-
         try:
+            onlyfiles = self.s3_obj.list_files_in_s3(bucket=self.raw_data_bucket_name)
+
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_name_valid_log,
+                log_message="Got files list from s3 bucket",
+            )
+
             for filename in onlyfiles:
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
@@ -207,6 +222,12 @@ class Raw_Data_validation:
                             src_file=filename,
                             dest_bucket=self.bad_data_train_bucket,
                             dest_file=filename,
+                        )
+
+                        self.logger.log(
+                            db_name=self.db_name,
+                            collection_name=self.train_name_valid_log,
+                            log_message=f"Copied data from {self.raw_data_bucket_name} to {self.bad_data_train_bucket}",
                         )
 
                 else:
@@ -260,14 +281,18 @@ class Raw_Data_validation:
                 bucket=self.good_data_train_bucket
             )
 
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_col_valid_log,
+                log_message="Got csv objcet from s3 bucket",
+            )
+
             for f in csv_file_objs:
                 file = f.key
 
-                file_content = f.get()["Body"].read().decode()
+                file_content = convert_object_to_bytes(f)
 
-                data = make_readable(file_content)
-
-                csv = pd.read_csv(data)
+                csv = get_dataframe_from_bytes(file_content)
 
                 if csv.shape[1] == NumberofColumns:
                     pass
@@ -325,14 +350,18 @@ class Raw_Data_validation:
                 bucket=self.good_data_train_bucket
             )
 
+            self.logger.log(
+                db_name=self.db_name,
+                collection_name=self.train_missing_value_log,
+                log_message="Got csv objects from s3 bucket",
+            )
+
             for f in csv_file_objs:
                 file = f.key
 
-                file_content = f.get()["Body"].read().decode()
+                file_content = convert_object_to_bytes(f)
 
-                data = make_readable(file_content)
-
-                csv = pd.read_csv(data)
+                csv = get_dataframe_from_bytes(file_content)
 
                 count = 0
 
@@ -358,7 +387,19 @@ class Raw_Data_validation:
                 if count == 0:
                     csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
 
+                    self.logger.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_missing_value_log,
+                        log_message="Wafer column added to files",
+                    )
+
                     csv.to_csv(file, index=None, header=True)
+
+                    self.logger.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_missing_value_log,
+                        log_message=f"Converted {file} to csv, and created local copy",
+                    )
 
                     self.s3_obj.upload_to_s3(
                         src_file=file,
@@ -366,12 +407,18 @@ class Raw_Data_validation:
                         dest_file=file,
                     )
 
+                    self.logger.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_missing_value_log,
+                        log_message=f"{file} uploaded to s3 bucket : {self.good_data_train_bucket}",
+                    )
+
                     os.remove(file)
 
                     self.logger.log(
                         db_name=self.db_name,
                         collection_name=self.train_missing_value_log,
-                        log_message="Wafer column added to files",
+                        log_message=f"Local copy of {file} is deleted",
                     )
 
         except Exception as e:
