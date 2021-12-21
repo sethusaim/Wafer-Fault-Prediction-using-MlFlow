@@ -1,5 +1,5 @@
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_bytes, get_dataframe_from_bytes
+from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -49,9 +49,7 @@ class Data_Getter:
                 bucket=self.input_files_bucket, filename=self.training_file
             )
 
-            csv_data = convert_object_to_bytes(csv_obj)
-
-            df = get_dataframe_from_bytes(csv_data)
+            df = convert_object_to_dataframe(csv_obj)
 
             self.log_writter.log(
                 db_name=self.db_name,
