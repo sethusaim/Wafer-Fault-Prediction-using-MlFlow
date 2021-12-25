@@ -23,8 +23,6 @@ class train_validation:
 
         self.config = read_params()
 
-        self.train_db_name = self.config["db_name"]["train_db_name"]
-
         self.db_name = self.config["db_log"]["db_train_log"]
 
         self.train_main_log = self.config["train_db_log"]["train_main"]
@@ -52,17 +50,17 @@ class train_validation:
                 LengthOfTimeStampInFile,
                 column_names,
                 noofcolumns,
-            ) = self.raw_data.valuesFromSchema()
+            ) = self.raw_data.values_from_schema()
 
-            regex = self.raw_data.manualRegexCreation()
+            regex = self.raw_data.get_regex_pattern()
 
-            self.raw_data.validationFileNameRaw(
+            self.raw_data.validate_raw_file_name(
                 regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
             )
 
-            self.raw_data.validateColumnLength(noofcolumns)
+            self.raw_data.validate_col_length(noofcolumns)
 
-            self.raw_data.validateMissingValuesInWholeColumn()
+            self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -76,7 +74,9 @@ class train_validation:
                 log_message="Starting Data Transforamtion!!",
             )
 
-            self.dataTransform.replaceMissingWithNull()
+            self.dataTransform.rename_target_column()
+
+            self.dataTransform.replace_missing_with_null()
 
             self.log_writer.log(
                 db_name=self.db_name,

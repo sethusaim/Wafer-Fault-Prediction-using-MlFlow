@@ -8,9 +8,9 @@ from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 
 from utils.read_params import read_params
-from wafer.model.load_production_model import LoadProdModel
+from wafer.model.load_production_model import load_prod_model
 from wafer.model.predictionFromModel import prediction
-from wafer.model.trainingModel import trainModel
+from wafer.model.trainingModel import train_model
 from wafer.validation_insertion.prediction_validation_insertion import pred_validation
 from wafer.validation_insertion.train_validation_insertion import train_validation
 
@@ -50,11 +50,11 @@ async def trainRouteClient():
 
         train_valObj.train_validation()
 
-        trainModelObj = trainModel()
+        trainModelObj = train_model()
 
-        num_clusters = trainModelObj.trainingModel()
+        num_clusters = trainModelObj.training_model()
 
-        loadProdModelObj = LoadProdModel(num_clusters=num_clusters)
+        loadProdModelObj = load_prod_model(num_clusters=num_clusters)
 
         loadProdModelObj.load_production_model()
 

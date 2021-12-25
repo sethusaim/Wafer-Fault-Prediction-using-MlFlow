@@ -1,8 +1,11 @@
+import os
+
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
 from utils.logger import App_Logger
 from utils.read_params import read_params
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class Preprocessor:
@@ -13,12 +16,16 @@ class Preprocessor:
     Revisions   :   None
     """
 
-    def __init__(self, db_name, logger_object):
-        self.logger_object = logger_object
+    def __init__(self, db_name, collection_name):
+        self.collection_name = collection_name
 
         self.db_name = db_name
 
         self.config = read_params()
+
+        self.s3_obj = S3_Operations()
+
+        self.bad_data_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
 
         self.log_writter = App_Logger()
 
@@ -35,7 +42,7 @@ class Preprocessor:
 
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the remove_columns method of the Preprocessor class",
         )
 
@@ -48,7 +55,7 @@ class Preprocessor:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Column removal Successful.Exited the remove_columns method of the Preprocessor class",
             )
 
@@ -57,13 +64,13 @@ class Preprocessor:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Preprocessor, Method : remove_columns, Error : {str(e)}",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Column removal Unsuccessful. Exited the remove_columns method of the Preprocessor class",
             )
 
@@ -84,7 +91,7 @@ class Preprocessor:
 
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the separate_label_feature method of the Preprocessor class",
         )
 
@@ -95,7 +102,7 @@ class Preprocessor:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Label Separation Successful. \
                     Exited the separate_label_feature method of the Preprocessor class",
             )
@@ -105,14 +112,14 @@ class Preprocessor:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Preprocessor.\
                     Method : separate_label_feature method, Error : {str(e)}",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Label Separation Unsuccessful. \
                     Exited the separate_label_feature method of the Preprocessor class",
             )
@@ -134,7 +141,7 @@ class Preprocessor:
         """
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the is_null_present method of the Preprocessor class",
         )
 
@@ -157,13 +164,39 @@ class Preprocessor:
                     data.isna().sum()
                 )
 
-                dataframe_with_null.to_csv(self.config["null_values_csv_file"])
+                null_values_file = self.config["null_values_csv_file"]
 
-                ## upload
+                dataframe_with_null.to_csv(null_values_file)
+
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
+                    log_message="Prepared the null values csv file and created a local copy of the same",
+                )
+
+                self.s3_obj.upload_to_s3(
+                    src_file=null_values_file,
+                    bucket=self.bad_data_bucket,
+                    dest_file=null_values_file,
+                )
+
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
+                    log_message=f"Upload the {null_values_file} to {self.bad_data_bucket} bucket",
+                )
+
+                os.remove(null_values_file)
+
+                self.log_writter.log(
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
+                    log_message=f"Local copy of {null_values_file} is deleted",
+                )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Finding missing values is a success.Data written to the null values file.  \
                     Exited the is_null_present method of the Preprocessor class",
             )
@@ -173,13 +206,13 @@ class Preprocessor:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Preprocessor, Method : is_null_present, Error : {str(e)}",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Finding missing values failed. Exited the is_null_present method of the Preprocessor class",
             )
 
@@ -201,7 +234,7 @@ class Preprocessor:
 
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the impute_missing_values method of the Preprocessor class",
         )
 
@@ -220,7 +253,7 @@ class Preprocessor:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Imputing missing values Successful. \
                     Exited the impute_missing_values method of the Preprocessor class",
             )
@@ -230,14 +263,14 @@ class Preprocessor:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Preprocessor. \
                     Method : impute_missing_values, Error : {str(e)}",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Imputing missing values failed. Exited the impute_missing_values method of the Preprocessor class",
             )
 
@@ -256,10 +289,9 @@ class Preprocessor:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the get_columns_with_zero_std_deviation method of the Preprocessor class",
         )
 
@@ -276,7 +308,7 @@ class Preprocessor:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Column search for Standard Deviation of Zero Successful \
                 Exited the get_columns_with_zero_std_deviation method of the Preprocessor class",
             )
@@ -286,14 +318,14 @@ class Preprocessor:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Preprocessor, Method : get_columns_with_zero_std_deviation. \
                      Error : {str(e)} ",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Column search for Standard Deviation of Zero Failed. \
                     Exited the get_columns_with_zero_std_deviation method of the Preprocessor class",
             )

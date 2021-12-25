@@ -1,16 +1,16 @@
 import mlflow
 from sklearn.model_selection import train_test_split
 from utils.logger import App_Logger
-from utils.mlflow_utils import log_metric, log_model, log_param
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
 from wafer.data_preprocessing.preprocessing import Preprocessor
 from wafer.file_operations.file_methods import File_Operation
+from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
 from wafer.model_finder.tuner import Model_Finder
 
 
-class trainModel:
+class train_model:
     """
     Description :   This is the entry point for training the machine learning model
     Written by  :   iNeuron Intelligence
@@ -27,7 +27,11 @@ class trainModel:
 
         self.model_train_log = self.config["train_db_log"]["model_training"]
 
-    def trainingModel(self):
+        self.mlflow_op = Mlflow_Operations(
+            db_name=self.db_name, collection_name=self.model_train_log
+        )
+
+    def training_model(self):
         """
         Method Name :   trainingModel
         Description :   This method is actually responsible for training the selected machine learning models
@@ -152,103 +156,18 @@ class trainModel:
                     with mlflow.start_run(
                         run_name=self.config["mlflow_config"]["run_name"]
                     ):
-                        log_model(
-                            model=kmeans_model,
-                            model_name=self.config["model_names"]["kmeans_model_name"],
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
+                        self.mlflow_op.log_xgboost_params(model=xgb_model)
+
+                        self.mlflow_op.log_random_forest_params(model=rf_model)
+
+                        self.mlflow_op.log_trained_models(
+                            kmeans_model=kmeans_model,
+                            xgboost_model=xgb_model,
+                            random_forest_model=rf_model,
                         )
 
-                        log_param(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["xgb_model_name"],
-                            param_name="learning_rate",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_param(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["xgb_model_name"],
-                            param_name="max_depth",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_param(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["xgb_model_name"],
-                            param_name="n_estimators",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_param(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            param_name="max_depth",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_param(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            param_name="n_estimators",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_param(
-                            model=rf_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            param_name="criterion",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_param(
-                            model=rf_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            param_name="max_features",
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_metric(
-                            model_name=self.config["model_names"]["xgb_model_name"]
-                            + str(i),
-                            metric=float(xgb_model_score),
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_metric(
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            metric=float(rf_model_score),
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_model(
-                            model=xgb_model,
-                            model_name=self.config["model_names"]["xgb_model_name"]
-                            + str(i),
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        log_model(
-                            model=rf_model,
-                            model_name=self.config["model_names"]["rf_model_name"]
-                            + str(i),
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
+                        self.mlflow_op.log_metrics_of_trained_models(
+                            xgb_score=xgb_model_score, rf_score=rf_model_score
                         )
 
                         self.log_writer.log(

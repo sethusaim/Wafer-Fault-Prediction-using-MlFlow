@@ -42,9 +42,9 @@ class Raw_Data_validation:
             "missing_values_in_col"
         ]
 
-    def valuesFromSchema(self):
+    def values_from_schema(self):
         """
-        Method Name :   valuesFromSchema
+        Method Name :   values_from_schema
         Description :   This method extracts all the relevant information from the pre defined schema file
         Output      :   LengthOfDateStampInFile,LengthOfTimeStampInFile,column_names,NumberofColumns,
         Written by  :   iNeuron Intelligence
@@ -93,7 +93,7 @@ class Raw_Data_validation:
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
                 log_message="Exception occured in Class : Raw Data Validation,  \
-                    Method : valuesfromschema, Error : ValueError:Value not found inside schema_training.json",
+                    Method : values_from_schema, Error : ValueError:Value not found inside schema_training.json",
             )
 
             raise ValueError
@@ -103,7 +103,7 @@ class Raw_Data_validation:
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
                 log_message="Exception occured in class : Raw Data Validation,  \
-                    Method : valuesfromschema, Error : KeyError:Key value error incorrect key passed",
+                    Method : values_from_schema, Error : KeyError:Key value error incorrect key passed",
             )
 
             raise KeyError
@@ -113,11 +113,11 @@ class Raw_Data_validation:
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
                 log_message=f"Exception occured in Class : Raw Data Validation, \
-                     Method : valuesfromSchema, Error : {str(e)}",
+                     Method : values_from_schema, Error : {str(e)}",
             )
 
             raise Exception(
-                f"Exception occured in Class : Raw Data Validation,Method : valuesfromSchema, Error : {str(e)}"
+                f"Exception occured in Class : Raw Data Validation,Method : values_from_schema, Error : {str(e)}"
             )
 
         return (
@@ -127,9 +127,9 @@ class Raw_Data_validation:
             NumberofColumns,
         )
 
-    def manualRegexCreation(self):
+    def get_regex_pattern(self):
         """
-        Method Name :   manualRegexCreation
+        Method Name :   get_regex_pattern
         Description :   This method contains a manually defined regex based on the filename given in
                         the schema file
         Written by  :   iNeuron Intelligence
@@ -146,19 +146,19 @@ class Raw_Data_validation:
                 db_name=self.db_name,
                 collection_name=self.train_gen_log,
                 log_message=f"Exception occured in Class : Raw_data_validation, \
-                    Method :manualRegexCreation, Error : {str(e)}",
+                    Method :get_regex_pattern, Error : {str(e)}",
             )
 
             raise Exception(
-                "Exception occured in Class : Raw_data_validation,Method :manualRegexCreation, Error :",
+                "Exception occured in Class : Raw_data_validation,Method :get_regex_pattern, Error :",
                 str(e),
             )
 
-    def validationFileNameRaw(
+    def validate_raw_file_name(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
     ):
         """
-        Method Name :   validationFileNameRaw
+        Method Name :   validate_raw_file_name
         Description :   This function validates the name of the prediction csv file as per the given name
                         in the schema. Regex pattern is used to do the validation if name format do not match
                         the file is moved to bad raw data folder else in good raw data folder
@@ -244,18 +244,18 @@ class Raw_Data_validation:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_name_valid_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, Method : validationFileNameRaw, Error : {str(e)}",
+                log_message=f"Exception occured in Class : Raw_data_validation, Method : validate_raw_file_name, Error : {str(e)}",
             )
 
             raise Exception(
                 "Exception occured in Class : Raw_data_validation \
-                            Method : validationFileNameRaw, Error : ",
+                            Method : validate_raw_file_name, Error : ",
                 str(e),
             )
 
-    def validateColumnLength(self, NumberofColumns):
+    def validate_col_length(self, NumberofColumns):
         """
-        Method Name :   validateColumnLength
+        Method Name :   validate_col_length
         Description :   This function validates the number of columns in the csv files. It should be same
                         as given in the schema file. If not same file is not suitable for processing and
                         thus is moved to baw raw data folder. If the column number matches, the file is
@@ -315,17 +315,17 @@ class Raw_Data_validation:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, Method : validateColumnLength, Error : {str(e)}",
+                log_message=f"Exception occured in Class : Raw_data_validation, Method : validate_col_length, Error : {str(e)}",
             )
 
             raise Exception(
-                "Exception occured in Class : Raw_data_validation, Method : validateColumnLength, Error :",
+                "Exception occured in Class : Raw_data_validation, Method : validate_col_length, Error :",
                 str(e),
             )
 
-    def validateMissingValuesInWholeColumn(self):
+    def validate_missing_values_in_col(self):
         """
-        Method Name :   validateMissingValuesInWholeColumn
+        Method Name :   validate_missing_values_in_col
         Description :   This function validates the misisng values in column in the csv files, and
                         corresponding missing values csv file is created
         On failure  :   Raise Exception
@@ -418,11 +418,11 @@ class Raw_Data_validation:
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
                 log_message=f"Exception occured in class Raw_data_validation, \
-                        Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
+                        Method : validate_missing_values_in_col, Error : {str(e)}",
             )
 
             raise Exception(
                 "Exception occured in class Raw_data_validation, \
-                        Method : validateMissingValuesInWholeColumn, Error : ",
+                        Method : validate_missing_values_in_col, Error : ",
                 str(e),
             )

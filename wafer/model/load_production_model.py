@@ -7,7 +7,7 @@ from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
-class LoadProdModel:
+class load_prod_model:
     """
     Description :   This class shall be used for loading the production model
     Written by  :   iNeuron Intelligence
@@ -66,7 +66,7 @@ class LoadProdModel:
                 log_message=f"Completed searchiing for runs in mlflow with experiment ids as {exp.experiment_id}",
             )
 
-            cols, top_mn_lst = [], []
+            # cols, top_mn_lst = [], []
 
             """
             Code Explaination: 
@@ -79,15 +79,22 @@ class LoadProdModel:
             Eg- metrics.XGBoost1-best_score
             """
 
-            for i in range(0, self.num_clusters):
-                for model in self.config["model_names"].values():
-                    if model != self.config["model_names"]["kmeans_model_name"]:
-                        temp = "metrics." + str(model) + str(i) + "-best_score"
+            # for i in range(0, self.num_clusters):
+            #     for model in self.config["model_names"].values():
+            #         if model != self.config["model_names"]["kmeans_model_name"]:
+            #             temp = "metrics." + str(model) + str(i) + "-best_score"
 
-                        cols.append(temp)
+            #             cols.append(temp)
 
-                    else:
-                        pass
+            #         else:
+            #             pass
+
+            cols = [
+                "metrics." + str(model) + str(i) + "-best_score"
+                for i in range(0, self.num_clusters)
+                for model in self.config["model_names"].values()
+                if model != self.config["model_names"]["kmeans_model_name"]
+            ]
 
             """ 
             Eg-output: For 3 clusters, 
@@ -150,10 +157,12 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
 
             ## top_mn_lst - will store the top 3 model names
 
-            for mn in best_metrics.index:
-                top_mn = mn.split("-")[0].split(".")[1]
+            # for mn in best_metrics.index:
+            #     top_mn = mn.split("-")[0].split(".")[1]
 
-                top_mn_lst.append(top_mn)
+            #     top_mn_lst.append(top_mn)
+
+            top_mn_lst = [mn.split("-")[0].split(".")[1] for mn in best_metrics.index]
 
             ## Searching registered models in mlflow in descending order
             results = client.search_registered_models(order_by=["name DESC"])
