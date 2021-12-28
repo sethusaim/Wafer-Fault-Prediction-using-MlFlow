@@ -2,8 +2,7 @@ import os
 import re
 
 from utils.logger import App_Logger
-from utils.main_utils import convert_obj_to_json, convert_object_to_dataframe
-from utils.main_utils import read_params
+from utils.main_utils import convert_object_to_dataframe, read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -52,7 +51,7 @@ class Raw_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            res = self.s3_obj.get_file_object_from_s3(
+            dic = self.s3_obj.get_schema_from_s3(
                 bucket=self.config["s3_bucket"]["schema_bucket"],
                 filename=self.config["schema_file"]["train_schema_file"],
             )
@@ -60,10 +59,8 @@ class Raw_Data_validation:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
-                log_message="Got schema content from s3 bucket",
+                log_message="Got schema file from s3 bucket",
             )
-
-            dic = convert_obj_to_json(res)
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
 

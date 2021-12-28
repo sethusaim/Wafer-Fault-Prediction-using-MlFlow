@@ -1,4 +1,5 @@
 import boto3
+from utils.main_utils import convert_obj_to_json, convert_object_to_pickle
 
 
 class S3_Operations:
@@ -82,4 +83,29 @@ class S3_Operations:
         except Exception as e:
             raise Exception(
                 f"Exception occured in Class : S3_Operations, Method : get_file_from_s3, Error : {str(e)}"
+            )
+
+    def load_model_from_s3(self, bucket, model_name):
+        try:
+            model_obj = self.get_file_object_from_s3(bucket=bucket, filename=model_name)
+
+            model = convert_object_to_pickle(model_obj)
+
+            return model
+
+        except Exception as e:
+            raise Exception(
+                f"Exception occured in Class : S3_Operations, Method : get_model_from_s3, Error : {str(e)}"
+            )
+    def get_schema_from_s3(self, bucket, filename):
+        try: 
+            res = self.get_file_object_from_s3(bucket=bucket, filename=filename)
+
+            dic = convert_obj_to_json(res)
+
+            return dic
+
+        except Exception as e:
+            raise Exception(
+                f"Exception occured in Class : S3_Operations, Method : get_model_from_s3, Error : {str(e)}"
             )

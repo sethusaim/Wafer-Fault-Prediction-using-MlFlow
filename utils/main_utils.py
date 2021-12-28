@@ -1,4 +1,5 @@
 import json
+import pickle
 from io import StringIO
 
 import pandas as pd
@@ -32,10 +33,39 @@ def convert_object_to_dataframe(obj):
             f"Exception occured in main_utils.py, Method : convert_object_to_dataframe, Error : {str(e)}"
         )
 
+def read_s3_obj(obj,decode=True):
+    try:
+        if decode:
+            content = obj.get()["Body"].read().decode()
+
+            return content
+
+        else:
+            content = obj.get()["Body"].read()       
+
+            return content
+
+    except Exception as e:
+        raise Exception(
+            f"Exception occured in main_utils.py, Method : read_s3_obj, Error : {str(e)}"
+        )
+def convert_object_to_pickle(obj):
+    try:
+        model_content = read_s3_obj(obj,decode=False)
+
+        model = pickle.loads(model_content)
+
+        return model
+
+    except Exception as e:
+        raise Exception(
+            f"Exception occured in main_utils.py, Method : convert_object_to_pickle, Error : {str(e)}"
+        )
+
 
 def convert_object_to_bytes(obj):
     try:
-        content = obj.get()["Body"].read().decode()
+        content = read_s3_obj(obj,decode=True)
 
         return content
 
