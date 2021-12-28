@@ -7,9 +7,9 @@ import yaml
 
 from utils.logger import App_Logger
 
-class_name = "main_utils.py"
-
 log_writter = App_Logger()
+
+class_name = "main_utils.py"
 
 
 def make_readable(data, db_name, collection_name):
@@ -25,10 +25,8 @@ def make_readable(data, db_name, collection_name):
         return f
 
     except Exception as e:
-        raise_error(
-            class_name=class_name,
-            method_name="make_readable",
-            error=str(e),
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : make_readable, Error : {str(e)}"
         )
 
 
@@ -43,10 +41,8 @@ def convert_object_to_dataframe(obj):
         return df
 
     except Exception as e:
-        raise_error(
-            class_name=class_name,
-            method_name="convert_object_to_dataframe",
-            error=str(e),
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : convert_object_to_dataframe, Error : {str(e)}"
         )
 
 
@@ -74,7 +70,9 @@ def read_s3_obj(obj, db_name, collection_name, decode=True):
             return content
 
     except Exception as e:
-        raise_error(class_name=class_name, method_name="read_s3_obj", error=str(e))
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : read_s3_obj, Error : {str(e)}"
+        )
 
 
 def convert_object_to_pickle(obj):
@@ -86,10 +84,8 @@ def convert_object_to_pickle(obj):
         return model
 
     except Exception as e:
-        raise_error(
-            class_name=class_name,
-            method_name="convert_object_to_pickle",
-            error=str(e),
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : convert_object_to_pickle, Error : {str(e)}"
         )
 
 
@@ -106,10 +102,8 @@ def convert_object_to_bytes(obj, db_name, collection_name):
         return content
 
     except Exception as e:
-        raise_error(
-            class_name=class_name,
-            method_name="convert_obj_to_bytes",
-            error=str(e),
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : convert_object_to_bytes, Error : {str(e)}"
         )
 
 
@@ -126,7 +120,9 @@ def get_model_name(model, db_name, collection_name):
         return model_name
 
     except Exception as e:
-        raise_error(class_name=class_name, method_name="get_model_name", error=str(e))
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : get_model_name, Error : {str(e)}"
+        )
 
 
 def convert_obj_to_json(obj, db_name, collection_name):
@@ -144,10 +140,8 @@ def convert_obj_to_json(obj, db_name, collection_name):
         return dic
 
     except Exception as e:
-        raise_error(
-            class_name=class_name,
-            method_name="convert_obj_to_json",
-            error=str(e),
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : convert_obj_to_json, Error : {str(e)}"
         )
 
 
@@ -159,18 +153,6 @@ def read_params(config_path="params.yaml"):
         return config
 
     except Exception as e:
-        raise_error(class_name=class_name, method_name="read_params", error=str(e))
-
-
-def raise_error(class_name, method_name, error):
-    error_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {error}"
-
-    raise Exception(error_msg)
-
-
-def raise_error_with_log(class_name, method_name, error, db_name, collection_name):
-    error_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {error}"
-
-    log_writter.log(
-        db_name=db_name, collection_name=collection_name, log_message=error_msg
-    )
+        raise Exception(
+            f"Exception occured in Class : {class_name}, Method : read_params, Error : {str(e)}"
+        )

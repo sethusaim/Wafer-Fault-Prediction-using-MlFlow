@@ -32,7 +32,7 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils..py, Method : log_model, Error : ",
+                "Exception occured in main_utils.py, Method : log_model, Error : ",
                 str(e),
             )
 
@@ -48,7 +48,7 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                "Exception occured in main_utilspy, Method : log_metric, Error : ",
                 str(e),
             )
 
@@ -66,7 +66,7 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                "Exception occured in main_utilspy, Method : log_metric, Error : ",
                 str(e),
             )
 
@@ -81,7 +81,7 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils.py, Method : log_xgboost_params, Error : ",
+                "Exception occured in main_utilspy, Method : log_xgboost_params, Error : ",
                 str(e),
             )
 
@@ -96,7 +96,7 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils.py, Method : log_rf_model_params, Error : ",
+                "Exception occured in main_utilspy, Method : log_rf_model_params, Error : ",
                 str(e),
             )
 
@@ -129,7 +129,7 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                "Exception occured in main_utilspy, Method : log_metric, Error : ",
                 str(e),
             )
 
@@ -153,6 +153,6 @@ class Mlflow_Operations:
 
         except Exception as e:
             raise Exception(
-                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                "Exception occured in main_utilspy, Method : log_metric, Error : ",
                 str(e),
             )
