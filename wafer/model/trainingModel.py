@@ -8,6 +8,7 @@ from wafer.data_preprocessing.preprocessing import Preprocessor
 from wafer.file_operations.file_methods import File_Operation
 from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
 from wafer.model_finder.tuner import Model_Finder
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class train_model:
@@ -30,6 +31,8 @@ class train_model:
         self.mlflow_op = Mlflow_Operations(
             db_name=self.db_name, collection_name=self.model_train_log
         )
+
+        self.s3_obj = S3_Operations()
 
     def training_model(self):
         """

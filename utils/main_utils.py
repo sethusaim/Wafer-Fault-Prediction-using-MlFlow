@@ -5,16 +5,30 @@ from io import StringIO
 import pandas as pd
 import yaml
 
+from utils.logger import App_Logger
 
-def make_readable(data):
+class_name = "main_utils.py"
+
+log_writter = App_Logger()
+
+
+def make_readable(data, db_name, collection_name):
     try:
         f = StringIO(data)
+
+        log_writter.log(
+            db_name=db_name,
+            collection_name=collection_name,
+            log_message="Converted bytes content to string content using StringIO",
+        )
 
         return f
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : make_readable, Error : {str(e)}"
+        raise_error(
+            class_name=class_name,
+            method_name="make_readable",
+            error=str(e),
         )
 
 
@@ -29,27 +43,38 @@ def convert_object_to_dataframe(obj):
         return df
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : convert_object_to_dataframe, Error : {str(e)}"
+        raise_error(
+            class_name=class_name,
+            method_name="convert_object_to_dataframe",
+            error=str(e),
         )
 
 
-def read_s3_obj(obj, decode=True):
+def read_s3_obj(obj, db_name, collection_name, decode=True):
     try:
         if decode:
             content = obj.get()["Body"].read().decode()
+
+            log_writter.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Read the object with decode as {decode}",
+            )
 
             return content
 
         else:
             content = obj.get()["Body"].read()
 
+            log_writter.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Read the object with decode as {decode}",
+            )
             return content
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : read_s3_obj, Error : {str(e)}"
-        )
+        raise_error(class_name=class_name, method_name="read_s3_obj", error=str(e))
 
 
 def convert_object_to_pickle(obj):
@@ -61,46 +86,68 @@ def convert_object_to_pickle(obj):
         return model
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : convert_object_to_pickle, Error : {str(e)}"
+        raise_error(
+            class_name=class_name,
+            method_name="convert_object_to_pickle",
+            error=str(e),
         )
 
 
-def convert_object_to_bytes(obj):
+def convert_object_to_bytes(obj, db_name, collection_name):
     try:
         content = read_s3_obj(obj, decode=True)
+
+        log_writter.log(
+            db_name=db_name,
+            collection_name=collection_name,
+            log_message="Converted s3 object to bytes",
+        )
 
         return content
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : convert_object_to_bytes, Error : {str(e)}"
+        raise_error(
+            class_name=class_name,
+            method_name="convert_obj_to_bytes",
+            error=str(e),
         )
 
 
-def get_model_name(model):
+def get_model_name(model, db_name, collection_name):
     try:
         model_name = model.__class__.__name__
+
+        log_writter.log(
+            db_name=db_name,
+            collection_name=collection_name,
+            log_message=f"Got the {model} model_name",
+        )
 
         return model_name
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : get_model_name, Error : {str(e)}"
-        )
+        raise_error(class_name=class_name, method_name="get_model_name", error=str(e))
 
 
-def convert_obj_to_json(obj):
+def convert_obj_to_json(obj, db_name, collection_name):
     try:
         res = convert_object_to_bytes(obj)
 
         dic = json.loads(res)
 
+        log_writter.log(
+            db_name=db_name,
+            collection_name=collection_name,
+            log_message="Converted s3 object to json",
+        )
+
         return dic
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : convert_obj_to_json, Error : {str(e)}"
+        raise_error(
+            class_name=class_name,
+            method_name="convert_obj_to_json",
+            error=str(e),
         )
 
 
@@ -112,6 +159,18 @@ def read_params(config_path="params.yaml"):
         return config
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in main_utils.py, Method : read_params, Error : {str(e)}"
-        )
+        raise_error(class_name=class_name, method_name="read_params", error=str(e))
+
+
+def raise_error(class_name, method_name, error):
+    error_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {error}"
+
+    raise Exception(error_msg)
+
+
+def raise_error_with_log(class_name, method_name, error, db_name, collection_name):
+    error_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {error}"
+
+    log_writter.log(
+        db_name=db_name, collection_name=collection_name, log_message=error_msg
+    )

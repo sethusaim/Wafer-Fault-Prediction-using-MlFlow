@@ -23,9 +23,7 @@ class File_Operation:
 
         self.log_writter = App_Logger()
 
-        self.train_models_dir = self.config["models_dir"]["trained_models_dir"]
-
-        self.prod_model_dir = self.config["models_dir"]["prod_models_dir"]
+        self.models_dir = self.config["models_dir"]
 
         self.file_format = self.config["model_params"]["save_format"]
 
@@ -46,9 +44,7 @@ class File_Operation:
         )
 
         try:
-            self.model_file = os.path.join(
-                self.train_models_dir, filename + self.file_format
-            )
+            self.model_file = os.path.join(self.models_dir, filename + self.file_format)
 
             with open(file=self.model_file, mode="wb") as f:
                 pickle.dump(model, f)

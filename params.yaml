@@ -33,6 +33,9 @@ s3_bucket:
   data_good_pred_bucket: wafer-good-data-pred
   schema_bucket: wafer-schema
   input_files_bucket: input-files-for-train-and-pred
+  wafer_model_bucket: wafer-model
+
+models_dir : models
 
 model_params:
   verbose : 3
