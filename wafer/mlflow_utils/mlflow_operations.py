@@ -13,6 +13,12 @@ class Mlflow_Operations:
 
         self.collection_name = collection_name
 
+        self.xgb_model_name = self.config["model_names"]["xgb_model_name"]
+
+        self.kmeans_model_name = self.config["model_names"]["kmeans_model_name"]
+
+        self.rf_model_name = self.config["model_names"]["rf_model_name"]
+
     def log_model(self, model, model_name, db_name, collection_name):
         try:
             mlflow.sklearn.log_model(
@@ -36,24 +42,6 @@ class Mlflow_Operations:
                 str(e),
             )
 
-    def log_param(self, model, model_name, param_name, db_name, collection_name):
-        try:
-            mlflow.log_param(
-                key=model_name + "-" + param_name, value=model.__dict__[param_name]
-            )
-
-            self.log_writter.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message=model_name + f" {param_name} logged in mlflow",
-            )
-
-        except Exception as e:
-            raise Exception(
-                "Exception occured in main_utils.py, Method : log_param, Error : ",
-                str(e),
-            )
-
     def log_metric(self, model_name, metric, db_name, collection_name):
         try:
             mlflow.log_metric(key=model_name + "-best_score", value=metric)
@@ -70,117 +58,95 @@ class Mlflow_Operations:
                 str(e),
             )
 
-    def log_xgboost_params(self, model):
+    def log_param(self, idx, model, model_name, param):
         try:
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["xgb_model_name"],
-                param_name="learning_rate",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            name = model_name + str(idx) + f"-{param}"
 
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["xgb_model_name"],
-                param_name="max_depth",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            mlflow.log_param(key=name, value=model.__dict__[param])
 
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["xgb_model_name"],
-                param_name="n_estimators",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
-
-        except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Exception occured in Class : Mlflow_Operations, Method : log_xgboost_params, Error : {str(e)}",
+                log_message=f"{name} logged in mlflow",
             )
 
-    def log_random_forest_params(self, model):
+        except Exception as e:
+            raise Exception(
+                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                str(e),
+            )
+
+    def log_xgboost_params(self, idx, model):
         try:
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["rf_model_name"],
-                param_name="max_depth",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            model_name = self.xgb_model_name
 
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["rf_model_name"],
-                param_name="n_estimators",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            params_list = list(self.config["model_params"]["xgb_model"].keys())
 
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["rf_model_name"],
-                param_name="criterion",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
-
-            self.log_param(
-                model=model,
-                model_name=self.config["model_names"]["rf_model_name"],
-                param_name="max_features",
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            for param in params_list:
+                self.log_param(idx=idx, model=model, model_name=model_name, param=param)
 
         except Exception as e:
             raise e
 
-    def log_trained_models(self, kmeans_model, xgboost_model, random_forest_model):
+    def log_rf_model_params(self, idx, model):
+        try:
+            model_name = self.rf_model_name
+
+            params_list = list(self.config["model_params"]["rf_model"].keys())
+
+            for param in params_list:
+                self.log_param(idx=idx, model=model, model_name=model_name, param=param)
+
+        except Exception as e:
+            pass
+
+    def log_trained_models(self, kmeans_model, idx, xgb_model, rf_model):
         try:
             self.log_model(
                 model=kmeans_model,
-                model_name=self.config["model_names"]["kmeans_model_name"],
+                model_name=self.kmeans_model_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_model(
-                model=xgboost_model,
-                model_name=self.config["model_names"]["xgb_model_name"],
+                model=xgb_model,
+                model_name=self.xgb_model_name + str(idx),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_model(
-                model=random_forest_model,
-                model_name=self.config["model_names"]["rf_model_name"],
+                model=rf_model,
+                model_name=self.rf_model_name + str(idx),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
         except Exception as e:
-            raise e
+            raise Exception(
+                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                str(e),
+            )
 
-    def log_metrics_of_trained_models(self, xgb_score, rf_score):
+    def log_metrics_of_trained_models(self, idx, xgb_score, rf_score):
         try:
             self.log_metric(
-                model_name=self.config["model_names"]["xgb_model_name"],
+                model_name=self.xgb_model_name + str(idx),
                 metric=float(xgb_score),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_metric(
-                model_name=self.config["model_names"]["rf_model_name"],
+                model_name=self.rf_model_name + str(idx),
                 metric=float(rf_score),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
         except Exception as e:
-            raise e
+            raise Exception(
+                "Exception occured in main_utils.py, Method : log_metric, Error : ",
+                str(e),
+            )

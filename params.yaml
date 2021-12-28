@@ -101,8 +101,8 @@ model_params:
       - 200
     
 mlflow_config:
-  experiment_name : wafer-mlflow
-  remote_server_uri : 
+  experiment_name : wafer-mlflow-test-1
+  remote_server_uri : http://52.7.106.245:8080
   run_name : mlops
   serialization_format : cloudpickle
   num_of_prod_models : 3

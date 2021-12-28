@@ -1,9 +1,12 @@
+import os
+
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.file_operations.file_methods import File_Operation
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class KMeansClustering:
@@ -14,12 +17,16 @@ class KMeansClustering:
     Revisions   :   None
     """
 
-    def __init__(self, db_name, logger_object):
+    def __init__(self, db_name, collection_name):
         self.db_name = db_name
 
-        self.logger_object = logger_object
+        self.collection_name = collection_name
 
         self.config = read_params()
+
+        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
+        self.s3_obj = S3_Operations()
 
         self.log_writter = App_Logger()
 
@@ -36,7 +43,7 @@ class KMeansClustering:
 
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the elbow_plot method of the KMeansClustering class",
         )
 
@@ -66,8 +73,28 @@ class KMeansClustering:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
-                log_message="Saved elbow_plot fig",
+                collection_name=self.collection_name,
+                log_message="Saved elbow_plot fig and local copy is created",
+            )
+
+            self.s3_obj.upload_to_s3(
+                src_file=self.config["elbow_plot_fig"],
+                bucket=self.input_files_bucket,
+                dest_file=self.config["elbow_plot_fig"],
+            )
+
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Uploaded elbow plot figure in bucket {self.input_files_bucket}",
+            )
+
+            os.remove(self.config["elbow_plot_fig"])
+
+            self.log_writter.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Removed local copy of the elbow plot figure",
             )
 
             self.kn = KneeLocator(
@@ -79,7 +106,7 @@ class KMeansClustering:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="The optimum number of clusters is: "
                 + str(self.kn.knee)
                 + " . Exited the elbow_plot method of the KMeansClustering class",
@@ -90,13 +117,13 @@ class KMeansClustering:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : KMeansClustering, Method : elbow_plot, Error : {str(e)}",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Finding the number of clusters failed. \
                     Exited the elbow_plot method of the KMeansClustering class",
             )
@@ -118,7 +145,7 @@ class KMeansClustering:
         """
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the create_clusters method of the KMeansClustering class",
         )
 
@@ -133,7 +160,7 @@ class KMeansClustering:
 
             self.y_kmeans = self.kmeans.fit_predict(data)
 
-            self.file_op = File_Operation(self.db_name, self.logger_object)
+            self.file_op = File_Operation(self.db_name, self.collection_name)
 
             self.file_op.save_model(
                 self.kmeans, self.config["model_names"]["kmeans_model_name"]
@@ -143,7 +170,7 @@ class KMeansClustering:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="succesfully created "
                 + str(self.kn.knee)
                 + " clusters. Exited the create_clusters method of the KMeansClustering class",
@@ -154,7 +181,7 @@ class KMeansClustering:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : KMeansClustering, Method : create_clusters, Error : {str(e)}",
             )
 
