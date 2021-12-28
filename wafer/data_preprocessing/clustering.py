@@ -4,7 +4,7 @@ from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from utils.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import read_params
 from wafer.file_operations.file_methods import File_Operation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 

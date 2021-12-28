@@ -1,6 +1,7 @@
 import mlflow
 from utils.logger import App_Logger
-from utils.read_params import read_params
+from utils.main_utils import get_model_name
+from utils.main_utils import read_params
 
 
 class Mlflow_Operations:
@@ -12,12 +13,6 @@ class Mlflow_Operations:
         self.db_name = db_name
 
         self.collection_name = collection_name
-
-        self.xgb_model_name = self.config["model_names"]["xgb_model_name"]
-
-        self.kmeans_model_name = self.config["model_names"]["kmeans_model_name"]
-
-        self.rf_model_name = self.config["model_names"]["rf_model_name"]
 
     def log_model(self, model, model_name, db_name, collection_name):
         try:
@@ -78,7 +73,7 @@ class Mlflow_Operations:
 
     def log_xgboost_params(self, idx, model):
         try:
-            model_name = self.xgb_model_name
+            model_name = get_model_name(model)
 
             params_list = list(self.config["model_params"]["xgb_model"].keys())
 
@@ -90,7 +85,7 @@ class Mlflow_Operations:
 
     def log_rf_model_params(self, idx, model):
         try:
-            model_name = self.rf_model_name
+            model_name = get_model_name(model)
 
             params_list = list(self.config["model_params"]["rf_model"].keys())
 
@@ -102,23 +97,27 @@ class Mlflow_Operations:
 
     def log_trained_models(self, kmeans_model, idx, xgb_model, rf_model):
         try:
+            xgb_model_name = get_model_name(xgb_model)
+
+            rf_model_name = get_model_name(rf_model)
+
             self.log_model(
                 model=kmeans_model,
-                model_name=self.kmeans_model_name,
+                model_name=get_model_name(kmeans_model),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_model(
                 model=xgb_model,
-                model_name=self.xgb_model_name + str(idx),
+                model_name=xgb_model_name + str(idx),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_model(
                 model=rf_model,
-                model_name=self.rf_model_name + str(idx),
+                model_name=rf_model_name + str(idx),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
@@ -129,17 +128,19 @@ class Mlflow_Operations:
                 str(e),
             )
 
-    def log_metrics_of_trained_models(self, idx, xgb_score, rf_score):
+    def log_metrics_of_trained_models(
+        self, idx, xgb_model, rf_model, xgb_score, rf_score
+    ):
         try:
             self.log_metric(
-                model_name=self.xgb_model_name + str(idx),
+                model_name=xgb_model.__class__.__name__ + str(idx),
                 metric=float(xgb_score),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_metric(
-                model_name=self.rf_model_name + str(idx),
+                model_name=rf_model.__class__.__name__ + str(idx),
                 metric=float(rf_score),
                 db_name=self.db_name,
                 collection_name=self.collection_name,

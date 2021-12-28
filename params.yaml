@@ -146,11 +146,6 @@ db_name:
 schema_file:
   train_schema_file : schema_training.json
   pred_schema_file : schema_prediction.json
-
-model_names:
-  xgb_model_name : XGBoost
-  rf_model_name : RandomForest
-  kmeans_model_name : KMeans
   
 elbow_plot_fig : K-Means_Elbow.PNG
 
