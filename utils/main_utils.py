@@ -33,7 +33,8 @@ def convert_object_to_dataframe(obj):
             f"Exception occured in main_utils.py, Method : convert_object_to_dataframe, Error : {str(e)}"
         )
 
-def read_s3_obj(obj,decode=True):
+
+def read_s3_obj(obj, decode=True):
     try:
         if decode:
             content = obj.get()["Body"].read().decode()
@@ -41,7 +42,7 @@ def read_s3_obj(obj,decode=True):
             return content
 
         else:
-            content = obj.get()["Body"].read()       
+            content = obj.get()["Body"].read()
 
             return content
 
@@ -49,9 +50,11 @@ def read_s3_obj(obj,decode=True):
         raise Exception(
             f"Exception occured in main_utils.py, Method : read_s3_obj, Error : {str(e)}"
         )
+
+
 def convert_object_to_pickle(obj):
     try:
-        model_content = read_s3_obj(obj,decode=False)
+        model_content = read_s3_obj(obj, decode=False)
 
         model = pickle.loads(model_content)
 
@@ -65,7 +68,7 @@ def convert_object_to_pickle(obj):
 
 def convert_object_to_bytes(obj):
     try:
-        content = read_s3_obj(obj,decode=True)
+        content = read_s3_obj(obj, decode=True)
 
         return content
 

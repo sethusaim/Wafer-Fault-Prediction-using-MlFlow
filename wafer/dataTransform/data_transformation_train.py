@@ -39,7 +39,7 @@ class dataTransform:
         """
 
         try:
-            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
                 bucket=self.good_data_bucket
             )
 
@@ -117,7 +117,7 @@ class dataTransform:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
                 bucket=self.good_data_bucket
             )
 

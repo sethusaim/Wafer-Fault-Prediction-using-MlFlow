@@ -15,11 +15,22 @@ class S3_Operations:
                 f"Exception occured in Class : S3_Operations, Method : upload_to_s3, Error : {str(e)}"
             )
 
+    def get_bucket_from_s3(self, bucket):
+        try:
+            bucket = self.s3.Bucket(bucket)
+
+            return bucket
+
+        except Exception as e:
+            raise Exception(
+                f"Exception occured in Class : S3_Operations, Method : get_bucket_from_s3, Error : {str(e)}"
+            )
+
     def copy_data_to_other_bucket(self, src_bucket, src_file, dest_bucket, dest_file):
         try:
             copy_source = {"Bucket": src_bucket, "Key": src_file}
 
-            bucket = self.s3.Bucket(dest_bucket)
+            bucket = self.get_bucket_from_s3(bucket=dest_bucket)
 
             bucket.copy(copy_source, dest_file)
 
@@ -28,54 +39,55 @@ class S3_Operations:
                 f"Exception occured in Class : S3_Operations, Method : copy_data_to_other_bucket, Error : {str(e)}"
             )
 
+    def delete_file_from_s3(self, bucket, file):
+        try:
+            self.s3.Object(bucket, file).delete()
+
+        except Exception as e:
+            raise Exception(
+                f"Exception occured in Class : S3_Operations, Method : delete_file_from_s3, Error : {str(e)}"
+            )
+
     def move_data_to_other_bucket(self, src_bucket, src_file, dest_bucket, dest_file):
         try:
             self.copy_data_to_other_bucket(src_bucket, src_file, dest_bucket, dest_file)
 
-            self.s3.Object(src_bucket, src_file).delete()
+            self.delete_file_from_s3(bucket=src_bucket, file=src_file)
 
         except Exception as e:
             raise Exception(
                 f"Exception occured in Class : S3_Operations, Method : move_data_to_other_bucket, Error : {str(e)}"
             )
 
-    def get_csv_objs_from_s3(self, bucket):
-        lst_obj = []
-
+    def get_file_objs_from_s3(self, bucket):
         try:
-            s3_bucket = self.s3.Bucket(bucket)
+            s3_bucket = self.get_bucket_from_s3(bucket)
 
-            for obj in s3_bucket.objects.all():
-                lst_obj.append(obj)
+            lst_obj = [obj for obj in s3_bucket.objects.all()]
 
             return lst_obj
 
         except Exception as e:
             raise Exception(
-                f"Exception occured in Class : S3_Operations, Method : get_csv_objs_from_s3, Error : {str(e)}"
+                f"Exception occured in Class : S3_Operations, Method : get_file_objs_from_s3, Error : {str(e)}"
             )
 
-    def list_files_in_s3(self, bucket):
+    def get_files_from_s3(self, bucket):
         try:
-            list_of_files = []
+            lst = self.get_file_objs_from_s3(bucket=bucket)
 
-            s3_bucket = self.s3.Bucket(bucket)
-
-            for my_bucket_object in s3_bucket.objects.all():
-                f = my_bucket_object.key
-
-                list_of_files.append(f)
+            list_of_files = [obj.key for obj in lst]
 
             return list_of_files
 
         except Exception as e:
             raise Exception(
-                f"Exception occured in Class : S3_Operations, Method : read_csv_from_s3, Error : {str(e)}"
+                f"Exception occured in Class : S3_Operations, Method : get_files_from_s3, Error : {str(e)}"
             )
 
     def get_file_object_from_s3(self, bucket, filename):
         try:
-            s3_bucket = self.s3.Bucket(bucket)
+            s3_bucket = self.get_bucket_from_s3(bucket)
 
             for obj in s3_bucket.objects.filter(Prefix=filename):
                 return obj
@@ -95,10 +107,11 @@ class S3_Operations:
 
         except Exception as e:
             raise Exception(
-                f"Exception occured in Class : S3_Operations, Method : get_model_from_s3, Error : {str(e)}"
+                f"Exception occured in Class : S3_Operations, Method : load_model_from_s3, Error : {str(e)}"
             )
+
     def get_schema_from_s3(self, bucket, filename):
-        try: 
+        try:
             res = self.get_file_object_from_s3(bucket=bucket, filename=filename)
 
             dic = convert_obj_to_json(res)
@@ -107,5 +120,5 @@ class S3_Operations:
 
         except Exception as e:
             raise Exception(
-                f"Exception occured in Class : S3_Operations, Method : get_model_from_s3, Error : {str(e)}"
+                f"Exception occured in Class : S3_Operations, Method : get_schema_from_s3, Error : {str(e)}"
             )

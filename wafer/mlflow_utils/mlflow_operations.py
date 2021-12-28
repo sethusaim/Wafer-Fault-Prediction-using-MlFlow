@@ -1,7 +1,6 @@
 import mlflow
 from utils.logger import App_Logger
-from utils.main_utils import get_model_name
-from utils.main_utils import read_params
+from utils.main_utils import get_model_name, read_params
 
 
 class Mlflow_Operations:
@@ -81,7 +80,10 @@ class Mlflow_Operations:
                 self.log_param(idx=idx, model=model, model_name=model_name, param=param)
 
         except Exception as e:
-            raise e
+            raise Exception(
+                "Exception occured in main_utils.py, Method : log_xgboost_params, Error : ",
+                str(e),
+            )
 
     def log_rf_model_params(self, idx, model):
         try:
@@ -93,7 +95,10 @@ class Mlflow_Operations:
                 self.log_param(idx=idx, model=model, model_name=model_name, param=param)
 
         except Exception as e:
-            pass
+            raise Exception(
+                "Exception occured in main_utils.py, Method : log_rf_model_params, Error : ",
+                str(e),
+            )
 
     def log_trained_models(self, kmeans_model, idx, xgb_model, rf_model):
         try:

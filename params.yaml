@@ -1,5 +1,4 @@
 base:
-  project : Wafer-Fault-Detection with Mlflow
   random_state : 355
   target_col : Output
   test_size : 0.33
@@ -7,19 +6,6 @@ base:
 app:
   host : 0.0.0.0
   port : 8080 
-
-data_source:
-  train_data_source : training_batch_files
-  pred_data_source  : prediction_batch_files
-
-data:
-  good:
-    train : training_good_data
-    pred : prediction_good_data 
-  
-  bad:
-    train : training_bad_data
-    pred : prediction_bad_data 
 
 mongodb:
   url: localhost:27017
@@ -37,12 +23,6 @@ kmeans_cluster:
   knee_locator:
     curve     : convex
     direction : decreasing
-
-models_dir:
-  trained_models_dir : models/trained
-  prod_models_dir : models/prod
-  stag_models_dir : models/stag
-
 
 s3_bucket:
   data_given_train_bucket: wafer-raw-data-train
@@ -111,7 +91,6 @@ db_log:
   db_train_log : wafer_training_logs
   db_pred_log : wafer_prediction_logs
 
-
 train_db_log:
   model_training : modelTrainingLog
   col_validation : columnValidationLog
@@ -138,10 +117,6 @@ pred_db_log:
   name_validation : nameValidationLog
   pred_main : prediction_main_log
   values_from_schema : valuesfromSchemaValidationLog
-
-db_name:
-  train_db_name: wafer_training_db
-  pred_db_name: wafer_prediction_db
 
 schema_file:
   train_schema_file : schema_training.json

@@ -1,8 +1,7 @@
 import os
 
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe
-from utils.main_utils import read_params
+from utils.main_utils import convert_object_to_dataframe, read_params
 from wafer.mongo_db_operations.db_operations import MongoDBOperation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -42,7 +41,7 @@ class dBOperation:
 
     def insert_good_data_as_record(self, db_name, collection_name):
         try:
-            csv_files = self.s3_obj.get_csv_objs_from_s3(bucket=self.good_data_bucket)
+            csv_files = self.s3_obj.get_file_objs_from_s3(bucket=self.good_data_bucket)
 
             self.logger.log(
                 db_name=self.db_name,

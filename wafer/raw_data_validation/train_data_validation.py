@@ -166,7 +166,7 @@ class Raw_Data_validation:
         """
 
         try:
-            onlyfiles = self.s3_obj.list_files_in_s3(bucket=self.raw_data_bucket_name)
+            onlyfiles = self.s3_obj.get_files_from_s3(bucket=self.raw_data_bucket_name)
 
             self.logger.log(
                 db_name=self.db_name,
@@ -270,7 +270,7 @@ class Raw_Data_validation:
                 log_message="Column Length Validation Started !!",
             )
 
-            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
                 bucket=self.good_data_train_bucket
             )
 
@@ -337,7 +337,7 @@ class Raw_Data_validation:
                 log_message="Missing Values Validation Started!!",
             )
 
-            csv_file_objs = self.s3_obj.get_csv_objs_from_s3(
+            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
                 bucket=self.good_data_train_bucket
             )
 
