@@ -35,7 +35,10 @@ s3_bucket:
   input_files_bucket: input-files-for-train-and-pred
   wafer_model_bucket: wafer-model
 
-models_dir : models
+models_dir:
+  trained : trained
+  stag: staging
+  prod : production
 
 model_params:
   verbose : 3

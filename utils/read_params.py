@@ -1,15 +1,23 @@
+import boto3
 import yaml
-from utils.main_utils import raise_exception
 
 
-def read_params(config_path="params.yaml"):
+def read_params():
     try:
-        with open(config_path) as f:
-            config = yaml.safe_load(f)
+        s3 = boto3.resource("s3")
 
-        return config
+        bucket_name = "input-files-for-train-and-pred"
+
+        bucket = s3.Bucket(bucket_name)
+
+        for obj in bucket.objects.filter(Prefix="params.yaml"):
+            content = obj.get()["Body"].read().decode()
+
+            config = yaml.safe_load(content)
+
+            return config
 
     except Exception as e:
-        raise_exception(
-            class_name="read_params.py", method_name="read_params", exception=str(e)
-        )
+        exception_msg = f"Exception occured in read_params.py,Method : read_params, Error : {str(e)}"
+
+        raise Exception(exception_msg)

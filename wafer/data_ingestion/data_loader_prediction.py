@@ -20,7 +20,7 @@ class Data_Getter_Pred:
 
         self.collection_name = collection_name
 
-        self.log_writter = App_Logger()
+        self.log_writer = App_Logger()
 
     def get_data(self):
         """
@@ -33,7 +33,7 @@ class Data_Getter_Pred:
         Revisions   :   modified code based on params.yaml file
         """
 
-        self.log_writter.log(
+        self.log_writer.log(
             db_name=self.db_name,
             collection_name=self.collection_name,
             log_message="Entered the get_data method of the Data_Getter class",
@@ -42,7 +42,7 @@ class Data_Getter_Pred:
         try:
             self.data = pd.read_csv(self.prediction_file)
 
-            self.log_writter.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_message="Data Load Successful.Exited the get_data method of the Data_Getter class",
@@ -51,13 +51,13 @@ class Data_Getter_Pred:
             return self.data
 
         except Exception as e:
-            self.log_writter.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Data_Getter, Method : get_data, Error : {str(e)}",
             )
 
-            self.log_writter.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",

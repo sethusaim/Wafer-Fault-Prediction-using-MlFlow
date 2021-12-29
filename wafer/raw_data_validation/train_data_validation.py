@@ -1,7 +1,7 @@
 import re
 
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe, raise_exception
+from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -19,7 +19,7 @@ class Raw_Data_validation:
 
         self.raw_data_bucket_name = raw_data_bucket_name
 
-        self.logger = App_Logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
@@ -77,14 +77,14 @@ class Raw_Data_validation:
                 + "\n"
             )
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
                 log_message=message,
             )
 
         except ValueError:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
                 log_message="Exception occured in Class : Raw Data Validation,  \
@@ -94,23 +94,25 @@ class Raw_Data_validation:
             raise ValueError
 
         except KeyError:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
-                log_message="Exception occured in class : Raw Data Validation,  \
-                    Method : values_from_schema, Error : KeyError:Key value error incorrect key passed",
+                log_message=f"Exception occured in class : {self.class_name},  \
+                    Method : {method_name}, Error : KeyError:Key value error incorrect key passed",
             )
 
             raise KeyError
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)
 
         return (
             LengthOfDateStampInFile,
@@ -136,13 +138,15 @@ class Raw_Data_validation:
             return regex
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_gen_log,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)
 
     def validate_raw_file_name(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
@@ -214,13 +218,15 @@ class Raw_Data_validation:
                     )
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_name_valid_log,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)
 
     def validate_col_length(self, NumberofColumns):
         """
@@ -238,7 +244,7 @@ class Raw_Data_validation:
         method_name = self.validate_col_length.__name__
 
         try:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
                 log_message="Column Length Validation Started !!",
@@ -270,20 +276,22 @@ class Raw_Data_validation:
                         collection_name=self.train_col_valid_log,
                     )
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
                 log_message="Column Length Validation completed !!",
             )
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)
 
     def validate_missing_values_in_col(self):
         """
@@ -298,7 +306,7 @@ class Raw_Data_validation:
         method_name = self.validate_missing_values_in_col.__name__
 
         try:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
                 log_message="Missing Values Validation Started!!",
@@ -339,7 +347,7 @@ class Raw_Data_validation:
                 if count == 0:
                     csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
 
-                    self.logger.log(
+                    self.log_writer.log(
                         db_name=self.db_name,
                         collection_name=self.train_missing_value_log,
                         log_message="Wafer column added to files",
@@ -347,7 +355,7 @@ class Raw_Data_validation:
 
                     csv.to_csv(file, index=None, header=True)
 
-                    self.logger.log(
+                    self.log_writer.log(
                         db_name=self.db_name,
                         collection_name=self.train_missing_value_log,
                         log_message=f"Converted {file} to csv, and created local copy",
@@ -362,10 +370,12 @@ class Raw_Data_validation:
                     )
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)

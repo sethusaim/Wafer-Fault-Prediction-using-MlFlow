@@ -1,6 +1,5 @@
-import collections
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe, raise_exception
+from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -14,6 +13,7 @@ class Data_Getter:
     """
 
     def __init__(self, db_name, collection_name):
+
         self.config = read_params()
 
         self.training_file = self.config["export_train_csv_file"]
@@ -26,7 +26,7 @@ class Data_Getter:
 
         self.collection_name = collection_name
 
-        self.log_writter = App_Logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
@@ -41,7 +41,7 @@ class Data_Getter:
         Revisions   :   modified code based on params.yaml file
         """
 
-        self.log_writter.log(
+        self.log_writer.log(
             db_name=self.db_name,
             collection_name=self.collection_name,
             log_message="Entered the get_data method of the Data_Getter class",
@@ -58,7 +58,7 @@ class Data_Getter:
                 obj=csv_obj, db_name=self.db_name, collection_name=self.collection_name
             )
 
-            self.log_writter.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_message="Data Load Successful.Exited the get_data method of the Data_Getter class",
@@ -67,16 +67,18 @@ class Data_Getter:
             return df
 
         except Exception as e:
-            self.log_writter.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : get_model_name, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)

@@ -1,5 +1,5 @@
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe, raise_exception
+from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.mongo_db_operations.db_operations import MongoDBOperation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -20,7 +20,7 @@ class dBOperation:
 
         self.db_op = MongoDBOperation()
 
-        self.logger = App_Logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
@@ -44,7 +44,7 @@ class dBOperation:
                 collection_name=collection_name,
             )
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_db_insert_log,
                 log_message="Got csv objects from s3 bucket",
@@ -61,20 +61,22 @@ class dBOperation:
                     data_frame=df,
                 )
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_db_insert_log,
                 log_message="Inserted dataframe as collection record in mongodb",
             )
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=db_name,
                 collection_name=collection_name,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)
 
     def export_collection_to_csv(self, db_name, collection_name):
         method_name = self.export_collection_to_csv.__name__
@@ -84,7 +86,7 @@ class dBOperation:
                 db_name=db_name, collection_name=collection_name
             )
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_export_csv_log,
                 log_message="Got the collection as dataframe",
@@ -94,7 +96,7 @@ class dBOperation:
 
             df.to_csv(csv_file, index=False, header=True)
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_export_csv_log,
                 log_message="Dataframe is converted to csv file and local copy is created",
@@ -107,10 +109,12 @@ class dBOperation:
             )
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=db_name,
                 collection_name=collection_name,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)

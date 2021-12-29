@@ -1,7 +1,6 @@
 import mlflow
 from sklearn.model_selection import train_test_split
 from utils.logger import App_Logger
-from utils.main_utils import raise_exception
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
@@ -179,13 +178,15 @@ class train_model:
                         log_message="Mlflow logging of params,metrics and models failed",
                     )
 
-                    raise_exception(
-                        class_name=self.class_name,
-                        method_name=method_name,
-                        exception=str(e),
+                    exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+                    self.log_writer.log(
                         db_name=self.db_name,
                         collection_name=self.model_train_log,
+                        log_message=exception_msg,
                     )
+
+                    raise Exception(exception_msg)
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -208,10 +209,12 @@ class train_model:
                 log_message="Unsuccessful End of Training",
             )
 
-            raise_exception(
-                class_name=self.class_name,
-                method_name=method_name,
-                exception=str(e),
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.model_train_log,
+                log_message=exception_msg,
             )
+
+            raise Exception(exception_msg)

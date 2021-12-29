@@ -2,7 +2,6 @@ import json
 
 import pandas as pd
 from pymongo import MongoClient
-from utils.main_utils import raise_exception
 from utils.read_params import read_params
 
 
@@ -23,9 +22,9 @@ class MongoDBOperation:
             return self.client
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def create_db(self, client, db_name):
         method_name = self.create_db.__name__
@@ -34,9 +33,9 @@ class MongoDBOperation:
             return client[db_name]
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def create_collection(self, database, collection_name):
         method_name = self.create_collection.__name__
@@ -45,9 +44,9 @@ class MongoDBOperation:
             return database[collection_name]
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def get_collection(self, collection_name, database):
         method_name = self.get_collection.__name__
@@ -58,9 +57,9 @@ class MongoDBOperation:
             return collection
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def convert_collection_to_dataframe(self, db_name, collection_name):
         method_name = self.convert_collection_to_dataframe.__name__
@@ -80,9 +79,9 @@ class MongoDBOperation:
             return df
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def is_record_present(self, db_name, collection_name, record):
         method_name = self.is_record_present.__name__
@@ -109,9 +108,9 @@ class MongoDBOperation:
         except Exception as e:
             client.close()
 
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def create_one_record(self, collection, data):
         method_name = self.create_one_record.__name__
@@ -122,9 +121,9 @@ class MongoDBOperation:
             return 1
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def insert_dataframe_as_record(self, db_name, collection_name, data_frame):
         method_name = self.insert_dataframe_as_record.__name__
@@ -141,9 +140,9 @@ class MongoDBOperation:
             collection.insert_many(records)
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
 
     def insert_one_record(self, db_name, collection_name, record):
         method_name = self.insert_one_record.__name__
@@ -161,6 +160,6 @@ class MongoDBOperation:
             client.close()
 
         except Exception as e:
-            raise_exception(
-                class_name=self.class_name, method_name=method_name, exception=str(e)
-            )
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            raise Exception(exception_msg)
