@@ -1,7 +1,5 @@
-import os
-
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe
+from utils.main_utils import convert_object_to_dataframe, raise_exception
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -24,6 +22,8 @@ class dataTransform:
 
         self.logger = App_Logger()
 
+        self.class_name = self.__class__.__name__
+
         self.db_name = self.config["db_log"]["db_train_log"]
 
         self.train_data_transform_log = self.config["train_db_log"]["data_transform"]
@@ -40,6 +40,8 @@ class dataTransform:
         """
 
         try:
+            method_name = self.rename_target_column.__name__
+
             csv_file_objs = self.s3_obj.get_file_objs_from_s3(
                 bucket=self.good_data_bucket
             )
@@ -59,7 +61,11 @@ class dataTransform:
             for f in csv_file_objs:
                 file = f.key
 
-                df = convert_object_to_dataframe(f)
+                df = convert_object_to_dataframe(
+                    f,
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                )
 
                 df.rename(columns={"Good/Bad": "Output"}, inplace=True)
 
@@ -81,30 +87,13 @@ class dataTransform:
                     src_file=file, bucket=self.good_data_bucket, dest_file=file
                 )
 
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Uploaded {file} to s3 bucket : {self.good_data_bucket}",
-                )
-
-                os.remove(file)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Removed the local copy of {file}",
-                )
-
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_data_transform_log,
-                log_message=f"Exception occured in Class : dataTransform, Method : replace_missing_with_null, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : dataTransform, Method : replace_missing_with_null, Error : ",
-                str(e),
             )
 
     def replace_missing_with_null(self):
@@ -118,6 +107,8 @@ class dataTransform:
         Revisions   :   modified code based on params.yaml file
         """
         try:
+            method_name = self.replace_missing_with_null.__name__
+
             csv_file_objs = self.s3_obj.get_file_objs_from_s3(
                 bucket=self.good_data_bucket
             )
@@ -137,7 +128,11 @@ class dataTransform:
             for f in csv_file_objs:
                 file = f.key
 
-                df = convert_object_to_dataframe(f)
+                df = convert_object_to_dataframe(
+                    obj=f,
+                    db_name=self.db_name,
+                    collection_name=self.train_data_transform_log,
+                )
 
                 df.fillna("NULL", inplace=True)
 
@@ -161,28 +156,11 @@ class dataTransform:
                     src_file=file, bucket=self.good_data_bucket, dest_file=file
                 )
 
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Uploaded {file} to s3 bucket : {self.good_data_bucket}",
-                )
-
-                os.remove(file)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Removed the local copy of {file}",
-                )
-
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_data_transform_log,
-                log_message=f"Exception occured in Class : dataTransform, Method : replace_missing_with_null, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : dataTransform, Method : replace_missing_with_null, Error : ",
-                str(e),
             )

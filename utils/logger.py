@@ -1,5 +1,6 @@
 from datetime import datetime
 from wafer.mongo_db_operations.db_operations import MongoDBOperation
+from utils.main_utils import raise_exception
 
 
 class App_Logger:
@@ -25,7 +26,6 @@ class App_Logger:
             )
 
         except Exception as e:
-            raise Exception(
-                "Expection occured in Class : App_Logger, Method : log, Error : ",
-                str(e),
+            raise_exception(
+                class_name="App_Logger", method_name="log", exception=str(e)
             )

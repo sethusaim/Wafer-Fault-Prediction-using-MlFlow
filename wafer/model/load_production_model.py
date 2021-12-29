@@ -4,6 +4,7 @@ import shutil
 import mlflow
 from mlflow.tracking import MlflowClient
 from utils.logger import App_Logger
+from utils.main_utils import raise_exception
 from utils.read_params import read_params
 
 
@@ -20,6 +21,8 @@ class load_prod_model:
 
         self.config = read_params()
 
+        self.class_name = self.__class__.__name__
+
         self.num_clusters = num_clusters
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
@@ -35,6 +38,9 @@ class load_prod_model:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+
+        method_name = self.load_production_model.__name__
+
         self.log_writer.log(
             db_name=self.db_name,
             collection_name=self.load_prod_model_log,
@@ -300,16 +306,13 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message=f"Exception occured in Class : LoadProdModel, Method : load_production_model, Error : {str(e)}",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
                 log_message="Transitioning of models failed",
             )
 
-            raise Exception(
-                "Exception occured in Class : LoadProdModel, Method : load_production_model, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
             )

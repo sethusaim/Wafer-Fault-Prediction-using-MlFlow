@@ -1,6 +1,7 @@
 import mlflow
 from sklearn.model_selection import train_test_split
 from utils.logger import App_Logger
+from utils.main_utils import raise_exception
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
@@ -28,6 +29,8 @@ class train_model:
 
         self.model_train_log = self.config["train_db_log"]["model_training"]
 
+        self.class_name = self.__class__.__name__
+
         self.mlflow_op = Mlflow_Operations(
             db_name=self.db_name, collection_name=self.model_train_log
         )
@@ -42,6 +45,8 @@ class train_model:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+
+        method_name = self.training_model.__name__
 
         self.log_writer.log(
             db_name=self.db_name,
@@ -104,32 +109,18 @@ class train_model:
                     xgb_model_score,
                 ) = model_finder.get_trained_models(x_train, y_train, x_test, y_test)
 
-                file_op = File_Operation(self.db_name, self.model_train_log)
-
-                saved_rf_model = file_op.save_model(
-                    rf_model, self.config["model_names"]["rf_model_name"] + str(i)
-                )
-
-                self.log_writer.log(
+                saved_rf_model = self.s3_obj.save_model_to_s3(
+                    model=rf_model,
+                    filename=self.config["model_names"]["rf_model_name"] + str(i),
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
-                    log_message="Saved "
-                    + self.config["model_names"]["rf_model_name"]
-                    + str(i)
-                    + " in trained model folder",
                 )
 
-                saved_xgb_model = file_op.save_model(
-                    xgb_model, self.config["model_names"]["xgb_model_name"] + str(i)
-                )
-
-                self.log_writer.log(
+                saved_xgb_model = self.s3_obj.save_model_to_s3(
+                    model=xgb_model,
+                    filename=self.config["model_names"]["xgb_model_name"] + str(i),
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
-                    log_message="Saved "
-                    + self.config["model_names"]["xgb_model_name"]
-                    + str(i)
-                    + " in trained model folder",
                 )
 
                 try:
@@ -185,18 +176,15 @@ class train_model:
                     self.log_writer.log(
                         db_name=self.db_name,
                         collection_name=self.model_train_log,
-                        log_message=f"Exception Occured in Class : trainModel, Method : mlflow , Error : {str(e)}",
-                    )
-
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
                         log_message="Mlflow logging of params,metrics and models failed",
                     )
 
-                    raise Exception(
-                        "Exception Occured in Class : trainModel, Method : mlflow , Error : ",
-                        str(e),
+                    raise_exception(
+                        class_name=self.class_name,
+                        method_name=method_name,
+                        exception=str(e),
+                        db_name=self.db_name,
+                        collection_name=self.model_train_log,
                     )
 
             self.log_writer.log(
@@ -217,16 +205,13 @@ class train_model:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.model_train_log,
-                log_message=f"Exception occured in Class : trainModel ,Method : trainingModel, Error : {str(e)}",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
                 log_message="Unsuccessful End of Training",
             )
 
-            raise Exception(
-                "Exception occured in Class : trainModel, Method : trainingModel, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=self.db_name,
+                collection_name=self.model_train_log,
             )

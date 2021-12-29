@@ -1,8 +1,7 @@
-import os
 import re
 
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe
+from utils.main_utils import convert_object_to_dataframe, raise_exception
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -21,6 +20,8 @@ class Raw_Data_validation:
         self.raw_data_bucket_name = raw_data_bucket_name
 
         self.logger = App_Logger()
+
+        self.class_name = self.__class__.__name__
 
         self.s3_obj = S3_Operations()
 
@@ -51,16 +52,12 @@ class Raw_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.values_from_schema.__name__
+
         try:
             dic = self.s3_obj.get_schema_from_s3(
                 bucket=self.config["s3_bucket"]["schema_bucket"],
                 filename=self.config["schema_file"]["train_schema_file"],
-            )
-
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.train_schema_log,
-                log_message="Got schema file from s3 bucket",
             )
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
@@ -107,15 +104,12 @@ class Raw_Data_validation:
             raise KeyError
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
-                log_message=f"Exception occured in Class : Raw Data Validation, \
-                     Method : values_from_schema, Error : {str(e)}",
-            )
-
-            raise Exception(
-                f"Exception occured in Class : Raw Data Validation,Method : values_from_schema, Error : {str(e)}"
             )
 
         return (
@@ -134,22 +128,20 @@ class Raw_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.get_regex_pattern.__name__
+
         try:
             regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
 
             return regex
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_gen_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, \
-                    Method :get_regex_pattern, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Raw_data_validation,Method :get_regex_pattern, Error :",
-                str(e),
             )
 
     def validate_raw_file_name(
@@ -165,14 +157,13 @@ class Raw_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.validate_raw_file_name.__name__
 
         try:
-            onlyfiles = self.s3_obj.get_files_from_s3(bucket=self.raw_data_bucket_name)
-
-            self.logger.log(
+            onlyfiles = self.s3_obj.get_files_from_s3(
+                bucket=self.raw_data_bucket_name,
                 db_name=self.db_name,
                 collection_name=self.train_name_valid_log,
-                log_message="Got files list from s3 bucket",
             )
 
             for filename in onlyfiles:
@@ -188,12 +179,8 @@ class Raw_Data_validation:
                                 src_file=filename,
                                 dest_bucket=self.good_data_train_bucket,
                                 dest_file=filename,
-                            )
-
-                            self.logger.log(
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
-                                log_message=f"Valid file name !! File copied to {self.good_data_train_bucket} :: {filename}",
                             )
 
                         else:
@@ -202,12 +189,8 @@ class Raw_Data_validation:
                                 src_file=filename,
                                 dest_bucket=self.bad_data_train_bucket,
                                 dest_file=filename,
-                            )
-
-                            self.logger.log(
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
-                                log_message=f"Invalid file name ! File copied to {self.bad_data_train_bucket} :: {filename}",
                             )
 
                     else:
@@ -216,12 +199,8 @@ class Raw_Data_validation:
                             src_file=filename,
                             dest_bucket=self.bad_data_train_bucket,
                             dest_file=filename,
-                        )
-
-                        self.logger.log(
                             db_name=self.db_name,
                             collection_name=self.train_name_valid_log,
-                            log_message=f"Copied data from {self.raw_data_bucket_name} to {self.bad_data_train_bucket}",
                         )
 
                 else:
@@ -230,25 +209,17 @@ class Raw_Data_validation:
                         src_file=filename,
                         dest_bucket=self.bad_data_train_bucket,
                         dest_file=filename,
-                    )
-
-                    self.logger.log(
                         db_name=self.db_name,
                         collection_name=self.train_name_valid_log,
-                        log_message=f"Invalid file name ! File copied to {self.bad_data_train_bucket} :: {filename}",
                     )
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_name_valid_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, Method : validate_raw_file_name, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Raw_data_validation \
-                            Method : validate_raw_file_name, Error : ",
-                str(e),
             )
 
     def validate_col_length(self, NumberofColumns):
@@ -264,6 +235,8 @@ class Raw_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.validate_col_length.__name__
+
         try:
             self.logger.log(
                 db_name=self.db_name,
@@ -272,19 +245,17 @@ class Raw_Data_validation:
             )
 
             csv_file_objs = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_train_bucket
-            )
-
-            self.logger.log(
+                bucket=self.good_data_train_bucket,
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message="Got csv objcet from s3 bucket",
             )
 
             for f in csv_file_objs:
                 file = f.key
 
-                csv = convert_object_to_dataframe(f)
+                csv = convert_object_to_dataframe(
+                    f, db_name=self.db_name, collection_name=self.train_col_valid_log
+                )
 
                 if csv.shape[1] == NumberofColumns:
                     pass
@@ -295,12 +266,8 @@ class Raw_Data_validation:
                         src_file=file,
                         dest_bucket=self.bad_data_train_bucket,
                         dest_file=file,
-                    )
-
-                    self.logger.log(
                         db_name=self.db_name,
                         collection_name=self.train_col_valid_log,
-                        log_message=f"Invalid Column Length for the file !!. File moved to {self.bad_data_train_bucket} :: {file}",
                     )
 
             self.logger.log(
@@ -310,15 +277,12 @@ class Raw_Data_validation:
             )
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message=f"Exception occured in Class : Raw_data_validation, Method : validate_col_length, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Raw_data_validation, Method : validate_col_length, Error :",
-                str(e),
             )
 
     def validate_missing_values_in_col(self):
@@ -331,6 +295,8 @@ class Raw_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.validate_missing_values_in_col.__name__
+
         try:
             self.logger.log(
                 db_name=self.db_name,
@@ -339,19 +305,19 @@ class Raw_Data_validation:
             )
 
             csv_file_objs = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_train_bucket
-            )
-
-            self.logger.log(
+                bucket=self.good_data_train_bucket,
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
-                log_message="Got csv objects from s3 bucket",
             )
 
             for f in csv_file_objs:
                 file = f.key
 
-                csv = convert_object_to_dataframe(f)
+                csv = convert_object_to_dataframe(
+                    f,
+                    db_name=self.db_name,
+                    collection_name=self.train_missing_value_log,
+                )
 
                 count = 0
 
@@ -364,12 +330,8 @@ class Raw_Data_validation:
                             src_file=file,
                             dest_bucket=self.bad_data_train_bucket,
                             dest_file=file,
-                        )
-
-                        self.logger.log(
                             db_name=self.db_name,
                             collection_name=self.train_missing_value_log,
-                            log_message=f"Invalud column length for the file !! File moved to Bad raw folder :: {file}",
                         )
 
                         break
@@ -395,32 +357,15 @@ class Raw_Data_validation:
                         src_file=file,
                         bucket=self.good_data_train_bucket,
                         dest_file=file,
-                    )
-
-                    self.logger.log(
                         db_name=self.db_name,
                         collection_name=self.train_missing_value_log,
-                        log_message=f"{file} uploaded to s3 bucket : {self.good_data_train_bucket}",
-                    )
-
-                    os.remove(file)
-
-                    self.logger.log(
-                        db_name=self.db_name,
-                        collection_name=self.train_missing_value_log,
-                        log_message=f"Local copy of {file} is deleted",
                     )
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
-                log_message=f"Exception occured in class Raw_data_validation, \
-                        Method : validate_missing_values_in_col, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in class Raw_data_validation, \
-                        Method : validate_missing_values_in_col, Error : ",
-                str(e),
             )

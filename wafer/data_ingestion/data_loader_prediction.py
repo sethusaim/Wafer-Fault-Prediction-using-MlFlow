@@ -11,14 +11,14 @@ class Data_Getter_Pred:
     Revision    :   None
     """
 
-    def __init__(self, db_name, logger_object):
+    def __init__(self, db_name, collection_name):
         self.config = read_params()
 
         self.prediction_file = self.config["db_file"]["pred_db_file"]
 
         self.db_name = db_name
 
-        self.logger_object = logger_object
+        self.collection_name = collection_name
 
         self.log_writter = App_Logger()
 
@@ -35,7 +35,7 @@ class Data_Getter_Pred:
 
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the get_data method of the Data_Getter class",
         )
 
@@ -44,7 +44,7 @@ class Data_Getter_Pred:
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Data Load Successful.Exited the get_data method of the Data_Getter class",
             )
 
@@ -53,13 +53,13 @@ class Data_Getter_Pred:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message=f"Exception occured in Class : Data_Getter, Method : get_data, Error : {str(e)}",
             )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 

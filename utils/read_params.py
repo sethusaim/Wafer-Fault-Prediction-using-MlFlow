@@ -1,4 +1,5 @@
 import yaml
+from utils.main_utils import raise_exception
 
 
 def read_params(config_path="params.yaml"):
@@ -9,6 +10,6 @@ def read_params(config_path="params.yaml"):
         return config
 
     except Exception as e:
-        raise Exception(
-            f"Exception occured in Class : main_utils.py, Method : read_params, Error : {str(e)}"
+        raise_exception(
+            class_name="read_params.py", method_name="read_params", exception=str(e)
         )

@@ -1,4 +1,5 @@
 from utils.logger import App_Logger
+from utils.main_utils import raise_exception
 from utils.read_params import read_params
 from wafer.dataTransform.data_transformation_train import dataTransform
 from wafer.dataTypeValid.data_type_valid_train import dBOperation
@@ -23,6 +24,8 @@ class train_validation:
 
         self.config = read_params()
 
+        self.class_name = self.__class__.__name__
+
         self.db_name = self.config["db_log"]["db_train_log"]
 
         self.train_main_log = self.config["train_db_log"]["train_main"]
@@ -38,6 +41,9 @@ class train_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+
+        method_name = self.train_validation.__name__
+
         try:
             self.log_writer.log(
                 db_name=self.db_name,
@@ -113,13 +119,10 @@ class train_validation:
             )
 
         except Exception as e:
-            self.log_writer.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
-                log_message=f"Exception occured in Class : train_validation, Method : train_validation, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : train_validation, Method : train_validation, Error : ",
-                str(e),
             )

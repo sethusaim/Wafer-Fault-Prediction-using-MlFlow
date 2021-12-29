@@ -1,12 +1,14 @@
 import mlflow
 from utils.logger import App_Logger
-from utils.main_utils import get_model_name
+from utils.main_utils import get_model_name, raise_exception
 from utils.read_params import read_params
 
 
 class Mlflow_Operations:
     def __init__(self, db_name, collection_name):
         self.config = read_params()
+
+        self.class_name = self.__class__.__name__
 
         self.log_writter = App_Logger()
 
@@ -15,6 +17,8 @@ class Mlflow_Operations:
         self.collection_name = collection_name
 
     def log_model(self, model, model_name, db_name, collection_name):
+        method_name = self.log_model.__name__
+
         try:
             mlflow.sklearn.log_model(
                 sk_model=model,
@@ -32,12 +36,17 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise Exception(
-                "Exception occured in main_utils.py, Method : log_model, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
             )
 
     def log_metric(self, model_name, metric, db_name, collection_name):
+        method_name = self.log_metric.__name__
+
         try:
             mlflow.log_metric(key=model_name + "-best_score", value=metric)
 
@@ -48,12 +57,17 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise Exception(
-                "Exception occured in main_utilspy, Method : log_metric, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
             )
 
-    def log_param(self, idx, model, model_name, param):
+    def log_param(self, idx, model, model_name, param, db_name, collection_name):
+        method_name = self.log_param.__name__
+
         try:
             name = model_name + str(idx) + f"-{param}"
 
@@ -66,46 +80,90 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise Exception(
-                "Exception occured in main_utilspy, Method : log_metric, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
             )
 
-    def log_xgboost_params(self, idx, model):
+    def log_xgboost_params(self, idx, model, db_name, collection_name):
+        method_name = self.log_xgboost_params.__name__
+
         try:
-            model_name = get_model_name(model)
+            model_name = get_model_name(
+                model, db_name=db_name, collection_name=collection_name
+            )
 
             params_list = list(self.config["model_params"]["xgb_model"].keys())
 
-            for param in params_list:
-                self.log_param(idx=idx, model=model, model_name=model_name, param=param)
-
-        except Exception as e:
-            raise Exception(
-                "Exception occured in main_utilspy, Method : log_xgboost_params, Error : ",
-                str(e),
+            self.log_writter.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message="Got xgboost params list",
             )
 
-    def log_rf_model_params(self, idx, model):
+            for param in params_list:
+                self.log_param(
+                    idx=idx,
+                    model=model,
+                    model_name=model_name,
+                    param=param,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
+
+        except Exception as e:
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+    def log_rf_model_params(self, idx, model, db_name, collection_name):
+        method_name = self.log_rf_model_params.__name__
+
         try:
-            model_name = get_model_name(model)
+            model_name = get_model_name(
+                model=model, db_name=db_name, collection_name=collection_name
+            )
 
             params_list = list(self.config["model_params"]["rf_model"].keys())
 
+            self.log_writter.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message="Got rf model params",
+            )
+
             for param in params_list:
                 self.log_param(idx=idx, model=model, model_name=model_name, param=param)
 
         except Exception as e:
-            raise Exception(
-                "Exception occured in main_utilspy, Method : log_rf_model_params, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
             )
 
-    def log_trained_models(self, kmeans_model, idx, xgb_model, rf_model):
-        try:
-            xgb_model_name = get_model_name(xgb_model)
+    def log_trained_models(
+        self, kmeans_model, idx, xgb_model, rf_model, db_name, collection_name
+    ):
+        method_name = self.log_trained_models.__name__
 
-            rf_model_name = get_model_name(rf_model)
+        try:
+            xgb_model_name = get_model_name(
+                model=xgb_model, db_name=db_name, collection_name=collection_name
+            )
+
+            rf_model_name = get_model_name(
+                model=rf_model, db_name=db_name, collection_name=collection_name
+            )
 
             self.log_model(
                 model=kmeans_model,
@@ -129,14 +187,19 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise Exception(
-                "Exception occured in main_utilspy, Method : log_metric, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
             )
 
     def log_metrics_of_trained_models(
-        self, idx, xgb_model, rf_model, xgb_score, rf_score
+        self, idx, xgb_model, rf_model, xgb_score, rf_score, db_name, collection_name
     ):
+        method_name = self.log_metrics_of_trained_models.__name__
+
         try:
             self.log_metric(
                 model_name=xgb_model.__class__.__name__ + str(idx),
@@ -152,8 +215,17 @@ class Mlflow_Operations:
                 collection_name=self.collection_name,
             )
 
+            self.log_writter.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message="Metrics for trained models are looged in mlflow",
+            )
+
         except Exception as e:
-            raise Exception(
-                "Exception occured in main_utilspy, Method : log_metric, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=db_name,
+                collection_name=collection_name,
             )

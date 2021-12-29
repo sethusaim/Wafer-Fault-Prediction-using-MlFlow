@@ -4,6 +4,7 @@ from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from utils.logger import App_Logger
+from utils.main_utils import raise_exception
 from utils.read_params import read_params
 from wafer.file_operations.file_methods import File_Operation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -30,6 +31,8 @@ class KMeansClustering:
 
         self.log_writter = App_Logger()
 
+        self.class_name = self.__class__.__name__
+
     def elbow_plot(self, data):
         """
         Method Name :   elbow plot
@@ -48,6 +51,8 @@ class KMeansClustering:
         )
 
         wcss = []
+
+        method_name = self.elbow_plot.__name__
 
         try:
             for i in range(1, self.config["kmeans_cluster"]["max_clusters"]):
@@ -118,19 +123,16 @@ class KMeansClustering:
             self.log_writter.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Exception occured in Class : KMeansClustering, Method : elbow_plot, Error : {str(e)}",
-            )
-
-            self.log_writter.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
                 log_message="Finding the number of clusters failed. \
                     Exited the elbow_plot method of the KMeansClustering class",
             )
 
-            raise Exception(
-                "Exception occured in Class : KMeansClustering, Method : elbow_plot, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
     def create_clusters(self, data, number_of_clusters):
@@ -150,6 +152,8 @@ class KMeansClustering:
         )
 
         self.data = data
+
+        method_name = self.create_clusters.__name__
 
         try:
             self.kmeans = KMeans(
@@ -179,13 +183,10 @@ class KMeansClustering:
             return self.data, self.kmeans
 
         except Exception as e:
-            self.log_writter.log(
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Exception occured in Class : KMeansClustering, Method : create_clusters, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : KMeansClustering, Method : create_clusters, Error : ",
-                str(e),
             )

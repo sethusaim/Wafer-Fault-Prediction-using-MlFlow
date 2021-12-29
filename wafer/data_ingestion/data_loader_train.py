@@ -1,5 +1,6 @@
+import collections
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe
+from utils.main_utils import convert_object_to_dataframe, raise_exception
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -12,7 +13,7 @@ class Data_Getter:
     Revisions   :   None
     """
 
-    def __init__(self, db_name, logger_object):
+    def __init__(self, db_name, collection_name):
         self.config = read_params()
 
         self.training_file = self.config["export_train_csv_file"]
@@ -23,9 +24,11 @@ class Data_Getter:
 
         self.s3_obj = S3_Operations()
 
-        self.logger_object = logger_object
+        self.collection_name = collection_name
 
         self.log_writter = App_Logger()
+
+        self.class_name = self.__class__.__name__
 
     def get_data(self):
         """
@@ -40,20 +43,24 @@ class Data_Getter:
 
         self.log_writter.log(
             db_name=self.db_name,
-            collection_name=self.logger_object,
+            collection_name=self.collection_name,
             log_message="Entered the get_data method of the Data_Getter class",
         )
+
+        method_name = self.get_data.__name__
 
         try:
             csv_obj = self.s3_obj.get_file_object_from_s3(
                 bucket=self.input_files_bucket, filename=self.training_file
             )
 
-            df = convert_object_to_dataframe(csv_obj)
+            df = convert_object_to_dataframe(
+                obj=csv_obj, db_name=self.db_name, collection_name=self.collection_name
+            )
 
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Data Load Successful.Exited the get_data method of the Data_Getter class",
             )
 
@@ -62,17 +69,14 @@ class Data_Getter:
         except Exception as e:
             self.log_writter.log(
                 db_name=self.db_name,
-                collection_name=self.logger_object,
-                log_message=f"Exception occured in Class : Data_Getter, Method : get_data, Error : {str(e)}",
-            )
-
-            self.log_writter.log(
-                db_name=self.db_name,
-                collection_name=self.logger_object,
+                collection_name=self.collection_name,
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 
-            raise Exception(
-                "Exception occured in Class : Data_Getter, Method : get_data, Error : ",
-                str(e),
+            raise_exception(
+                class_name=self.class_name,
+                method_name=method_name,
+                exception=str(e),
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
