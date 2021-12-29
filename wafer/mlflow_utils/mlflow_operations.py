@@ -1,6 +1,7 @@
 import mlflow
 from utils.logger import App_Logger
-from utils.main_utils import get_model_name, read_params
+from utils.main_utils import get_model_name
+from utils.read_params import read_params
 
 
 class Mlflow_Operations:

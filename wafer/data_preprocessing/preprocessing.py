@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 

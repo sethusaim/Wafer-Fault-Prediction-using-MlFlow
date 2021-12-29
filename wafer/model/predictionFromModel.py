@@ -1,6 +1,6 @@
 import pandas as pd
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_prediction import Data_Getter_Pred
 from wafer.data_preprocessing.preprocessing import Preprocessor
 from wafer.file_operations.file_methods import File_Operation

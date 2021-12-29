@@ -2,7 +2,8 @@ import os
 import re
 
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe, read_params
+from utils.main_utils import convert_object_to_dataframe
+from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 

@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 from pymongo import MongoClient
-from utils.main_utils import read_params
+from utils.read_params import read_params
 
 
 class MongoDBOperation:

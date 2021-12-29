@@ -3,7 +3,8 @@ import pickle
 
 import boto3
 from utils.logger import App_Logger
-from utils.main_utils import convert_obj_to_json, convert_object_to_pickle, read_params
+from utils.main_utils import convert_obj_to_json, convert_object_to_pickle
+from utils.read_params import read_params
 
 
 class S3_Operations:

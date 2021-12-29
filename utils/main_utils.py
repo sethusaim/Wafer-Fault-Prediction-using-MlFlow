@@ -3,7 +3,6 @@ import pickle
 from io import StringIO
 
 import pandas as pd
-import yaml
 
 from utils.logger import App_Logger
 
@@ -140,17 +139,4 @@ def convert_obj_to_json(obj, db_name, collection_name):
     except Exception as e:
         raise Exception(
             f"Exception occured in Class : main_utils.py, Method : convert_obj_to_json, Error : {str(e)}"
-        )
-
-
-def read_params(config_path="params.yaml"):
-    try:
-        with open(config_path) as f:
-            config = yaml.safe_load(f)
-
-        return config
-
-    except Exception as e:
-        raise Exception(
-            f"Exception occured in Class : main_utils.py, Method : read_params, Error : {str(e)}"
         )

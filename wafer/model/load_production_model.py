@@ -4,7 +4,7 @@ import shutil
 import mlflow
 from mlflow.tracking import MlflowClient
 from utils.logger import App_Logger
-from utils.main_utils import read_params
+from utils.read_params import read_params
 
 
 class load_prod_model:
