@@ -9,7 +9,9 @@ from utils.read_params import read_params
 
 class S3_Operations:
     def __init__(self):
-        self.s3 = boto3.resource("s3")
+        self.s3_client = boto3.client("s3")
+
+        self.s3_resource = boto3.resource("s3")
 
         self.log_writer = App_Logger()
 
@@ -18,6 +20,23 @@ class S3_Operations:
         self.class_name = self.__class__.__name__
 
         self.file_format = self.config["model_params"]["save_format"]
+
+    def create_folder_in_s3(self,bucket,folder_name,db_name,collection_name):
+        method_name = self.create_folder_in_s3.__name__
+
+        try:
+            self.s3_client.put_object(Bucket=bucket, Key=(folder_name+'/'))
+
+        except Exception as e:
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=exception_msg,
+            )
+
+            raise Exception(exception_msg)
 
     def upload_to_s3(self, src_file, bucket, dest_file, db_name, collection_name):
         method_name = self.upload_to_s3.__name__
@@ -29,7 +48,7 @@ class S3_Operations:
                 log_message=f"Uploading {src_file} to s3 bucket {bucket}",
             )
 
-            self.s3.meta.client.upload_file(src_file, bucket, dest_file)
+            self.s3_resource.meta.client.upload_file(src_file, bucket, dest_file)
 
             self.log_writer.log(
                 db_name=db_name,
@@ -60,7 +79,7 @@ class S3_Operations:
         try:
             method_name = self.get_bucket_from_s3.__name__
 
-            bucket = self.s3.Bucket(bucket)
+            bucket = self.s3_resource.Bucket(bucket)
 
             self.log_writer.log(
                 db_name=db_name,
@@ -116,7 +135,7 @@ class S3_Operations:
         try:
             method_name = self.delete_file_from_s3.__name__
 
-            self.s3.Object(bucket, file).delete()
+            self.s3_resource.Object(bucket, file).delete()
 
             self.log_writer.log(
                 db_name=db_name,
