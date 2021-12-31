@@ -16,11 +16,13 @@ class dataTransform:
     def __init__(self):
         self.config = read_params()
 
-        self.good_data_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data_bucket"]
 
         self.s3_obj = S3_Operations()
 
         self.log_writer = App_Logger()
+
+        self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
 
         self.class_name = self.__class__.__name__
 
@@ -42,8 +44,9 @@ class dataTransform:
         method_name = self.rename_target_column.__name__
 
         try:
-            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_bucket,
+            csv_file_objs = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.train_data_bucket,
+                filename=self.good_train_data_dir,
                 db_name=self.db_name,
                 collection_name=self.train_data_transform_log,
             )
@@ -57,35 +60,41 @@ class dataTransform:
             for f in csv_file_objs:
                 file = f.key
 
-                df = convert_object_to_dataframe(
-                    f,
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                )
+                abs_f = file.split("/")[-1]
 
-                df.rename(columns={"Good/Bad": "Output"}, inplace=True)
+                if file.endswith(".csv"):
+                    df = convert_object_to_dataframe(
+                        f,
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                    )
 
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Renamed the output column for the file for the file {file} ",
-                )
+                    df.rename(columns={"Good/Bad": "Output"}, inplace=True)
 
-                df.to_csv(file, index=None, header=True)
+                    self.log_writer.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                        log_message=f"Renamed the output column for the file for the file {file} ",
+                    )
 
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Converted {file} to df and local copy copy is created",
-                )
+                    df.to_csv(abs_f, index=None, header=True)
 
-                self.s3_obj.upload_to_s3(
-                    src_file=file,
-                    bucket=self.good_data_bucket,
-                    dest_file=file,
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                )
+                    self.log_writer.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                        log_message=f"Converted {file} to df and local copy copy is created",
+                    )
+
+                    self.s3_obj.upload_to_s3(
+                        src_file=abs_f,
+                        bucket=self.train_data_bucket,
+                        dest_file=file,
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                    )
+
+                else:
+                    pass
 
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
@@ -111,8 +120,9 @@ class dataTransform:
         method_name = self.replace_missing_with_null.__name__
 
         try:
-            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_bucket,
+            csv_file_objs = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.train_data_bucket,
+                filename=self.good_train_data_dir,
                 db_name=self.db_name,
                 collection_name=self.train_data_transform_log,
             )
@@ -126,37 +136,43 @@ class dataTransform:
             for f in csv_file_objs:
                 file = f.key
 
-                df = convert_object_to_dataframe(
-                    obj=f,
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                )
+                abs_f = file.split("/")[-1]
 
-                df.fillna("NULL", inplace=True)
+                if file.endswith(".csv"):
+                    df = convert_object_to_dataframe(
+                        obj=f,
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                    )
 
-                df["Wafer"] = df["Wafer"].str[6:]
+                    df.fillna("NULL", inplace=True)
 
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"replaced  missing values with null for the file {file}",
-                )
+                    df["Wafer"] = df["Wafer"].str[6:]
 
-                df.to_csv(file, index=None, header=True)
+                    self.log_writer.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                        log_message=f"replaced  missing values with null for the file {file}",
+                    )
 
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                    log_message=f"Converted {file} to df and local copy copy is created",
-                )
+                    df.to_csv(abs_f, index=None, header=True)
 
-                self.s3_obj.upload_to_s3(
-                    src_file=file,
-                    bucket=self.good_data_bucket,
-                    dest_file=file,
-                    db_name=self.db_name,
-                    collection_name=self.train_data_transform_log,
-                )
+                    self.log_writer.log(
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                        log_message=f"Converted {file} to df and local copy copy is created",
+                    )
+
+                    self.s3_obj.upload_to_s3(
+                        src_file=abs_f,
+                        bucket=self.train_data_bucket,
+                        dest_file=file,
+                        db_name=self.db_name,
+                        collection_name=self.train_data_transform_log,
+                    )
+
+                else:
+                    pass
 
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"

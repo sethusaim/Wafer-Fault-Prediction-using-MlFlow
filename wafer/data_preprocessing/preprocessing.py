@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
@@ -25,7 +23,7 @@ class Preprocessor:
 
         self.s3_obj = S3_Operations()
 
-        self.bad_data_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
+        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
         self.log_writer = App_Logger()
 
@@ -177,22 +175,10 @@ class Preprocessor:
 
                 self.s3_obj.upload_to_s3(
                     src_file=null_values_file,
-                    bucket=self.bad_data_bucket,
+                    bucket=self.input_files_bucket,
                     dest_file=null_values_file,
-                )
-
-                self.log_writer.log(
                     db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message=f"Upload the {null_values_file} to {self.bad_data_bucket} bucket",
-                )
-
-                os.remove(null_values_file)
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message=f"Local copy of {null_values_file} is deleted",
+                    collection_name=self.collection_name
                 )
 
             self.log_writer.log(

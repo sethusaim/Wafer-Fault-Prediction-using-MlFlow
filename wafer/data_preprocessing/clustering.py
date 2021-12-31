@@ -1,5 +1,3 @@
-import os
-
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
@@ -83,6 +81,8 @@ class KMeansClustering:
                 src_file=self.config["elbow_plot_fig"],
                 bucket=self.input_files_bucket,
                 dest_file=self.config["elbow_plot_fig"],
+                db_name=self.db_name,
+                collection_name=self.collection_name
             )
 
             self.kn = KneeLocator(

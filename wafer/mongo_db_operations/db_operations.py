@@ -125,7 +125,7 @@ class MongoDBOperation:
 
             raise Exception(exception_msg)
 
-    def insert_dataframe_as_record(self, db_name, collection_name, data_frame):
+    def insert_dataframe_as_record(self, data_frame, db_name, collection_name):
         method_name = self.insert_dataframe_as_record.__name__
 
         try:

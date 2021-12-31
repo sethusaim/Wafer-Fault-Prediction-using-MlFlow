@@ -2,6 +2,7 @@ import os
 import pickle
 
 import boto3
+import botocore
 from utils.logger import App_Logger
 from utils.main_utils import convert_obj_to_json, convert_object_to_pickle
 from utils.read_params import read_params
@@ -21,11 +22,45 @@ class S3_Operations:
 
         self.file_format = self.config["model_params"]["save_format"]
 
-    def create_folder_in_s3(self,bucket,folder_name,db_name,collection_name):
-        method_name = self.create_folder_in_s3.__name__
+    def create_folder_in_s3(self, bucket_name, folder_name, db_name, collection_name):
+        try:
+            self.s3_resource.Object(bucket_name, folder_name).load()
+
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Folder already exists. Passing to next method",
+            )
+
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                self.put_folder_in_s3(
+                    bucket=bucket_name,
+                    folder_name=folder_name,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
+
+            else:
+                self.log_writer.log(
+                    db_name=db_name,
+                    collection_name=collection_name,
+                    log_message="Error occured in creating folder",
+                )
+
+                raise e
+
+    def put_folder_in_s3(self, bucket, folder_name, db_name, collection_name):
+        method_name = self.put_folder_in_s3.__name__
 
         try:
-            self.s3_client.put_object(Bucket=bucket, Key=(folder_name+'/'))
+            self.s3_client.put_object(Bucket=bucket, Key=(folder_name + "/"))
+
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Created {folder_name} folder in {bucket} bucket",
+            )
 
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
@@ -108,11 +143,13 @@ class S3_Operations:
 
             copy_source = {"Bucket": src_bucket, "Key": src_file}
 
-            bucket = self.get_bucket_from_s3(
-                bucket=dest_bucket, db_name=db_name, collection_name=collection_name
-            )
+            # bucket = self.get_bucket_from_s3(
+            #     bucket=dest_bucket, db_name=db_name, collection_name=collection_name
+            # )
 
-            bucket.copy(copy_source, dest_file)
+            # bucket.copy(copy_source, dest_file)
+
+            self.s3_resource.meta.client.copy(copy_source, dest_bucket, dest_file)
 
             self.log_writer.log(
                 db_name=db_name,
@@ -193,24 +230,6 @@ class S3_Operations:
 
             raise Exception(exception_msg)
 
-    def get_file_objs_from_s3(self, bucket, db_name, collection_name):
-        try:
-            method_name = self.get_file_object_from_s3.__name__
-
-            s3_bucket = self.get_bucket_from_s3(
-                bucket, db_name=db_name, collection_name=collection_name
-            )
-
-            lst_obj = [obj for obj in s3_bucket.objects.all()]
-
-            self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message=f"Got a list of file objects from bucket {bucket}",
-            )
-
-            return lst_obj
-
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
 
@@ -222,12 +241,15 @@ class S3_Operations:
 
             raise Exception(exception_msg)
 
-    def get_files_from_s3(self, bucket, db_name, collection_name):
+    def get_files_from_s3(self, bucket, folder_name, db_name, collection_name):
         try:
             method_name = self.get_files_from_s3.__name__
 
-            lst = self.get_file_objs_from_s3(
-                bucket=bucket, db_name=db_name, collection_name=collection_name
+            lst = self.get_file_objects_from_s3(
+                bucket=bucket,
+                db_name=db_name,
+                collection_name=collection_name,
+                filename=folder_name,
             )
 
             list_of_files = [obj.key for obj in lst]
@@ -251,7 +273,7 @@ class S3_Operations:
 
             raise Exception(exception_msg)
 
-    def get_file_object_from_s3(self, bucket, filename, db_name, collection_name):
+    def get_file_objects_from_s3(self, bucket, filename, db_name, collection_name):
         try:
             method_name = self.get_files_from_s3.__name__
 
@@ -259,14 +281,19 @@ class S3_Operations:
                 bucket=bucket, db_name=db_name, collection_name=collection_name
             )
 
-            for obj in s3_bucket.objects.filter(Prefix=filename):
-                self.log_writer.log(
-                    db_name=db_name,
-                    collection_name=collection_name,
-                    log_message=f"Got {filename} from bucket {bucket}",
-                )
+            lst_objs = [obj for obj in s3_bucket.objects.filter(Prefix=filename)]
 
-                return obj
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Got {filename} from bucket {bucket}",
+            )
+
+            if len(lst_objs) == 1:
+                return lst_objs[0]
+
+            else:
+                return lst_objs
 
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
@@ -283,7 +310,7 @@ class S3_Operations:
         try:
             method_name = self.load_model_from_s3.__name__
 
-            model_obj = self.get_file_object_from_s3(
+            model_obj = self.get_file_objects_from_s3(
                 bucket=bucket,
                 filename=model_name,
                 db_name=db_name,
@@ -317,7 +344,7 @@ class S3_Operations:
         try:
             method_name = self.get_schema_from_s3.__name__
 
-            res = self.get_file_object_from_s3(
+            res = self.get_file_objects_from_s3(
                 bucket=bucket,
                 filename=filename,
                 db_name=db_name,
@@ -359,6 +386,8 @@ class S3_Operations:
         try:
             model_file = os.path.join(filename + self.file_format)
 
+            self.trained_model_dir = self.config["models_dir"]["trained"]
+
             with open(file=model_file, mode="wb") as f:
                 pickle.dump(model, f)
 
@@ -368,7 +397,7 @@ class S3_Operations:
                 log_message="Model File " + filename + " saved. ",
             )
 
-            s3_model_path = os.path.join("trained", model_file)
+            s3_model_path = os.path.join(self.trained_model_dir, model_file)
 
             self.upload_to_s3(
                 src_file=model_file, bucket=model_bucket, dest_file=s3_model_path

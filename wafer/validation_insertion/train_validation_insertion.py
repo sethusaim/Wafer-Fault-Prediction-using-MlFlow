@@ -59,6 +59,8 @@ class train_validation:
 
             regex = self.raw_data.get_regex_pattern()
 
+            self.raw_data.create_dirs_for_good_bad_data()
+
             self.raw_data.validate_raw_file_name(
                 regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
             )

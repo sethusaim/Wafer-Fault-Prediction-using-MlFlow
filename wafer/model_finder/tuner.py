@@ -1,7 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
-
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from xgboost import XGBClassifier
@@ -43,13 +42,14 @@ class Model_Finder:
         Version     :   1.1
         Revisions   :   modified code based on config file
         """
+
+        method_name = self.get_best_params_for_random_forest.__name__
+
         self.log_writer.log(
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message="Entered the get_best_params_for_random_forest method of Model_Finder class",
+            log_message=f"Entered the {method_name} method of {self.class_name} class",
         )
-
-        method_name = self.get_best_params_for_random_forest.__name__
 
         try:
             self.param_grid_rf = {
@@ -59,6 +59,12 @@ class Model_Finder:
                 "max_features": self.config["model_params"]["rf_model"]["max_features"],
             }
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Got param grid for random forest from yaml file",
+            )
+
             self.grid = GridSearchCV(
                 estimator=self.clf,
                 param_grid=self.param_grid_rf,
@@ -67,7 +73,25 @@ class Model_Finder:
                 n_jobs=self.config["model_params"]["n_jobs"],
             )
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Initialized grid search cv as hyperparameter tuning method to find best params",
+            )
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Started searching for best params using grid search cv",
+            )
+
             self.grid.fit(train_x, train_y)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Finised seraching for best params",
+            )
 
             self.criterion = self.grid.best_params_["criterion"]
 
@@ -83,6 +107,12 @@ class Model_Finder:
                 max_depth=self.max_depth,
                 max_features=self.max_features,
                 n_jobs=self.config["model_params"]["n_jobs"],
+            )
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Initialized and starting training xgb_model with best params",
             )
 
             self.clf.fit(train_x, train_y)
@@ -127,13 +157,13 @@ class Model_Finder:
         Revisions   :   modified code based on the config file
         """
 
+        method_name = self.get_best_params_for_xgboost.__name__
+
         self.log_writer.log(
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message="Entered the get_best_params_for_xgboost method of the Model Finder class",
+            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
-
-        method_name = self.get_best_params_for_xgboost.__name__
 
         try:
             self.param_grid_xgb = {
@@ -146,6 +176,12 @@ class Model_Finder:
                 ],
             }
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Got param grid for random forest from yaml file",
+            )
+
             self.grid = GridSearchCV(
                 XGBClassifier(objective="binary:logistic"),
                 self.param_grid_xgb,
@@ -155,6 +191,12 @@ class Model_Finder:
             )
 
             self.grid.fit(train_x, train_y)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Finised seraching for best params",
+            )
 
             self.learning_rate = self.grid.best_params_["learning_rate"]
 

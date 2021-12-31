@@ -5,7 +5,6 @@ from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
 from wafer.data_preprocessing.preprocessing import Preprocessor
-from wafer.file_operations.file_methods import File_Operation
 from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
 from wafer.model_finder.tuner import Model_Finder
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -122,77 +121,77 @@ class train_model:
                     collection_name=self.model_train_log,
                 )
 
-                try:
-                    remote_server_uri = self.config["mlflow_config"][
-                        "remote_server_uri"
-                    ]
+            #     try:
+            #         remote_server_uri = self.config["mlflow_config"][
+            #             "remote_server_uri"
+            #         ]
 
-                    mlflow.set_tracking_uri(remote_server_uri)
+            #         mlflow.set_tracking_uri(remote_server_uri)
 
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message="Set the remote server uri",
-                    )
+            #         self.log_writer.log(
+            #             db_name=self.db_name,
+            #             collection_name=self.model_train_log,
+            #             log_message="Set the remote server uri",
+            #         )
 
-                    mlflow.set_experiment(
-                        experiment_name=self.config["mlflow_config"]["experiment_name"]
-                    )
+            #         mlflow.set_experiment(
+            #             experiment_name=self.config["mlflow_config"]["experiment_name"]
+            #         )
 
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message="Started mlflow server with "
-                        + self.config["mlflow_config"]["run_name"],
-                    )
+            #         self.log_writer.log(
+            #             db_name=self.db_name,
+            #             collection_name=self.model_train_log,
+            #             log_message="Started mlflow server with "
+            #             + self.config["mlflow_config"]["run_name"],
+            #         )
 
-                    with mlflow.start_run(
-                        run_name=self.config["mlflow_config"]["run_name"]
-                    ):
-                        self.mlflow_op.log_xgboost_params(idx=i, model=xgb_model)
+            #         with mlflow.start_run(
+            #             run_name=self.config["mlflow_config"]["run_name"]
+            #         ):
+            #             self.mlflow_op.log_xgboost_params(idx=i, model=xgb_model)
 
-                        self.mlflow_op.log_rf_model_params(idx=i, model=rf_model)
+            #             self.mlflow_op.log_rf_model_params(idx=i, model=rf_model)
 
-                        self.mlflow_op.log_trained_models(
-                            idx=i,
-                            kmeans_model=kmeans_model,
-                            xgb_model=xgb_model,
-                            rf_model=rf_model,
-                        )
+            #             self.mlflow_op.log_trained_models(
+            #                 idx=i,
+            #                 kmeans_model=kmeans_model,
+            #                 xgb_model=xgb_model,
+            #                 rf_model=rf_model,
+            #             )
 
-                        self.mlflow_op.log_metrics_of_trained_models(
-                            idx=i, xgb_score=xgb_model_score, rf_score=rf_model_score
-                        )
+            #             self.mlflow_op.log_metrics_of_trained_models(
+            #                 idx=i, xgb_score=xgb_model_score, rf_score=rf_model_score
+            #             )
 
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                            log_message="Logged params,scores and models for cluster "
-                            + str(i),
-                        )
+            #             self.log_writer.log(
+            #                 db_name=self.db_name,
+            #                 collection_name=self.model_train_log,
+            #                 log_message="Logged params,scores and models for cluster "
+            #                 + str(i),
+            #             )
 
-                except Exception as e:
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message="Mlflow logging of params,metrics and models failed",
-                    )
+            #     except Exception as e:
+            #         self.log_writer.log(
+            #             db_name=self.db_name,
+            #             collection_name=self.model_train_log,
+            #             log_message="Mlflow logging of params,metrics and models failed",
+            #         )
 
-                    exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+            #         exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
 
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message=exception_msg,
-                    )
+            #         self.log_writer.log(
+            #             db_name=self.db_name,
+            #             collection_name=self.model_train_log,
+            #             log_message=exception_msg,
+            #         )
 
-                    raise Exception(exception_msg)
+            #         raise Exception(exception_msg)
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
-                log_message="Logging of params,scores and models successfull in mlflow",
-            )
+            # self.log_writer.log(
+            #     db_name=self.db_name,
+            #     collection_name=self.model_train_log,
+            #     log_message="Logging of params,scores and models successfull in mlflow",
+            # )
 
             self.log_writer.log(
                 db_name=self.db_name,

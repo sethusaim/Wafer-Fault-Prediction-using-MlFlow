@@ -24,7 +24,9 @@ class dBOperation:
 
         self.class_name = self.__class__.__name__
 
-        self.good_data_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data_bucket"]
+
+        self.good_data_train_dir = self.config["data"]["train"]["good_data_dir"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
@@ -38,10 +40,11 @@ class dBOperation:
         method_name = self.insert_good_data_as_record.__name__
 
         try:
-            csv_files = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_bucket,
-                db_name=db_name,
-                collection_name=collection_name,
+            csv_files = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.train_data_bucket,
+                filename=self.good_data_train_dir,
+                db_name=self.db_name,
+                collection_name=self.train_db_insert_log,
             )
 
             self.log_writer.log(
@@ -51,21 +54,29 @@ class dBOperation:
             )
 
             for f in csv_files:
-                df = convert_object_to_dataframe(
-                    obj=f, db_name=db_name, collection_name=collection_name
-                )
+                file = f.key
 
-                self.db_op.insert_dataframe_as_record(
-                    db_name=db_name,
-                    collection_name=collection_name,
-                    data_frame=df,
-                )
+                if file.endswith(".csv"):
+                    df = convert_object_to_dataframe(
+                        obj=f,
+                        db_name=self.db_name,
+                        collection_name=self.train_db_insert_log,
+                    )
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_db_insert_log,
-                log_message="Inserted dataframe as collection record in mongodb",
-            )
+                    self.db_op.insert_dataframe_as_record(
+                        data_frame=df,
+                        db_name=db_name,
+                        collection_name=collection_name,
+                    )
+
+                else:
+                    pass
+
+                self.log_writer.log(
+                    db_name=self.db_name,
+                    collection_name=self.train_db_insert_log,
+                    log_message="Inserted dataframe as collection record in mongodb",
+                )
 
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
@@ -106,6 +117,8 @@ class dBOperation:
                 src_file=csv_file,
                 bucket=self.input_files_bucket,
                 dest_file=csv_file,
+                db_name=self.db_name,
+                collection_name=self.train_export_csv_log,
             )
 
         except Exception as e:

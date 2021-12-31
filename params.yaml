@@ -7,6 +7,19 @@ app:
   host : 0.0.0.0
   port : 8080 
 
+data:
+  raw_data:
+    train_batch: training_data
+    pred_batch: prediction_data
+
+  train:
+    good_data_dir : good/train
+    bad_data_dir: bad/train
+
+  pred:
+    good_data_dir: good/pred
+    bad_data_dir: bad/pred
+
 mongodb:
   url: localhost:27017
   wafer_data_db_name: wafer-data
@@ -25,15 +38,12 @@ kmeans_cluster:
     direction : decreasing
 
 s3_bucket:
-  data_given_train_bucket: wafer-raw-data-train
-  data_given_pred_bucket: wafer-raw-data-test
-  data_bad_train_bucket : wafer-bad-data-train
-  data_bad_pred_bucket: wafer-bad-data-pred
-  data_good_train_bucket: wafer-good-data-train
-  data_good_pred_bucket: wafer-good-data-pred
-  schema_bucket: wafer-schema
   input_files_bucket: input-files-for-train-and-pred
   wafer_model_bucket: wafer-model
+  wafer-mlflow_bucket: wafer-mlflow
+  wafer_pred_data_bucket: wafer-pred-data
+  wafer_train_data_bucket: wafer-train-data
+  wafer_raw_data_bucket: wafer-raw-data
 
 models_dir:
   trained : trained

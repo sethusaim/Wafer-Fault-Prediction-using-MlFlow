@@ -1,3 +1,4 @@
+import os
 import re
 
 from utils.logger import App_Logger
@@ -25,9 +26,15 @@ class Raw_Data_validation:
 
         self.s3_obj = S3_Operations()
 
-        self.good_data_train_bucket = self.config["s3_bucket"]["data_good_train_bucket"]
+        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data_bucket"]
 
-        self.bad_data_train_bucket = self.config["s3_bucket"]["data_bad_train_bucket"]
+        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
+        self.raw_train_data_dir = self.config["data"]["raw_data"]["train_batch"]
+
+        self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
+
+        self.bad_train_data_dir = self.config["data"]["train"]["bad_data_dir"]
 
         self.db_name = self.config["db_log"]["db_train_log"]
 
@@ -56,8 +63,10 @@ class Raw_Data_validation:
 
         try:
             dic = self.s3_obj.get_schema_from_s3(
-                bucket=self.config["s3_bucket"]["schema_bucket"],
+                bucket=self.input_files_bucket,
                 filename=self.config["schema_file"]["train_schema_file"],
+                db_name=self.db_name,
+                collection_name=self.train_schema_log,
             )
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
@@ -148,6 +157,31 @@ class Raw_Data_validation:
 
             raise Exception(exception_msg)
 
+    def create_dirs_for_good_bad_data(self):
+        method_name = self.create_dirs_for_good_bad_data.__name__
+
+        try:
+            folders = [self.good_train_data_dir, self.bad_train_data_dir]
+
+            for folder in folders:
+                self.s3_obj.create_folder_in_s3(
+                    bucket_name=self.train_data_bucket,
+                    folder_name=folder,
+                    db_name=self.db_name,
+                    collection_name=self.train_gen_log,
+                )
+
+        except Exception as e:
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_name_valid_log,
+                log_message=exception_msg,
+            )
+
+            raise Exception(exception_msg)
+
     def validate_raw_file_name(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
     ):
@@ -166,11 +200,14 @@ class Raw_Data_validation:
         try:
             onlyfiles = self.s3_obj.get_files_from_s3(
                 bucket=self.raw_data_bucket_name,
+                folder_name=self.raw_train_data_dir,
                 db_name=self.db_name,
                 collection_name=self.train_name_valid_log,
             )
 
-            for filename in onlyfiles:
+            train_batch_files = [f.split("/")[1] for f in onlyfiles]
+
+            for filename in train_batch_files:
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
 
@@ -178,41 +215,58 @@ class Raw_Data_validation:
 
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
+
+                            src_f = os.path.join(self.raw_train_data_dir, filename)
+
+                            dest_f = os.path.join(self.good_train_data_dir, filename)
+
                             self.s3_obj.copy_data_to_other_bucket(
                                 src_bucket=self.raw_data_bucket_name,
-                                src_file=filename,
-                                dest_bucket=self.good_data_train_bucket,
-                                dest_file=filename,
+                                src_file=src_f,
+                                dest_bucket=self.train_data_bucket,
+                                dest_file=dest_f,
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
                             )
 
                         else:
+                            src_f = os.path.join(self.raw_train_data_dir, filename)
+
+                            dest_f = os.path.join(self.bad_train_data_dir, filename)
+
                             self.s3_obj.copy_data_to_other_bucket(
                                 src_bucket=self.raw_data_bucket_name,
-                                src_file=filename,
-                                dest_bucket=self.bad_data_train_bucket,
-                                dest_file=filename,
+                                src_file=src_f,
+                                dest_bucket=self.train_data_bucket,
+                                dest_file=dest_f,
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
                             )
 
                     else:
+                        src_f = os.path.join(self.raw_train_data_dir, filename)
+
+                        dest_f = os.path.join(self.bad_train_data_dir, filename)
+
                         self.s3_obj.copy_data_to_other_bucket(
                             src_bucket=self.raw_data_bucket_name,
-                            src_file=filename,
-                            dest_bucket=self.bad_data_train_bucket,
-                            dest_file=filename,
+                            src_file=src_f,
+                            dest_bucket=self.train_data_bucket,
+                            dest_file=dest_f,
                             db_name=self.db_name,
                             collection_name=self.train_name_valid_log,
                         )
 
                 else:
+                    src_f = os.path.join(self.raw_train_data_dir, filename)
+
+                    dest_f = os.path.join(self.bad_train_data_dir, filename)
+
                     self.s3_obj.copy_data_to_other_bucket(
                         src_bucket=self.raw_data_bucket_name,
-                        src_file=filename,
-                        dest_bucket=self.bad_data_train_bucket,
-                        dest_file=filename,
+                        src_file=src_f,
+                        dest_bucket=self.train_data_bucket,
+                        dest_file=dest_f,
                         db_name=self.db_name,
                         collection_name=self.train_name_valid_log,
                     )
@@ -250,8 +304,9 @@ class Raw_Data_validation:
                 log_message="Column Length Validation Started !!",
             )
 
-            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_train_bucket,
+            csv_file_objs = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.train_data_bucket,
+                filename=self.good_train_data_dir,
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
             )
@@ -259,22 +314,32 @@ class Raw_Data_validation:
             for f in csv_file_objs:
                 file = f.key
 
-                csv = convert_object_to_dataframe(
-                    f, db_name=self.db_name, collection_name=self.train_col_valid_log
-                )
+                abs_f = file.split("/")[-1]
 
-                if csv.shape[1] == NumberofColumns:
-                    pass
-
-                else:
-                    self.s3_obj.move_data_to_other_bucket(
-                        src_bucket=self.good_data_train_bucket,
-                        src_file=file,
-                        dest_bucket=self.bad_data_train_bucket,
-                        dest_file=file,
+                if file.endswith(".csv"):
+                    csv = convert_object_to_dataframe(
+                        f,
                         db_name=self.db_name,
                         collection_name=self.train_col_valid_log,
                     )
+
+                    if csv.shape[1] == NumberofColumns:
+                        pass
+
+                    else:
+                        dest_f = os.path.join(self.bad_train_data_dir, abs_f)
+
+                        self.s3_obj.move_data_to_other_bucket(
+                            src_bucket=self.train_data_bucket,
+                            src_file=file,
+                            dest_bucket=self.train_data_bucket,
+                            dest_file=dest_f,
+                            db_name=self.db_name,
+                            collection_name=self.train_col_valid_log,
+                        )
+
+                else:
+                    pass
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -312,8 +377,9 @@ class Raw_Data_validation:
                 log_message="Missing Values Validation Started!!",
             )
 
-            csv_file_objs = self.s3_obj.get_file_objs_from_s3(
-                bucket=self.good_data_train_bucket,
+            csv_file_objs = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.train_data_bucket,
+                filename=self.good_train_data_dir,
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
             )
@@ -321,53 +387,63 @@ class Raw_Data_validation:
             for f in csv_file_objs:
                 file = f.key
 
-                csv = convert_object_to_dataframe(
-                    f,
-                    db_name=self.db_name,
-                    collection_name=self.train_missing_value_log,
-                )
+                abs_f = file.split("/")[-1]
 
-                count = 0
+                if abs_f.endswith(".csv"):
+                    csv = convert_object_to_dataframe(
+                        f,
+                        db_name=self.db_name,
+                        collection_name=self.train_missing_value_log,
+                    )
 
-                for cols in csv:
-                    if (len(csv[cols]) - csv[cols].count()) == len(csv[cols]):
-                        count += 1
+                    count = 0
 
-                        self.s3_obj.move_data_to_other_bucket(
-                            src_bucket=self.good_data_train_bucket,
-                            src_file=file,
-                            dest_bucket=self.bad_data_train_bucket,
-                            dest_file=file,
+                    for cols in csv:
+                        if (len(csv[cols]) - csv[cols].count()) == len(csv[cols]):
+                            count += 1
+
+                            dest_f = os.path.join(self.bad_train_data_dir, abs_f)
+
+                            self.s3_obj.move_data_to_other_bucket(
+                                src_bucket=self.train_data_bucket,
+                                src_file=file,
+                                dest_bucket=self.train_data_bucket,
+                                dest_file=dest_f,
+                                db_name=self.db_name,
+                                collection_name=self.train_missing_value_log,
+                            )
+
+                            break
+
+                    if count == 0:
+                        csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
+
+                        self.log_writer.log(
+                            db_name=self.db_name,
+                            collection_name=self.train_missing_value_log,
+                            log_message="Wafer column added to files",
+                        )
+
+                        csv.to_csv(abs_f, index=None, header=True)
+
+                        self.log_writer.log(
+                            db_name=self.db_name,
+                            collection_name=self.train_missing_value_log,
+                            log_message=f"Converted {file} to csv, and created local copy",
+                        )
+
+                        dest_f = os.path.join(self.good_train_data_dir, abs_f)
+
+                        self.s3_obj.upload_to_s3(
+                            src_file=abs_f,
+                            bucket=self.train_data_bucket,
+                            dest_file=dest_f,
                             db_name=self.db_name,
                             collection_name=self.train_missing_value_log,
                         )
 
-                        break
-
-                if count == 0:
-                    csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
-
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.train_missing_value_log,
-                        log_message="Wafer column added to files",
-                    )
-
-                    csv.to_csv(file, index=None, header=True)
-
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.train_missing_value_log,
-                        log_message=f"Converted {file} to csv, and created local copy",
-                    )
-
-                    self.s3_obj.upload_to_s3(
-                        src_file=file,
-                        bucket=self.good_data_train_bucket,
-                        dest_file=file,
-                        db_name=self.db_name,
-                        collection_name=self.train_missing_value_log,
-                    )
+                else:
+                    pass
 
         except Exception as e:
             exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"

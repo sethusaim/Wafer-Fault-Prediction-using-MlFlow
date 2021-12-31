@@ -13,7 +13,6 @@ class Data_Getter:
     """
 
     def __init__(self, db_name, collection_name):
-
         self.config = read_params()
 
         self.training_file = self.config["export_train_csv_file"]
@@ -50,8 +49,11 @@ class Data_Getter:
         method_name = self.get_data.__name__
 
         try:
-            csv_obj = self.s3_obj.get_file_object_from_s3(
-                bucket=self.input_files_bucket, filename=self.training_file
+            csv_obj = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.input_files_bucket,
+                filename=self.training_file,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             df = convert_object_to_dataframe(
@@ -73,7 +75,7 @@ class Data_Getter:
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : get_model_name, Error : {str(e)}"
+            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
 
             self.log_writer.log(
                 db_name=self.db_name,
