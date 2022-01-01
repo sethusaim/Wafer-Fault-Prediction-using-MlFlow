@@ -1,3 +1,4 @@
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_train import data_transform
@@ -120,12 +121,10 @@ class train_validation:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

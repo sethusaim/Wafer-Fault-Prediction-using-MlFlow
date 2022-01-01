@@ -1,4 +1,3 @@
-import json
 import os
 import re
 import shutil
@@ -7,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 from utils.logger import App_Logger
 from utils.read_params import read_params
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class Prediction_Data_validation:
@@ -17,18 +17,32 @@ class Prediction_Data_validation:
     Revisions   :   None
     """
 
-    def __init__(self, path):
-        self.Batch_Directory = path
-
+    def __init__(self, raw_data_bucket_name):
         self.config = read_params()
 
-        self.schema_path = self.config["schema_dir"]["pred_schema_file"]
+        self.raw_data_bucket_name = raw_data_bucket_name
+
+        self.class_name = self.__class__.__name__
+
+        self.s3_obj = S3_Operations()
 
         self.logger = App_Logger()
 
+        self.pred_data_bucket = self.config["s3_bucket"]["wafer_pred_data_bucket"]
+
+        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
+        self.raw_pred_data_dir = self.config["data"]["raw_data"]["pred_batch"]
+
+        self.good_pred_data_dir = self.config["data"]["pred"]["good_data_dir"]
+
+        self.bad_pred_data_dir = self.config["data"]["pred"]["bad_data_dir"]
+
+        self.pred_schema_file = self.config["schema_file"]["pred_schema_file"]
+
         self.db_name = self.config["db_log"]["db_pred_log"]
 
-        self.pred_schema_valid_log = self.config["pred_db_log"]["values_from_schema"]
+        self.pred_schema_log = self.config["pred_db_log"]["values_from_schema"]
 
         self.pred_gen_log = self.config["pred_db_log"]["general"]
 
@@ -50,8 +64,12 @@ class Prediction_Data_validation:
         Revisions   :   modified code based on params.yaml file
         """
         try:
-            with open(self.schema_path, "r") as f:
-                dic = json.load(f)
+            dic = self.s3_obj.get_schema_from_s3(
+                bucket=self.input_files_bucket,
+                filename=self.pred_schema_file,
+                db_name=self.db_name,
+                collection_name=self.pred_schema_log,
+            )
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
 
@@ -72,14 +90,14 @@ class Prediction_Data_validation:
 
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.pred_schema_valid_log,
+                collection_name=self.pred_schema_log,
                 log_message=message,
             )
 
         except ValueError:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.pred_schema_valid_log,
+                collection_name=self.pred_schema_log,
                 log_message="ValueError:Value not found inside schema_training.json",
             )
 
@@ -88,7 +106,7 @@ class Prediction_Data_validation:
         except KeyError:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.pred_schema_valid_log,
+                collection_name=self.pred_schema_log,
                 log_message="KeyError:Key value error incorrect key passed",
             )
 
@@ -97,7 +115,7 @@ class Prediction_Data_validation:
         except Exception as e:
             self.logger.log(
                 db_name=self.db_name,
-                collection_name=self.pred_schema_valid_log,
+                collection_name=self.pred_schema_log,
                 log_message=f"Exception occured in Class : Prediction_Data_validation. \
                     Method : valuesFromSchema, Error : {str(e)}",
             )

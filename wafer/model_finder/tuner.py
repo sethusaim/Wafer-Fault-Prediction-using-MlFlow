@@ -1,6 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from xgboost import XGBClassifier
@@ -135,15 +136,13 @@ class Model_Finder:
                     Exited the get_best_params_for_random_forest method of the Model Finder class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_best_params_for_xgboost(self, train_x, train_y):
         """
@@ -230,15 +229,13 @@ class Model_Finder:
                 log_message="XGBoost parameter tuning failed. Exited the get_best_params_for_xgboost method of the Model Finder class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_trained_models(self, train_x, train_y, test_x, test_y):
         """
@@ -364,12 +361,10 @@ class Model_Finder:
                 log_message="Model training failed. Exited the get_trained_models method of the Model Finder class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

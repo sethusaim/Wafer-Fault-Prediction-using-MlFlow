@@ -1,4 +1,5 @@
 import mlflow
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import get_model_name
 from utils.read_params import read_params
@@ -36,15 +37,13 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def log_metric(self, model_name, metric, db_name, collection_name):
         method_name = self.log_metric.__name__
@@ -59,15 +58,13 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def log_param(self, idx, model, model_name, param, db_name, collection_name):
         method_name = self.log_param.__name__
@@ -84,15 +81,13 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def log_xgboost_params(self, idx, model, db_name, collection_name):
         method_name = self.log_xgboost_params.__name__
@@ -121,15 +116,13 @@ class Mlflow_Operations:
                 )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def log_rf_model_params(self, idx, model, db_name, collection_name):
         method_name = self.log_rf_model_params.__name__
@@ -151,15 +144,13 @@ class Mlflow_Operations:
                 self.log_param(idx=idx, model=model, model_name=model_name, param=param)
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def log_trained_models(
         self, kmeans_model, idx, xgb_model, rf_model, db_name, collection_name
@@ -197,15 +188,13 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def log_metrics_of_trained_models(
         self, idx, xgb_model, rf_model, xgb_score, rf_score, db_name, collection_name
@@ -234,12 +223,10 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

@@ -1,6 +1,7 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import get_model_name
 from utils.read_params import read_params
@@ -110,15 +111,13 @@ class KMeansClustering:
                 log_message=f"Finding the number of clusters failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def create_clusters(self, data, number_of_clusters):
         """
@@ -177,12 +176,10 @@ class KMeansClustering:
             return self.data, self.kmeans
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

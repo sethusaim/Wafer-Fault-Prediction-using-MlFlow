@@ -1,3 +1,4 @@
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -97,15 +98,13 @@ class data_transform:
                     pass
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_data_transform_log,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def replace_missing_with_null(self):
         """
@@ -175,12 +174,10 @@ class data_transform:
                     pass
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_data_transform_log,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

@@ -1,3 +1,4 @@
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -75,12 +76,10 @@ class Data_Getter:
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

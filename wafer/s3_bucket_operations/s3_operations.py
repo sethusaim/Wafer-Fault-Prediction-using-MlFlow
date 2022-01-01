@@ -3,6 +3,7 @@ import pickle
 
 import boto3
 import botocore
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import convert_obj_to_json, convert_object_to_pickle
 from utils.read_params import read_params
@@ -63,15 +64,13 @@ class S3_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def upload_to_s3(self, src_file, bucket, dest_file, db_name, collection_name):
         method_name = self.upload_to_s3.__name__
@@ -100,15 +99,13 @@ class S3_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_bucket_from_s3(self, bucket, db_name, collection_name):
         try:
@@ -125,15 +122,13 @@ class S3_Operations:
             return bucket
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def copy_data_to_other_bucket(
         self, src_bucket, src_file, dest_bucket, dest_file, db_name, collection_name
@@ -142,12 +137,6 @@ class S3_Operations:
             method_name = self.copy_data_to_other_bucket.__name__
 
             copy_source = {"Bucket": src_bucket, "Key": src_file}
-
-            # bucket = self.get_bucket_from_s3(
-            #     bucket=dest_bucket, db_name=db_name, collection_name=collection_name
-            # )
-
-            # bucket.copy(copy_source, dest_file)
 
             self.s3_resource.meta.client.copy(copy_source, dest_bucket, dest_file)
 
@@ -158,15 +147,13 @@ class S3_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def delete_file_from_s3(self, bucket, file, db_name, collection_name):
         try:
@@ -181,15 +168,13 @@ class S3_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def move_data_to_other_bucket(
         self, src_bucket, src_file, dest_bucket, dest_file, db_name, collection_name
@@ -220,26 +205,22 @@ class S3_Operations:
             )
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_files_from_s3(self, bucket, folder_name, db_name, collection_name):
         try:
@@ -263,15 +244,13 @@ class S3_Operations:
             return list_of_files
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_file_objects_from_s3(self, bucket, filename, db_name, collection_name):
         try:
@@ -296,15 +275,13 @@ class S3_Operations:
                 return lst_objs
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def load_model_from_s3(self, bucket, model_name, db_name, collection_name):
         try:
@@ -330,15 +307,13 @@ class S3_Operations:
             return model
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_schema_from_s3(self, bucket, filename, db_name, collection_name):
         try:
@@ -364,15 +339,13 @@ class S3_Operations:
             return dic
 
         except Exception as e:
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def save_model_to_s3(self, model, filename, db_name, collection_name, model_bucket):
         method_name = self.save_model_to_s3.__name__
@@ -424,12 +397,10 @@ class S3_Operations:
                 + f" could not be saved. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

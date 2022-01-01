@@ -3,6 +3,7 @@ import shutil
 
 import mlflow
 from mlflow.tracking import MlflowClient
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
 
@@ -317,12 +318,10 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 log_message="Transitioning of models failed",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

@@ -3,11 +3,13 @@ import pickle
 from io import StringIO
 
 import pandas as pd
-import yaml
 
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 
 log_writer = App_Logger()
+
+class_name = "main_utils.py"
 
 
 def make_readable(data, db_name, collection_name):
@@ -23,13 +25,13 @@ def make_readable(data, db_name, collection_name):
         return f
 
     except Exception as e:
-        error_msg = f"Exception occured in main_utils.py, Method : make_readable, Error : {str(e)}"
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=error_msg
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="make_readable",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        raise Exception(error_msg)
 
 
 def convert_object_to_dataframe(obj, db_name, collection_name):
@@ -53,13 +55,13 @@ def convert_object_to_dataframe(obj, db_name, collection_name):
         return df
 
     except Exception as e:
-        exception_msg = f"Exception occured in main_utils.py,, Method : convert_object_to_dataframe, Error : {str(e)}"
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=exception_msg
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="conver_object_to_dataframe",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        raise Exception(exception_msg)
 
 
 def read_s3_obj(obj, db_name, collection_name, decode=True):
@@ -86,13 +88,13 @@ def read_s3_obj(obj, db_name, collection_name, decode=True):
             return content
 
     except Exception as e:
-        exception_msg = f"Exception occured in main_utils.py,, Method : read_s3_obj, Error : {str(e)}"
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=exception_msg
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="read_s3_obj",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        raise Exception(exception_msg)
 
 
 def convert_object_to_pickle(obj, db_name, collection_name):
@@ -112,13 +114,13 @@ def convert_object_to_pickle(obj, db_name, collection_name):
         return model
 
     except Exception as e:
-        exception_msg = f"Exception occured in main_utils.py,, Method : convert_object_to_pickle, Error : {str(e)}"
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=exception_msg
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="convert_object_to_pickle",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        raise Exception(exception_msg)
 
 
 def convert_object_to_bytes(obj, db_name, collection_name):
@@ -136,15 +138,13 @@ def convert_object_to_bytes(obj, db_name, collection_name):
         return content
 
     except Exception as e:
-        exception_msg = (
-            f"Exception occured in, Method : convert_object_to_bytes, Error : {str(e)}"
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="convert_object_to_bytes",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=exception_msg
-        )
-
-        raise Exception(exception_msg)
 
 
 def get_model_name(model, db_name, collection_name):
@@ -160,15 +160,13 @@ def get_model_name(model, db_name, collection_name):
         return model_name
 
     except Exception as e:
-        exception_msg = (
-            f"Exception occured in, Method : get_model_name, Error : {str(e)}"
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="get_model_name",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=exception_msg
-        )
-
-        raise Exception(exception_msg)
 
 
 def convert_obj_to_json(obj, db_name, collection_name):
@@ -188,12 +186,10 @@ def convert_obj_to_json(obj, db_name, collection_name):
         return dic
 
     except Exception as e:
-        exception_msg = (
-            f"Exception occured in, Method : convert_obj_to_json, Error : {str(e)}"
+        raise_exception(
+            error=e,
+            class_name=class_name,
+            method_name="convert_obj_to_json",
+            db_name=db_name,
+            collection_name=collection_name,
         )
-
-        log_writer.log(
-            db_name=db_name, collection_name=collection_name, log_message=exception_msg
-        )
-
-        raise Exception(exception_msg)

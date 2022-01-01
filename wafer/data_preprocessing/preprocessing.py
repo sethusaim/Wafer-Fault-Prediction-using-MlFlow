@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -69,15 +70,13 @@ class Preprocessor:
                 log_message=f"Column removal Unsuccessful. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def separate_label_feature(self, data, label_column_name):
         """
@@ -116,15 +115,13 @@ class Preprocessor:
                 log_message=f"Label Separation Unsuccessful.Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def is_null_present(self, data):
         """
@@ -197,15 +194,13 @@ class Preprocessor:
                 log_message=f"Finding missing values failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def impute_missing_values(self, data):
         """
@@ -255,15 +250,13 @@ class Preprocessor:
                 log_message=f"Imputing missing values failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)
 
     def get_columns_with_zero_std_deviation(self, data):
         """
@@ -310,12 +303,10 @@ class Preprocessor:
                 log_message=f"Column search for Standard Deviation of Zero Failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            exception_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
-
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=exception_msg,
             )
-
-            raise Exception(exception_msg)

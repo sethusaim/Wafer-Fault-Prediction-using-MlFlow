@@ -2,7 +2,8 @@ from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_pred import data_transformPredict
 from wafer.data_type_valid.data_type_valid_pred import dBOperation
-from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
+from wafer.raw_data_validation.pred_data_validation import \
+    Prediction_Data_validation
 
 
 class pred_validation:
