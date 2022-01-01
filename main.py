@@ -44,9 +44,9 @@ async def index(request: Request):
 @app.get("/train")
 async def trainRouteClient():
     try:
-        raw_data_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
+        raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
 
-        train_valObj = train_validation(raw_data_bucket_name)
+        train_valObj = train_validation(raw_data_train_bucket_name)
 
         train_valObj.train_validation()
 
@@ -67,44 +67,22 @@ async def trainRouteClient():
 @app.post("/predict")
 async def predictRouteClient(request: Request):
     try:
-        if request.json is not None:
-            path = request.json["filepath"]
+        raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
 
-            pred_val = pred_validation(path)
+        pred_val = pred_validation(raw_data_pred_bucket_name)
 
-            pred_val.prediction_validation()
+        pred_val.prediction_validation()
 
-            pred = prediction(path)
+        pred = prediction(raw_data_pred_bucket_name)
 
-            path, json_predictions = pred.predictionFromModel()
+        path, json_predictions = pred.predictionFromModel()
 
-            return Response(
+        return Response(
                 "Prediction File created at !!!"
                 + str(path)
                 + "and few of the predictions are "
                 + str(json.loads(json_predictions))
             )
-
-        elif request.form is not None:
-            path = request.form["filepath"]
-
-            pred_val = pred_validation(path)
-
-            pred_val.prediction_validation()
-
-            pred = prediction(path)
-
-            path, json_predictions = pred.predictionFromModel()
-
-            return Response(
-                "Prediction File created at "
-                + str(path)
-                + " and few of the predictions are "
-                + str(json.loads(json_predictions))
-            )
-
-        else:
-            print("Nothing Matched")
 
     except Exception as e:
         return Response("Error Occurred! %s" % e)

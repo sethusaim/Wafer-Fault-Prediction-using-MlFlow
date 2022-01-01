@@ -2,7 +2,8 @@ from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.dataTransform.data_transformation_pred import dataTransformPredict
 from wafer.dataTypeValid.data_type_valid_pred import dBOperation
-from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
+from wafer.raw_data_validation.pred_data_validation import \
+    Prediction_Data_validation
 
 
 class pred_validation:
@@ -14,8 +15,8 @@ class pred_validation:
     Revisions   :   None
     """
 
-    def __init__(self, path):
-        self.raw_data = Prediction_Data_validation(path)
+    def __init__(self, bucket_name):
+        self.raw_data = Prediction_Data_validation(bucket_name)
 
         self.dataTransform = dataTransformPredict()
 
