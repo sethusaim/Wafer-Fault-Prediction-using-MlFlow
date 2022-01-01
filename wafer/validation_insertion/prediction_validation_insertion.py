@@ -1,9 +1,8 @@
 from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.dataTransform.data_transformation_pred import dataTransformPredict
-from wafer.dataTypeValid.data_type_valid_pred import dBOperation
-from wafer.raw_data_validation.pred_data_validation import \
-    Prediction_Data_validation
+from wafer.data_transform.data_transformation_pred import data_transformPredict
+from wafer.data_type_valid.data_type_valid_pred import dBOperation
+from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
 
 
 class pred_validation:
@@ -18,7 +17,7 @@ class pred_validation:
     def __init__(self, bucket_name):
         self.raw_data = Prediction_Data_validation(bucket_name)
 
-        self.dataTransform = dataTransformPredict()
+        self.data_transform = data_transformPredict()
 
         self.dBOperation = dBOperation()
 
@@ -75,12 +74,12 @@ class pred_validation:
                 log_message="Starting Data Transforamtion!!",
             )
 
-            self.dataTransform.replaceMissingWithNull()
+            self.data_transform.replaceMissingWithNull()
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="DataTransformation Completed!!!",
+                log_message="data_transformation Completed!!!",
             )
 
             self.log_writer.log(

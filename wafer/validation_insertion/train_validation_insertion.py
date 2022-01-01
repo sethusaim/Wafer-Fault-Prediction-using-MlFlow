@@ -1,7 +1,7 @@
 from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.dataTransform.data_transformation_train import dataTransform
-from wafer.dataTypeValid.data_type_valid_train import dBOperation
+from wafer.data_transform.data_transformation_train import data_transform
+from wafer.data_type_valid.data_type_valid_train import dBOperation
 from wafer.raw_data_validation.train_data_validation import Raw_Data_validation
 
 
@@ -17,7 +17,7 @@ class train_validation:
     def __init__(self, raw_data_bucket_name):
         self.raw_data = Raw_Data_validation(raw_data_bucket_name)
 
-        self.dataTransform = dataTransform()
+        self.data_transform = data_transform()
 
         self.dBOperation = dBOperation()
 
@@ -81,14 +81,14 @@ class train_validation:
                 log_message="Starting Data Transforamtion!!",
             )
 
-            self.dataTransform.rename_target_column()
+            self.data_transform.rename_target_column()
 
-            self.dataTransform.replace_missing_with_null()
+            self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_main_log,
-                log_message="DataTransformation Completed!!!",
+                log_message="data_transformation Completed!!!",
             )
 
             self.log_writer.log(

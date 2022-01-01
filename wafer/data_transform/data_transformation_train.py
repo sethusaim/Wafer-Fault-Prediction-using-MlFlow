@@ -4,7 +4,7 @@ from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
-class dataTransform:
+class data_transform:
     """
     Description :   This class shall be used for transforming the Good Raw Training data before loaded
                     it in database

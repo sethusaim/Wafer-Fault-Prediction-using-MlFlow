@@ -78,11 +78,11 @@ async def predictRouteClient(request: Request):
         path, json_predictions = pred.predictionFromModel()
 
         return Response(
-                "Prediction File created at !!!"
-                + str(path)
-                + "and few of the predictions are "
-                + str(json.loads(json_predictions))
-            )
+            "Prediction File created at !!!"
+            + str(path)
+            + "and few of the predictions are "
+            + str(json.loads(json_predictions))
+        )
 
     except Exception as e:
         return Response("Error Occurred! %s" % e)

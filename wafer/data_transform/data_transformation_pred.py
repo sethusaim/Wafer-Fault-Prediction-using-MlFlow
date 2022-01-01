@@ -5,7 +5,7 @@ from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
-class dataTransformPredict:
+class data_transformPredict:
     """
     Description :   This class shall be used for transforming the good raw training data before loading
                     it in database
@@ -56,12 +56,12 @@ class dataTransformPredict:
             self.logger.log(
                 db_name=self.db_name,
                 collection_name=self.pred_data_transform_log,
-                log_message=f"Exception Occured in Class : dataTransformPredict.\
+                log_message=f"Exception Occured in Class : data_transformPredict.\
                     Method : replaceMissingWithNull, Error : {str(e)} ",
             )
 
             raise Exception(
-                "Exception Occured in Class : dataTransformPredict.\
+                "Exception Occured in Class : data_transformPredict.\
                     Method : replaceMissingWithNull, Error : ",
                 str(e),
             )

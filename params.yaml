@@ -110,7 +110,7 @@ db_log:
 train_db_log:
   model_training : modelTrainingLog
   col_validation : columnValidationLog
-  data_transform : dataTransform
+  data_transform : data_transform
   export_csv : ExportToCsvLog
   general : GeneralLog
   db_insert: dbInsertLog
@@ -124,7 +124,7 @@ train_db_log:
 pred_db_log:
   col_validation : columnValidationLog
   db_conn: databaseConnectionLog
-  data_transform : dataTransform
+  data_transform : data_transform
   db_insert : dbInsertLog
   db_create : dbTableCreateLog
   export_csv : ExportToCsvLog
