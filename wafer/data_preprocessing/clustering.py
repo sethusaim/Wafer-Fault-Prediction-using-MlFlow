@@ -2,6 +2,7 @@ from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from utils.logger import App_Logger
+from utils.main_utils import get_model_name
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -22,6 +23,8 @@ class KMeansClustering:
         self.config = read_params()
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
         self.s3_obj = S3_Operations()
 
@@ -82,7 +85,7 @@ class KMeansClustering:
                 bucket=self.input_files_bucket,
                 dest_file=self.config["elbow_plot_fig"],
                 db_name=self.db_name,
-                collection_name=self.collection_name
+                collection_name=self.collection_name,
             )
 
             self.kn = KneeLocator(
@@ -145,13 +148,20 @@ class KMeansClustering:
                 random_state=self.config["base"]["random_state"],
             )
 
+            kmeans_model_name = get_model_name(
+                model=self.kmeans,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
             self.y_kmeans = self.kmeans.fit_predict(data)
 
             self.s3_obj.save_model_to_s3(
                 model=self.kmeans,
-                filename=self.config["model_names"]["kmeans_model_name"],
+                filename=kmeans_model_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
+                model_bucket=self.model_bucket,
             )
 
             self.data["Cluster"] = self.y_kmeans

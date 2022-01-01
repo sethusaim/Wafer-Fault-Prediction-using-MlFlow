@@ -101,6 +101,15 @@ class load_prod_model:
                 if model != self.config["model_names"]["kmeans_model_name"]
             ]
 
+            # reg_model_names = [dict(rm.names).values() for rm in client.list_registered_models()]
+
+            # cols = [
+            #     f"metrics." + str(model) + str(i) + "-best_score"
+            #     for i in range(0, self.num_clusters)
+            #     for model in reg_model_names
+            #     if not model.startswith("KMeans")
+            # ]
+
             """ 
             Eg-output: For 3 clusters, 
             

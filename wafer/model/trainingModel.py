@@ -1,6 +1,6 @@
-import mlflow
 from sklearn.model_selection import train_test_split
 from utils.logger import App_Logger
+from utils.main_utils import get_model_name
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import Data_Getter
 from wafer.data_preprocessing.clustering import KMeansClustering
@@ -26,6 +26,8 @@ class train_model:
         self.db_name = self.config["db_log"]["db_train_log"]
 
         self.model_train_log = self.config["train_db_log"]["model_training"]
+
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
         self.class_name = self.__class__.__name__
 
@@ -107,18 +109,32 @@ class train_model:
                     xgb_model_score,
                 ) = model_finder.get_trained_models(x_train, y_train, x_test, y_test)
 
-                saved_rf_model = self.s3_obj.save_model_to_s3(
+                rf_model_name = get_model_name(
                     model=rf_model,
-                    filename=self.config["model_names"]["rf_model_name"] + str(i),
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
                 )
 
-                saved_xgb_model = self.s3_obj.save_model_to_s3(
+                xgb_model_name = get_model_name(
                     model=xgb_model,
-                    filename=self.config["model_names"]["xgb_model_name"] + str(i),
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
+                )
+
+                saved_rf_model = self.s3_obj.save_model_to_s3(
+                    model=rf_model,
+                    filename=rf_model_name + str(i),
+                    db_name=self.db_name,
+                    collection_name=self.model_train_log,
+                    model_bucket=self.model_bucket,
+                )
+
+                saved_xgb_model = self.s3_obj.save_model_to_s3(
+                    model=xgb_model,
+                    filename=xgb_model_name + str(i),
+                    db_name=self.db_name,
+                    collection_name=self.model_train_log,
+                    model_bucket=self.model_bucket,
                 )
 
             #     try:

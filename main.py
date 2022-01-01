@@ -1,12 +1,17 @@
+import json
 import os
 
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 
 from utils.read_params import read_params
+from wafer.model.load_production_model import load_prod_model
+from wafer.model.predictionFromModel import prediction
 from wafer.model.trainingModel import train_model
+from wafer.validation_insertion.prediction_validation_insertion import pred_validation
 from wafer.validation_insertion.train_validation_insertion import train_validation
 
 os.putenv("LANG", "en_US.UTF-8")
@@ -49,9 +54,9 @@ async def trainRouteClient():
 
         num_clusters = trainModelObj.training_model()
 
-        # loadProdModelObj = load_prod_model(num_clusters=num_clusters)
+        loadProdModelObj = load_prod_model(num_clusters=num_clusters)
 
-        # loadProdModelObj.load_production_model()
+        loadProdModelObj.load_production_model()
 
     except Exception as e:
         return "Error Occurred! %s" % e
@@ -59,50 +64,50 @@ async def trainRouteClient():
     return "Training successfull!!"
 
 
-# @app.post("/predict")
-# async def predictRouteClient(request: Request):
-#     try:
-#         if request.json is not None:
-#             path = request.json["filepath"]
+@app.post("/predict")
+async def predictRouteClient(request: Request):
+    try:
+        if request.json is not None:
+            path = request.json["filepath"]
 
-#             pred_val = pred_validation(path)
+            pred_val = pred_validation(path)
 
-#             pred_val.prediction_validation()
+            pred_val.prediction_validation()
 
-#             pred = prediction(path)
+            pred = prediction(path)
 
-#             path, json_predictions = pred.predictionFromModel()
+            path, json_predictions = pred.predictionFromModel()
 
-#             return Response(
-#                 "Prediction File created at !!!"
-#                 + str(path)
-#                 + "and few of the predictions are "
-#                 + str(json.loads(json_predictions))
-#             )
+            return Response(
+                "Prediction File created at !!!"
+                + str(path)
+                + "and few of the predictions are "
+                + str(json.loads(json_predictions))
+            )
 
-#         elif request.form is not None:
-#             path = request.form["filepath"]
+        elif request.form is not None:
+            path = request.form["filepath"]
 
-#             pred_val = pred_validation(path)
+            pred_val = pred_validation(path)
 
-#             pred_val.prediction_validation()
+            pred_val.prediction_validation()
 
-#             pred = prediction(path)
+            pred = prediction(path)
 
-#             path, json_predictions = pred.predictionFromModel()
+            path, json_predictions = pred.predictionFromModel()
 
-#             return Response(
-#                 "Prediction File created at "
-#                 + str(path)
-#                 + " and few of the predictions are "
-#                 + str(json.loads(json_predictions))
-#             )
+            return Response(
+                "Prediction File created at "
+                + str(path)
+                + " and few of the predictions are "
+                + str(json.loads(json_predictions))
+            )
 
-#         else:
-#             print("Nothing Matched")
+        else:
+            print("Nothing Matched")
 
-#     except Exception as e:
-#         return Response("Error Occurred! %s" % e)
+    except Exception as e:
+        return Response("Error Occurred! %s" % e)
 
 
 if __name__ == "__main__":

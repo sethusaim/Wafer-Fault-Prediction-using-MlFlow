@@ -400,7 +400,11 @@ class S3_Operations:
             s3_model_path = os.path.join(self.trained_model_dir, model_file)
 
             self.upload_to_s3(
-                src_file=model_file, bucket=model_bucket, dest_file=s3_model_path
+                src_file=model_file,
+                bucket=model_bucket,
+                dest_file=s3_model_path,
+                db_name=db_name,
+                collection_name=collection_name,
             )
 
             self.log_writer.log(

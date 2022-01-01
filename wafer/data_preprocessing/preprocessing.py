@@ -178,7 +178,7 @@ class Preprocessor:
                     bucket=self.input_files_bucket,
                     dest_file=null_values_file,
                     db_name=self.db_name,
-                    collection_name=self.collection_name
+                    collection_name=self.collection_name,
                 )
 
             self.log_writer.log(
