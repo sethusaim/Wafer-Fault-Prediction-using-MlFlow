@@ -23,9 +23,118 @@ class S3_Operations:
 
         self.file_format = self.config["model_params"]["save_format"]
 
-    def create_folder_in_s3(self, bucket_name, folder_name, db_name, collection_name):
+    def load_s3_obj(self, bucket_name, obj, db_name, collection_name):
+        method_name = self.load_s3_obj.__name__
+
         try:
-            self.s3_resource.Object(bucket_name, folder_name).load()
+            self.s3_resource.Object(bucket_name, obj).load()
+
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Loaded {obj} from {bucket_name} bucket",
+            )
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+    def find_correct_model_file(
+        self, cluster_number, bucket_name, db_name, collection_name
+    ):
+        try:
+            prod_model_dir = self.config["models_dir"]["prod"]
+
+            list_of_files = self.get_files_from_s3(
+                bucket=bucket_name,
+                folder_name=prod_model_dir,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+            for file in list_of_files:
+                try:
+                    if file.index(str(cluster_number)) != -1:
+                        model_name = file
+
+                except:
+                    continue
+
+            model_name = model_name.split(".")[0]
+
+            return model_name
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name="",
+                method_name="",
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+    def delete_pred_file(self, db_name, collection_name):
+        method_name = self.delete_pred_file.__name__
+
+        try:
+            bucket_name = (self.config["s3_bucket"]["input_files_bucket"],)
+
+            file_name = self.config["export_pred_csv_file"]
+
+            self.load_s3_obj(
+                bucket_name=bucket_name,
+                obj=file_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Found existing prediction batch file. Deleting it.",
+            )
+
+            self.delete_file_from_s3(
+                bucket_name=bucket_name,
+                file=file_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                pass
+
+            else:
+                self.log_writer.log(
+                    db_name=db_name,
+                    collection_name=collection_name,
+                    log_message="Error occured in creating folder",
+                )
+
+                raise_exception(
+                    error=e,
+                    class_name=self.class_name,
+                    method_name=method_name,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
+
+    def create_folder_in_s3(self, bucket_name, folder_name, db_name, collection_name):
+        method_name = self.create_folder_in_s3.__name__
+
+        try:
+            self.load_s3_obj(
+                bucket_name=bucket_name,
+                obj=folder_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
 
             self.log_writer.log(
                 db_name=db_name,
@@ -49,7 +158,13 @@ class S3_Operations:
                     log_message="Error occured in creating folder",
                 )
 
-                raise e
+                raise_exception(
+                    error=e,
+                    class_name=self.class_name,
+                    method_name=method_name,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
 
     def put_folder_in_s3(self, bucket, folder_name, db_name, collection_name):
         method_name = self.put_folder_in_s3.__name__
@@ -90,13 +205,13 @@ class S3_Operations:
                 log_message=f"Uploaded {src_file} to s3 bucket {bucket}",
             )
 
-            os.remove(src_file)
+            # os.remove(src_file)
 
-            self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message=f"Removed the local copy of {src_file}",
-            )
+            # self.log_writer.log(
+            #     db_name=db_name,
+            #     collection_name=collection_name,
+            #     log_message=f"Removed the local copy of {src_file}",
+            # )
 
         except Exception as e:
             raise_exception(

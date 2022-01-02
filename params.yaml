@@ -98,7 +98,7 @@ model_params:
     
 mlflow_config:
   experiment_name : wafer-mlflow-test-1
-  remote_server_uri : http://52.7.106.245:8080
+  remote_server_uri : http://54.205.83.65:8080
   run_name : mlops
   serialization_format : cloudpickle
   num_of_prod_models : 3
@@ -110,7 +110,7 @@ db_log:
 train_db_log:
   model_training : modelTrainingLog
   col_validation : columnValidationLog
-  data_transform : data_transform
+  data_transform : dataTransform
   export_csv : ExportToCsvLog
   general : GeneralLog
   db_insert: dbInsertLog
@@ -124,7 +124,7 @@ train_db_log:
 pred_db_log:
   col_validation : columnValidationLog
   db_conn: databaseConnectionLog
-  data_transform : data_transform
+  data_transform : dataTransform
   db_insert : dbInsertLog
   db_create : dbTableCreateLog
   export_csv : ExportToCsvLog

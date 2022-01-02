@@ -1,7 +1,7 @@
 import os
 import re
-from utils.exception import raise_exception
 
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params

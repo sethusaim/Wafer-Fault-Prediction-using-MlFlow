@@ -65,7 +65,7 @@ async def trainRouteClient():
 
 
 @app.post("/predict")
-async def predictRouteClient(request: Request):
+async def predictRouteClient():
     try:
         raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
 
@@ -75,7 +75,7 @@ async def predictRouteClient(request: Request):
 
         pred = prediction(raw_data_pred_bucket_name)
 
-        path, json_predictions = pred.predictionFromModel()
+        path, json_predictions = pred.prediction_from_model()
 
         return Response(
             "Prediction File created at !!!"

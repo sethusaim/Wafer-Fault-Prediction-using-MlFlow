@@ -1,10 +1,12 @@
+import os
+
 import pandas as pd
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_prediction import Data_Getter_Pred
 from wafer.data_preprocessing.preprocessing import Preprocessor
-from wafer.file_operations.file_methods import File_Operation
-from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class prediction:
@@ -19,26 +21,37 @@ class prediction:
     def __init__(self, path):
         self.config = read_params()
 
+        self.s3_obj = S3_Operations()
+
         self.pred_log = self.config["pred_db_log"]["pred_main"]
 
         self.db_name = self.config["db_log"]["db_pred_log"]
 
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
+
+        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
         self.log_writer = App_Logger()
 
-        if path is not None:
-            self.pred_data_val = Prediction_Data_validation(path)
+        self.prod_model_dir = self.config["models_dir"]["prod"]
 
-    def predictionFromModel(self):
+        self.class_name = self.__class__.__name__
+
+    def prediction_from_model(self):
         """
-        Method Name :   predictionFromModel
+        Method Name :   prediction_from_model
         Description :   This method is actually responsible for picking the models from the production and
                         predictions on the new data
         Written by  :   iNeuron Intelligence
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.prediction_from_model.__name__
+
         try:
-            self.pred_data_val.deletePredictionFile()
+            self.s3_obj.delete_pred_file(
+                db_name=self.db_name, collection_name=self.pred_log
+            )
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -61,10 +74,13 @@ class prediction:
 
             data = preprocessor.remove_columns(data, cols_to_drop)
 
-            file_loader = File_Operation(self.db_name, self.pred_log)
+            kmeans_model_name = os.path.join(self.prod_model_dir, "KMeans")
 
-            kmeans = file_loader.load_model(
-                self.config["model_names"]["kmeans_model_name"]
+            kmeans = self.s3_obj.load_model_from_s3(
+                bucket=self.model_bucket,
+                model_name=kmeans_model_name,
+                db_name=self.db_name,
+                collection_name=self.pred_log,
             )
 
             clusters = kmeans.predict(data.drop(["Wafer"], axis=1))
@@ -82,9 +98,21 @@ class prediction:
 
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
-                model_name = file_loader.find_correct_model_file(i)
+                model_name = self.s3_obj.find_correct_model_file(
+                    cluster_number=i,
+                    bucket_name=self.model_bucket,
+                    db_name=self.db_name,
+                    collection_name=self.pred_log,
+                )
 
-                model = file_loader.load_model(model_name)
+                prod_model_name = os.path.join(self.prod_model_dir, model_name)
+
+                model = self.s3_obj.load_model_from_s3(
+                    bucket=self.model_bucket,
+                    model_name=prod_model_name,
+                    db_name=self.db_name,
+                    collection_name=self.pred_log,
+                )
 
                 result = list(model.predict(cluster_data))
 
@@ -94,10 +122,20 @@ class prediction:
 
                 path = self.config["pred_output_file"]
 
-                result.to_csv(
-                    self.config["pred_output_file"],
-                    header=True,
-                    mode="a+",
+                result.to_csv(path, header=True, mode="a+")
+
+                self.log_writer.log(
+                    db_name=self.db_name,
+                    collection_name=self.pred_log,
+                    log_message="Local copy of the prediction file is created",
+                )
+
+                self.s3_obj.upload_to_s3(
+                    src_file=path,
+                    bucket=self.input_files_bucket,
+                    dest_file=path,
+                    db_name=self.db_name,
+                    collection_name=self.pred_log,
                 )
 
             self.log_writer.log(
@@ -107,15 +145,12 @@ class prediction:
             )
 
         except Exception as e:
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_log,
-                log_message=f"Exception occured in Class : prediction, Method : predictionFromModel, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : prediction, Method : predictionFromModel, Error : ",
-                str(e),
             )
 
         return path, result.head().to_json(orient="records")

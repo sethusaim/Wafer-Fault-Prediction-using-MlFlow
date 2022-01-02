@@ -1,11 +1,11 @@
 import os
-import shutil
 
 import mlflow
 from mlflow.tracking import MlflowClient
 from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class load_prod_model:
@@ -23,7 +23,19 @@ class load_prod_model:
 
         self.class_name = self.__class__.__name__
 
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
+
+        self.trained_models_dir = self.config["models_dir"]["trained"]
+
+        self.staged_models_dir = self.config["models_dir"]["staged"]
+
+        self.prod_models_dir = self.config["models_dir"]["prod"]
+
+        self.model_save_format = self.config["model_params"]["save_format"]
+
         self.num_clusters = num_clusters
+
+        self.s3_obj = S3_Operations()
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
 
@@ -72,8 +84,6 @@ class load_prod_model:
                 log_message=f"Completed searchiing for runs in mlflow with experiment ids as {exp.experiment_id}",
             )
 
-            # cols, top_mn_lst = [], []
-
             """
             Code Explaination: 
             num_clusters - Dynamically allocated based on the number of clusters created using elbow plot
@@ -95,21 +105,23 @@ class load_prod_model:
             #         else:
             #             pass
 
-            cols = [
-                "metrics." + str(model) + str(i) + "-best_score"
-                for i in range(0, self.num_clusters)
-                for model in self.config["model_names"].values()
-                if model != self.config["model_names"]["kmeans_model_name"]
+            # cols = [
+            #     "metrics." + str(model) + str(i) + "-best_score"
+            #     for i in range(0, self.num_clusters)
+            #     for model in self.config["model_names"].values()
+            #     if model != self.config["model_names"]["kmeans_model_name"]
+            # ]
+
+            reg_model_names = [
+                dict(rm.names).values() for rm in client.list_registered_models()
             ]
 
-            # reg_model_names = [dict(rm.names).values() for rm in client.list_registered_models()]
-
-            # cols = [
-            #     f"metrics." + str(model) + str(i) + "-best_score"
-            #     for i in range(0, self.num_clusters)
-            #     for model in reg_model_names
-            #     if not model.startswith("KMeans")
-            # ]
+            cols = [
+                f"metrics." + str(model) + str(i) + "-best_score"
+                for i in range(0, self.num_clusters)
+                for model in reg_model_names
+                if not model.startswith("KMeans")
+            ]
 
             """ 
             Eg-output: For 3 clusters, 
@@ -220,28 +232,25 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             + " from trained models folder to prod models folder",
                         )
 
+                        self.trained_model_file = os.path.join(
+                            self.trained_models_dir, mv.name + self.model_save_format
+                        )
+
                         self.prod_model_file = os.path.join(
-                            self.config["models_dir"]["trained_models_dir"],
-                            mv.name + self.config["model_params"]["save_format"],
+                            self.prod_models_dir, mv.name + self.model_save_format
                         )
 
-                        shutil.copy(
-                            self.prod_model_file,
-                            self.config["models_dir"]["prod_models_dir"],
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Copied "
-                            + mv.name
-                            + " to production model folder",
+                        self.s3_obj.copy_data_to_other_bucket(
+                            src_bucket=self.model_bucket,
+                            src_file=self.trained_model_file,
+                            dest_bucket=self.model_bucket,
+                            dest_file=self.prod_model_file,
                         )
 
                     ## In the registered models, even kmeans model is present, so during prediction,
                     ## this model also needs to be in present in production, the code logic is present below
 
-                    elif mv.name == self.config["model_names"]["kmeans_model_name"]:
+                    elif mv.name == "KMeans":
                         current_version = mv.version
 
                         client.transition_model_version_stage(
@@ -256,22 +265,19 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             + "to production in mlflow",
                         )
 
-                        self.kmeans_model_file = os.path.join(
-                            self.config["models_dir"]["trained_models_dir"],
-                            mv.name + self.config["model_params"]["save_format"],
+                        self.trained_kmeans_model_file = os.path.join(
+                            self.trained_models_dir, mv.name + self.model_save_format
                         )
 
-                        shutil.copy(
-                            self.kmeans_model_file,
-                            self.config["models_dir"]["prod_models_dir"],
+                        self.prod_kmeans_model_file = os.path.join(
+                            self.prod_models_dir, mv.name + self.model_save_format
                         )
 
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Copied "
-                            + mv.name
-                            + " to production model folder",
+                        self.s3_obj.copy_data_to_other_bucket(
+                            src_bucket=self.model_bucket,
+                            src_file=self.trained_kmeans_model_file,
+                            dest_bucket=self.model_bucket,
+                            dest_file=self.prod_kmeans_model_file,
                         )
 
                     else:
@@ -289,20 +295,21 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             + "to staging in mlflow",
                         )
 
+                        self.trained_model_file = os.path.join(
+                            self.trained_models_dir, mv.name + self.model_save_format
+                        )
+
                         self.stag_model_file = os.path.join(
-                            self.config["models_dir"]["trained_models_dir"],
-                            mv.name + self.config["model_params"]["save_format"],
+                            self.trained_models_dir, mv.name + self.model_save_format
                         )
 
-                        shutil.copy(
-                            self.stag_model_file,
-                            self.config["models_dir"]["stag_models_dir"],
-                        )
-
-                        self.log_writer.log(
+                        self.s3_obj.copy_data_to_other_bucket(
+                            src_bucket=self.model_bucket,
+                            src_file=self.trained_model_file,
+                            dest_bucket=self.model_bucket,
+                            dest_file=self.stag_model_file,
                             db_name=self.db_name,
                             collection_name=self.load_prod_model_log,
-                            log_message=f"Copied {mv.name} to staging model folder",
                         )
 
             self.log_writer.log(

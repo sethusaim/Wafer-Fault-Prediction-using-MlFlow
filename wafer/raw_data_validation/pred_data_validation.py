@@ -1,10 +1,10 @@
 import os
 import re
-import shutil
-from datetime import datetime
 
-import pandas as pd
+import botocore
+from utils.exception import raise_exception
 from utils.logger import App_Logger
+from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
@@ -26,7 +26,7 @@ class Prediction_Data_validation:
 
         self.s3_obj = S3_Operations()
 
-        self.logger = App_Logger()
+        self.log_writer = App_Logger()
 
         self.pred_data_bucket = self.config["s3_bucket"]["wafer_pred_data_bucket"]
 
@@ -54,15 +54,17 @@ class Prediction_Data_validation:
             "missing_values_in_col"
         ]
 
-    def valuesFromSchema(self):
+    def values_from_schema(self):
         """
-        Method Name :   valuesFromSchema
+        Method Name :   values_from_schema
         Description :   This method extracts all the relevant information from the pre defined schema file
         Output      :   LengthOfDateStampInFile,LengthOfTimeStampInFile,column_names,NumberofColumns,
         Written by  :   iNeuron Intelligence
         Versions    :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.values_from_schema.__name__
+
         try:
             dic = self.s3_obj.get_schema_from_s3(
                 bucket=self.input_files_bucket,
@@ -88,14 +90,14 @@ class Prediction_Data_validation:
                 + "\n"
             )
 
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_schema_log,
                 log_message=message,
             )
 
         except ValueError:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_schema_log,
                 log_message="ValueError:Value not found inside schema_training.json",
@@ -104,7 +106,7 @@ class Prediction_Data_validation:
             raise ValueError
 
         except KeyError:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_schema_log,
                 log_message="KeyError:Key value error incorrect key passed",
@@ -113,17 +115,12 @@ class Prediction_Data_validation:
             raise KeyError
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_schema_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : valuesFromSchema, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Prediction_Data_validation. \
-                    Method : valuesFromSchema, Error : ",
-                str(e),
             )
 
         return (
@@ -133,201 +130,64 @@ class Prediction_Data_validation:
             NumberofColumns,
         )
 
-    def manualRegexCreation(self):
+    def get_regex_pattern(self):
         """
-        Method Name :   manualRegexCreation
+        Method Name :   get_regex_pattern
         Description :   This method contains a manually defined regex based on the filename given in
                         the schema file
         Written by  :   iNeuron Intelligence
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.get_regex_pattern.__name__
+
         try:
             regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
 
             return regex
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_gen_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : manualRegexCreation, Error : {str(e)}",
             )
 
-            raise Exception(
-                "Exception occured in Class : Prediction_Data_validation. \
-                    Method : manualRegexCreation, Error : ",
-                str(e),
-            )
-
-    def createDirectoryForGoodBadRawData(self):
+    def create_dirs_for_good_bad_data(self):
         """
-        Method Name :   createDirectoryForGoodBadRawData
+        Method Name :   create_dirs_for_good_bad_data
         Description :   This method creates a directories to store the good data and bad data after
                         validating the prediction data
         Written by  :   iNeuron Intelligence
-        On Failure  :   OS error
+        On Failure  :   raise Exception
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.create_dirs_for_good_bad_data.__name__
+
         try:
-            path = self.config["data"]["good"]["pred"]
+            folders = [self.good_pred_data_dir, self.bad_pred_data_dir]
 
-            if not os.path.isdir(path):
-                os.makedirs(path)
-
-            path = self.config["data"]["bad"]["pred"]
-
-            if not os.path.isdir(path):
-                os.makedirs(path)
-
-        except OSError as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_gen_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : createDirectoryForGoodBadRawData, Error : {str(e)}",
-            )
-
-            raise OSError
-
-    def deleteExistingGoodDataTrainingFolder(self):
-        """
-        Method Name :   deleteExistingGoodDataTrainingFolder
-        Description :   This method deletes the directory made to store the good data after loading
-                        the data in the table. Once the good files are loaded in the DB,
-                        deleting the directory ensures space optimization
-        Written by  :   iNeuron Intelligence
-        On Failure  :   OS error
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            path = self.config["data"]["good"]["pred"]
-
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-
-                self.logger.log(
+            for folder in folders:
+                self.s3_obj.create_folder_in_s3(
+                    bucket_name=self.pred_data_bucket,
+                    folder_name=folder,
                     db_name=self.db_name,
                     collection_name=self.pred_gen_log,
-                    log_message="GoodRaw directory deleted successfully!!!",
                 )
 
-        except OSError as e:
-            self.logger.log(
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_gen_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method :deleteExistingGoodDataTrainingFolder, Error : {str(e)}",
             )
 
-            raise OSError
-
-    def deleteExistingBadDataTrainingFolder(self):
-        """
-        Method Name :   deleteExistingBadDataTrainingFolder
-        Description :   This method deletes the directory made to store the good data after loading
-                        the data in the table. Once the good files are loaded in the DB,deleting the directory
-                        ensure space optimization
-        Written by  :   iNeuron Intelligence
-        On Failure  :   OS error
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            path = self.config["data"]["bad"]["pred"]
-
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.pred_gen_log,
-                    log_message="BadRaw directory deleted before starting validation!!!",
-                )
-
-        except OSError as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_gen_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : deleteExistingBadDataTrainingFolder, Error : {str(e)}",
-            )
-
-            raise OSError
-
-    def moveBadFilesToArchiveBad(self):
-        """
-        Method Name :   moveBadFilesToArchiveBad
-        Description :   This method deletes the directory made to store the bad data after moving the data
-                        in an archive folder. We archive the bad files to send them back to the client for
-                        invalid data issue
-        On Failure  :   OS error
-        Written by  :   iNeuron Intelligence
-        Versions    :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        now = datetime.now()
-
-        date = now.date()
-
-        time = now.strftime(self.config["data_time_format"])
-
-        try:
-            path = self.config["data"]["archived"]["pred"]
-
-            if not os.path.isdir(path):
-                os.makedirs(path)
-
-            source = self.config["data"]["bad"]["pred"]
-
-            dest = os.path.join(
-                self.config["data"]["archived"]["pred"]
-                + "BadData_"
-                + str(date)
-                + "_"
-                + str(time)
-            )
-
-            if not os.path.isdir(dest):
-                os.makedirs(dest)
-
-            files = os.listdir(source)
-
-            for f in files:
-                if f not in os.listdir(dest):
-                    shutil.move(source + f, dest)
-
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_gen_log,
-                log_message="Bad files moved to archive",
-            )
-
-            path = self.config["data"]["bad"]["pred"]
-
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_gen_log,
-                log_message="Bad Raw Data Folder Deleted successfully!!",
-            )
-
-        except OSError as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_gen_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : moveBadFilesToArchiveBad, Error : {str(e)}",
-            )
-
-            raise OSError
-
-    def validationFileNameRaw(
+    def validate_raw_file_name(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
     ):
         """
@@ -340,16 +200,19 @@ class Prediction_Data_validation:
         Versions    :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-        self.deleteExistingBadDataTrainingFolder()
-
-        self.deleteExistingGoodDataTrainingFolder()
-
-        self.createDirectoryForGoodBadRawData()
-
-        onlyfiles = [f for f in os.listdir(self.Batch_Directory)]
+        method_name = self.validate_raw_file_name.__name__
 
         try:
-            for filename in onlyfiles:
+            onlyfiles = self.s3_obj.get_files_from_s3(
+                bucket=self.raw_data_bucket_name,
+                folder_name=self.raw_pred_data_dir,
+                db_name=self.db_name,
+                collection_name=self.pred_name_valid_log,
+            )
+
+            train_batch_files = [f.split("/")[1] for f in onlyfiles]
+
+            for filename in train_batch_files:
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
 
@@ -357,77 +220,72 @@ class Prediction_Data_validation:
 
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
-                            shutil.copy(
-                                self.config["data_source"]["prediction_batch_files"]
-                                + filename,
-                                self.config["data"]["good"]["pred"],
-                            )
+                            src_f = os.path.join(self.raw_pred_data_dir, filename)
 
-                            self.logger.log(
+                            dest_f = os.path.join(self.good_pred_data_dir, filename)
+
+                            self.s3_obj.copy_data_to_other_bucket(
+                                src_bucket=self.raw_data_bucket_name,
+                                src_file=src_f,
+                                dest_bucket=self.pred_data_bucket,
+                                dest_file=dest_f,
                                 db_name=self.db_name,
                                 collection_name=self.pred_name_valid_log,
-                                log_message="Valid File name!! File moved to GoodRaw Folder :: %s"
-                                % filename,
                             )
 
                         else:
-                            shutil.copy(
-                                self.config["data_source"]["prediction_batch_files"]
-                                + filename,
-                                self.config["data"]["bad"]["pred"],
-                            )
+                            src_f = os.path.join(self.raw_pred_data_dir, filename)
 
-                            self.logger.log(
+                            dest_f = os.path.join(self.bad_pred_data_dir, filename)
+
+                            self.s3_obj.copy_data_to_other_bucket(
+                                src_bucket=self.raw_data_bucket_name,
+                                src_file=src_f,
+                                dest_bucket=self.pred_data_bucket,
+                                dest_file=dest_f,
                                 db_name=self.db_name,
                                 collection_name=self.pred_name_valid_log,
-                                log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
-                                % filename,
                             )
 
                     else:
-                        shutil.copy(
-                            self.config["data_source"]["prediction_batch_files"]
-                            + filename,
-                            self.config["data"]["bad"]["pred"],
-                        )
+                        src_f = os.path.join(self.raw_pred_data_dir, filename)
 
-                        self.logger.log(
+                        dest_f = os.path.join(self.bad_pred_data_dir, filename)
+
+                        self.s3_obj.copy_data_to_other_bucket(
+                            src_bucket=self.raw_data_bucket_name,
+                            src_file=src_f,
+                            dest_bucket=self.pred_data_bucket,
+                            dest_f=dest_f,
                             db_name=self.db_name,
                             collection_name=self.pred_name_valid_log,
-                            log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
-                            % filename,
                         )
 
                 else:
-                    shutil.copy(
-                        self.config["data_source"]["prediction_batch_files"] + filename,
-                        self.config["data"]["bad"]["pred"],
-                    )
+                    src_f = os.path.join(self.raw_pred_data_dir, filename)
 
-                    self.logger.log(
+                    dest_f = os.path.join(self.bad_pred_data_dir, filename)
+
+                    self.s3_obj.copy_data_to_other_bucket(
+                        src_bucket=self.raw_data_bucket_name,
+                        src_file=src_f,
+                        dest_bucket=self.pred_data_bucket,
                         db_name=self.db_name,
                         collection_name=self.pred_name_valid_log,
-                        log_message="Invalid File Name!! File moved to Bad Raw Folder :: %s"
-                        % filename,
                     )
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_name_valid_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : validationFileNameRaw, Error : {str(e)}",
             )
 
-            raise Exception(
-                "Exception occured in Class : Prediction_Data_validation. \
-                    Method : validationFileNameRaw, Error : ",
-                str(e),
-            )
-
-    def validateColumnLength(self, NumberofColumns):
+    def validate_col_length(self, NumberofColumns):
         """
-        Method Name :   validateColumnLength
+        Method Name :   validate_col_length
         Description :   This function validates the number of columns in the csv files. It should be same
                         as given in the schema file. If not same file is not suitable for processing and
                         thus is moved to baw raw data folder. If the column number matches, the file is
@@ -438,97 +296,70 @@ class Prediction_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.validate_col_length.__name__
+
         try:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_col_val_log,
                 log_message="Column Length Validation Started!!",
             )
 
-            for file in os.listdir(self.config["data"]["good"]["pred"]):
-                csv = pd.read_csv(self.config["data"]["good"]["pred"] + file)
+            csv_file_objs = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.pred_data_bucket,
+                filename=self.good_pred_data_dir,
+                db_name=self.db_name,
+                collection_name=self.pred_col_val_log,
+            )
 
-                if csv.shape[1] == NumberofColumns:
-                    csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
+            for f in csv_file_objs:
+                file = f.key
 
-                    csv.to_csv(
-                        self.config["data"]["good"]["pred"] + file,
-                        index=None,
-                        header=True,
+                abs_f = file.split("/")[-1]
+
+                if file.endswith(".csv"):
+                    csv = convert_object_to_dataframe(
+                        obj=f,
+                        db_name=self.class_name,
+                        collection_name=self.pred_col_val_log,
                     )
+
+                    if csv.shape[1] == NumberofColumns:
+                        pass
+
+                    else:
+                        dest_f = os.path.join(self.bad_pred_data_dir, abs_f)
+
+                        self.s3_obj.move_data_to_other_bucket(
+                            src_bucket=self.pred_data_bucket,
+                            src_file=file,
+                            dest_bucket=self.pred_data_bucket,
+                            dest_file=dest_f,
+                            db_name=self.db_name,
+                            collection_name=self.pred_col_val_log,
+                        )
 
                 else:
-                    shutil.move(
-                        self.config["data"]["good"]["pred"] + file,
-                        self.config["data"]["bad"]["pred"],
-                    )
+                    pass
 
-                    self.logger.log(
-                        db_name=self.db_name,
-                        collection_name=self.pred_col_val_log,
-                        log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
-                        % file,
-                    )
-
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_col_val_log,
                 log_message="Column Length Validation Completed!!",
             )
 
-        except OSError as e:
-            self.logger.log(
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_col_val_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : validateColumnLength, Error : {str(e)}",
             )
 
-            raise OSError
-
-        except Exception as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_col_val_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : validateColumnLength, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : Prediction_Data_validation. \
-                    Method : validateColumnLength, Error : ",
-                str(e),
-            )
-
-    def deletePredictionFile(self):
+    def validate_missing_values_in_col(self):
         """
-        Method Name :   deletePredictionFile
-        Description :   This methods deletes the existing prediction file
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
-        """
-        try:
-            if os.path.exists(self.config["pred_output_file"]):
-                os.remove(self.config["pred_output_file"])
-
-                self.logger.log(
-                    db_name=self.db_name,
-                    collection_name=self.pred_gen_log,
-                    log_message="Deleted the existing prediction file",
-                )
-
-        except Exception as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_gen_log,
-                log_message=f"Exception occured in Class : Prediction_Data_validation. \
-                    Method : deletePredictionFile, Error : {str(e)}",
-            )
-
-    def validateMissingValuesInWholeColumn(self):
-        """
-        Method Name :   validateMissingValuesInWholeColumn
+        Method Name :   validate_missing_values_in_col
         Description :   This function validates if any columns in the csv file has all missing. If all the
                         values are missing, the file is not suitable for processing.Such files are moved to
                         bad raw data
@@ -537,65 +368,79 @@ class Prediction_Data_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.validate_missing_values_in_col.__name__
+
         try:
-            self.logger.log(
+            self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_missing_values_log,
                 log_message="Missing Values Validation Started!!",
             )
 
-            for file in os.listdir(self.config["data"]["good"]["pred"]):
-                csv = pd.read_csv(self.config["data"]["good"]["pred"] + file)
+            csv_file_objs = self.s3_obj.get_file_objects_from_s3(
+                bucket=self.pred_data_bucket,
+                filename=self.good_pred_data_dir,
+                db_name=self.db_name,
+                collection_name=self.pred_missing_values_log,
+            )
 
-                count = 0
+            for f in csv_file_objs:
+                file = f.key
 
-                for columns in csv:
-                    if (len(csv[columns]) - csv[columns].count()) == len(csv[columns]):
-                        count += 1
+                abs_f = file.split("/")[-1]
 
-                        shutil.move(
-                            self.config["data"]["good"]["pred"] + file,
-                            self.config["data"]["bad"]["pred"],
-                        )
-
-                        self.logger.log(
-                            db_name=self.db_name,
-                            collection_name=self.pred_missing_values_log,
-                            log_message="Invalid Column Length for the file!! File moved to Bad Raw Folder :: %s"
-                            % file,
-                        )
-
-                        break
-
-                if count == 0:
-                    csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
-
-                    csv.to_csv(
-                        self.config["data"]["good"]["pred"] + file,
-                        index=None,
-                        header=True,
+                if abs_f.endswith(".csv"):
+                    csv = convert_object_to_dataframe(
+                        obj=f,
+                        db_name=self.db_name,
+                        collection_name=self.pred_missing_values_log,
                     )
 
-        except OSError as e:
-            self.logger.log(
-                db_name=self.db_name,
-                collection_name=self.pred_missing_values_log,
-                log_message=f"Exceptioon occured in Class : Prediction_Data_validation. \
-                    Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
-            )
+                    count = 0
 
-            raise OSError
+                    for cols in csv:
+                        if len(csv[cols] - csv[cols].count()) == len(csv[cols]):
+                            count = +1
+
+                            dest_f = os.path.join(self.bad_pred_data_dir, abs_f)
+
+                            self.s3_obj.move_data_to_other_bucket(
+                                src_bucket=self.pred_data_bucket,
+                                src_file=file,
+                                dest_bucket=self.pred_data_bucket,
+                                dest_file=dest_f,
+                                db_name=self.db_name,
+                                collection_name=self.pred_missing_values_log,
+                            )
+
+                            break
+
+                if count == 0:
+                    csv.rename(columns={"Unamed: 0": "Wafer"}, inplace=True)
+
+                    self.log_writer.log(
+                        db_name=self.db_name,
+                        collection_name=self.pred_missing_values_log,
+                        log_message=f"Converted {file} to csv and  created a local copy",
+                    )
+
+                    dest_f = os.path.join(self.good_pred_data_dir, abs_f)
+
+                    self.s3_obj.upload_to_s3(
+                        src_file=abs_f,
+                        bucket=self.pred_data_bucket,
+                        db_name=self.db_name,
+                        collection_name=self.pred_missing_values_log,
+                    )
+
+                else:
+                    pass
 
         except Exception as e:
-            self.logger.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_missing_values_log,
-                log_message=f"Exceptioon occured in Class : Prediction_Data_validation. \
-                    Method : validateMissingValuesInWholeColumn, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exceptioon occured in Class : Prediction_Data_validation. \
-                    Method : validateMissingValuesInWholeColumn, Error : ",
-                str(e),
             )

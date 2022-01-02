@@ -1,9 +1,9 @@
+from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.data_transform.data_transformation_pred import data_transformPredict
+from wafer.data_transform.data_transformation_pred import data_transform_pred
 from wafer.data_type_valid.data_type_valid_pred import dBOperation
-from wafer.raw_data_validation.pred_data_validation import \
-    Prediction_Data_validation
+from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
 
 
 class pred_validation:
@@ -18,9 +18,11 @@ class pred_validation:
     def __init__(self, bucket_name):
         self.raw_data = Prediction_Data_validation(bucket_name)
 
-        self.data_transform = data_transformPredict()
+        self.data_transform = data_transform_pred()
 
         self.dBOperation = dBOperation()
+
+        self.class_name = self.__class__.__name__
 
         self.config = read_params()
 
@@ -39,6 +41,8 @@ class pred_validation:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
+        method_name = self.prediction_validation.__name__
+
         try:
             self.log_writer.log(
                 db_name=self.db_name,
@@ -51,17 +55,17 @@ class pred_validation:
                 LengthOfTimeStampInFile,
                 column_names,
                 noofcolumns,
-            ) = self.raw_data.valuesFromSchema()
+            ) = self.raw_data.values_from_schema()
 
-            regex = self.raw_data.manualRegexCreation()
+            regex = self.raw_data.get_regex_pattern()
 
-            self.raw_data.validationFileNameRaw(
+            self.raw_data.validate_raw_file_name(
                 regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
             )
 
-            self.raw_data.validateColumnLength(noofcolumns)
+            self.raw_data.validate_col_length(noofcolumns)
 
-            self.raw_data.validateMissingValuesInWholeColumn()
+            self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -75,7 +79,7 @@ class pred_validation:
                 log_message="Starting Data Transforamtion!!",
             )
 
-            self.data_transform.replaceMissingWithNull()
+            self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -83,86 +87,33 @@ class pred_validation:
                 log_message="data_transformation Completed!!!",
             )
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Creating Prediction_Database and tables on the basis of given schema!!!",
-            )
-
-            self.dBOperation.createTableDb("Prediction", column_names)
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Table creation Completed!!",
+            self.dBOperation.insert_good_data_as_record(
+                db_name=self.config["mongodb"]["wafer_data_db_name"],
+                collection_name=self.config["mongodb"]["wafer_pred_data_collection"],
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Insertion of Data into Table started!!!!",
-            )
-
-            self.dBOperation.insertIntoTableGoodData("Prediction")
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Insertion in Table completed!!!",
+                log_message="Insertion in good data in MongoDB !!!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Deleting Good Data Folder!!!",
+                log_message="Extracting csv file from MongoDB",
             )
 
-            self.raw_data.deleteExistingGoodDataTrainingFolder()
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Good_Data folder deleted!!!",
+            self.dBOperation.export_collection_to_csv(
+                db_name=self.config["mongodb"]["wafer_data_db_name"],
+                collection_name=self.config["mongodb"]["wafer_pred_data_collection"],
             )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Moving bad files to Archive and deleting Bad_Data folder!!!",
-            )
-
-            self.raw_data.moveBadFilesToArchiveBad()
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Bad files moved to archive!! Bad folder Deleted!!",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Validation Operation completed!!",
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Extracting csv file from table",
-            )
-
-            self.dBOperation.selectingDatafromtableintocsv("Prediction")
 
         except Exception as e:
-            self.log_writer.log(
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message=f"Exception occured in Class : pred_validation. \
-                    Method : prediction_validation, Error : {str(e)}",
-            )
-
-            raise Exception(
-                "Exception occured in Class : pred_validation. \
-                    Method : prediction_validation, Error : ",
-                str(e),
             )

@@ -8,7 +8,7 @@ from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 class dBOperation:
     """
-    Description :    This class shall be used for handling all the SQL operations
+    Description :    This class shall be used for handling all the db operations
     Written by  :    iNeuron Intelligence
     Version     :    1.0
     Revisions   :    None
