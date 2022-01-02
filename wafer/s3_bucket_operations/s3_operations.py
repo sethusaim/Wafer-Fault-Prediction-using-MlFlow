@@ -35,14 +35,24 @@ class S3_Operations:
                 log_message=f"Loaded {obj} from {bucket_name} bucket",
             )
 
-        except Exception as e:
-            raise_exception(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                pass
+
+            else:
+                self.log_writer.log(
+                    db_name=db_name,
+                    collection_name=collection_name,
+                    log_message="Error occured in loading the object",
+                )
+
+                raise_exception(
+                    error=e,
+                    class_name=self.class_name,
+                    method_name=method_name,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
 
     def find_correct_model_file(
         self, cluster_number, bucket_name, db_name, collection_name
@@ -205,13 +215,13 @@ class S3_Operations:
                 log_message=f"Uploaded {src_file} to s3 bucket {bucket}",
             )
 
-            # os.remove(src_file)
+            os.remove(src_file)
 
-            # self.log_writer.log(
-            #     db_name=db_name,
-            #     collection_name=collection_name,
-            #     log_message=f"Removed the local copy of {src_file}",
-            # )
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Removed the local copy of {src_file}",
+            )
 
         except Exception as e:
             raise_exception(
@@ -452,6 +462,33 @@ class S3_Operations:
             )
 
             return dic
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+    def create_folders_for_prod_and_stag(self, bucket_name, db_name, collection_name):
+        method_name = self.create_folders_for_prod_and_stag.__name__
+
+        try:
+            prod_model_dir = self.config["models_dir"]["prod"]
+
+            stag_model_dir = self.config["models_dir"]["stag"]
+
+            dir_list = [prod_model_dir, stag_model_dir]
+
+            for d in dir_list:
+                self.create_folder_in_s3(
+                    bucket_name=bucket_name,
+                    folder_name=d,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
 
         except Exception as e:
             raise_exception(

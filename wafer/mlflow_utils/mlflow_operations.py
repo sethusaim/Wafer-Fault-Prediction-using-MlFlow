@@ -141,7 +141,14 @@ class Mlflow_Operations:
             )
 
             for param in params_list:
-                self.log_param(idx=idx, model=model, model_name=model_name, param=param)
+                self.log_param(
+                    idx=idx,
+                    model=model,
+                    model_name=model_name,
+                    param=param,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
 
         except Exception as e:
             raise_exception(
@@ -166,9 +173,13 @@ class Mlflow_Operations:
                 model=rf_model, db_name=db_name, collection_name=collection_name
             )
 
+            kmeans_model_name = get_model_name(
+                model=kmeans_model, db_name=db_name, collection_name=collection_name
+            )
+
             self.log_model(
                 model=kmeans_model,
-                model_name=get_model_name(kmeans_model),
+                model_name=kmeans_model_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )

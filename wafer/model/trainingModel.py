@@ -88,6 +88,12 @@ class train_model:
 
             list_of_clusters = X["Cluster"].unique()
 
+            self.s3_obj.create_folders_for_prod_and_stag(
+                bucket_name=self.model_bucket,
+                db_name=self.db_name,
+                collection_name=self.model_train_log,
+            )
+
             for i in list_of_clusters:
                 cluster_data = X[X["Cluster"] == i]
 
@@ -166,19 +172,35 @@ class train_model:
                     with mlflow.start_run(
                         run_name=self.config["mlflow_config"]["run_name"]
                     ):
-                        self.mlflow_op.log_xgboost_params(idx=i, model=xgb_model)
+                        self.mlflow_op.log_xgboost_params(
+                            idx=i,
+                            model=xgb_model,
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
 
-                        self.mlflow_op.log_rf_model_params(idx=i, model=rf_model)
+                        self.mlflow_op.log_rf_model_params(
+                            idx=i,
+                            model=rf_model,
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
+                        )
 
                         self.mlflow_op.log_trained_models(
                             idx=i,
                             kmeans_model=kmeans_model,
                             xgb_model=xgb_model,
                             rf_model=rf_model,
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
                         )
 
                         self.mlflow_op.log_metrics_of_trained_models(
-                            idx=i, xgb_score=xgb_model_score, rf_score=rf_model_score
+                            idx=i,
+                            xgb_score=xgb_model_score,
+                            rf_score=rf_model_score,
+                            db_name=self.db_name,
+                            collection_name=self.model_train_log,
                         )
 
                         self.log_writer.log(
