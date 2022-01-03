@@ -197,6 +197,8 @@ class train_model:
 
                         self.mlflow_op.log_metrics_of_trained_models(
                             idx=i,
+                            xgb_model=xgb_model,
+                            rf_model=rf_model,
                             xgb_score=xgb_model_score,
                             rf_score=rf_model_score,
                             db_name=self.db_name,

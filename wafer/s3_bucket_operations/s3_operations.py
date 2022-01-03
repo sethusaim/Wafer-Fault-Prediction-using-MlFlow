@@ -35,24 +35,14 @@ class S3_Operations:
                 log_message=f"Loaded {obj} from {bucket_name} bucket",
             )
 
-        except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "404":
-                pass
-
-            else:
-                self.log_writer.log(
-                    db_name=db_name,
-                    collection_name=collection_name,
-                    log_message="Error occured in loading the object",
-                )
-
-                raise_exception(
-                    error=e,
-                    class_name=self.class_name,
-                    method_name=method_name,
-                    db_name=db_name,
-                    collection_name=collection_name,
-                )
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
 
     def find_correct_model_file(
         self, cluster_number, bucket_name, db_name, collection_name
@@ -96,12 +86,7 @@ class S3_Operations:
 
             file_name = self.config["export_pred_csv_file"]
 
-            self.load_s3_obj(
-                bucket_name=bucket_name,
-                obj=file_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
+            self.s3_resource.Object(bucket_name, file_name).load()
 
             self.log_writer.log(
                 db_name=db_name,
@@ -124,7 +109,7 @@ class S3_Operations:
                 self.log_writer.log(
                     db_name=db_name,
                     collection_name=collection_name,
-                    log_message="Error occured in creating folder",
+                    log_message="Error occured in deleting the pred file",
                 )
 
                 raise_exception(
@@ -139,17 +124,12 @@ class S3_Operations:
         method_name = self.create_folder_in_s3.__name__
 
         try:
-            self.load_s3_obj(
-                bucket_name=bucket_name,
-                obj=folder_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
+            self.s3_resource.Object(bucket_name, folder_name).load()
+            
             self.log_writer.log(
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=f"Folder already exists. Passing to next method",
+                log_message=f"Folder {folder_name} already exists. ",
             )
 
         except botocore.exceptions.ClientError as e:

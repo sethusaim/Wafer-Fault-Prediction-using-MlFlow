@@ -1,21 +1,12 @@
-import boto3
 import yaml
 
 
-def read_params():
+def read_params(config_path="params.yaml"):
     try:
-        s3 = boto3.resource("s3")
+        with open(config_path) as f:
+            config = yaml.safe_load(f)
 
-        bucket_name = "input-files-for-train-and-pred"
-
-        bucket = s3.Bucket(bucket_name)
-
-        for obj in bucket.objects.filter(Prefix="params.yaml"):
-            content = obj.get()["Body"].read().decode()
-
-            config = yaml.safe_load(content)
-
-            return config
+        return config
 
     except Exception as e:
         exception_msg = f"Exception occured in read_params.py,Method : read_params, Error : {str(e)}"

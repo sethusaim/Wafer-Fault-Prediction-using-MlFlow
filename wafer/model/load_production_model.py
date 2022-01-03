@@ -27,7 +27,7 @@ class load_prod_model:
 
         self.trained_models_dir = self.config["models_dir"]["trained"]
 
-        self.staged_models_dir = self.config["models_dir"]["staged"]
+        self.staged_models_dir = self.config["models_dir"]["stag"]
 
         self.prod_models_dir = self.config["models_dir"]["prod"]
 
@@ -112,12 +112,10 @@ class load_prod_model:
             #     if model != self.config["model_names"]["kmeans_model_name"]
             # ]
 
-            reg_model_names = [
-                dict(rm.names).values() for rm in client.list_registered_models()
-            ]
+            reg_model_names = [rm.name for rm in client.list_registered_models()]
 
             cols = [
-                f"metrics." + str(model) + str(i) + "-best_score"
+                f"metrics." + str(model) + "-best_score"
                 for i in range(0, self.num_clusters)
                 for model in reg_model_names
                 if not model.startswith("KMeans")
@@ -245,6 +243,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             src_file=self.trained_model_file,
                             dest_bucket=self.model_bucket,
                             dest_file=self.prod_model_file,
+                            db_name=self.db_name,
+                            collection_name=self.load_prod_model_log,
                         )
 
                     ## In the registered models, even kmeans model is present, so during prediction,
@@ -278,6 +278,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             src_file=self.trained_kmeans_model_file,
                             dest_bucket=self.model_bucket,
                             dest_file=self.prod_kmeans_model_file,
+                            db_name=self.db_name,
+                            collection_name=self.load_prod_model_log,
                         )
 
                     else:
@@ -300,7 +302,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                         )
 
                         self.stag_model_file = os.path.join(
-                            self.trained_models_dir, mv.name + self.model_save_format
+                            self.staged_models_dir, mv.name + self.model_save_format
                         )
 
                         self.s3_obj.copy_data_to_other_bucket(

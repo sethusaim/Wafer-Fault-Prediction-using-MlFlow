@@ -46,9 +46,9 @@ s3_bucket:
   wafer_raw_data_bucket: wafer-raw-data
 
 models_dir:
-  trained : trained
-  stag: staging
-  prod : production
+  trained : trained/
+  stag: staging/
+  prod : production/
 
 model_params:
   verbose : 3
@@ -97,10 +97,10 @@ model_params:
       - 200
     
 mlflow_config:
-  experiment_name : wafer
+  experiment_name : wafer-ops-4
   remote_server_uri : http://54.205.83.65:8080
   run_name : mlops
-  serialization_format : cloudpickle
+  serialization_format : cloudpickle  
   num_of_prod_models : 3
 
 db_log:
