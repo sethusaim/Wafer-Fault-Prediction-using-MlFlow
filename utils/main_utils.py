@@ -58,7 +58,7 @@ def convert_object_to_dataframe(obj, db_name, collection_name):
         raise_exception(
             error=e,
             class_name=class_name,
-            method_name="conver_object_to_dataframe",
+            method_name="convert_object_to_dataframe",
             db_name=db_name,
             collection_name=collection_name,
         )

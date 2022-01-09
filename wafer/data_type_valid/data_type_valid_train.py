@@ -65,9 +65,7 @@ class dBOperation:
                     )
 
                     self.db_op.insert_dataframe_as_record(
-                        data_frame=df,
-                        db_name=db_name,
-                        collection_name=collection_name,
+                        data_frame=df, db_name=db_name, collection_name=collection_name,
                     )
 
                 else:

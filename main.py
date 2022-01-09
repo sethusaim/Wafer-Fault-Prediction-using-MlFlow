@@ -54,7 +54,7 @@ async def trainRouteClient():
 
         num_clusters = trainModelObj.training_model()
 
-        loadProdModelObj = load_prod_model(num_clusters=num_clusters)
+        loadProdModelObj = load_prod_model(num_clusters=3)
 
         loadProdModelObj.load_production_model()
 
@@ -64,7 +64,7 @@ async def trainRouteClient():
     return "Training successfull!!"
 
 
-@app.post("/predict")
+@app.get("/predict")
 async def predictRouteClient():
     try:
         raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
@@ -73,7 +73,7 @@ async def predictRouteClient():
 
         pred_val.prediction_validation()
 
-        pred = prediction(raw_data_pred_bucket_name)
+        pred = prediction()
 
         path, json_predictions = pred.prediction_from_model()
 

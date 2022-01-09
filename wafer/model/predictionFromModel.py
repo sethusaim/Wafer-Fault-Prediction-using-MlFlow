@@ -18,7 +18,7 @@ class prediction:
     Revisions   :   None
     """
 
-    def __init__(self, path):
+    def __init__(self):
         self.config = read_params()
 
         self.s3_obj = S3_Operations()
@@ -98,14 +98,14 @@ class prediction:
 
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
-                model_name = self.s3_obj.find_correct_model_file(
+                crt_model_name = self.s3_obj.find_correct_model_file(
                     cluster_number=i,
                     bucket_name=self.model_bucket,
                     db_name=self.db_name,
                     collection_name=self.pred_log,
                 )
 
-                prod_model_name = os.path.join(self.prod_model_dir, model_name)
+                prod_model_name = os.path.join(self.prod_model_dir, crt_model_name)
 
                 model = self.s3_obj.load_model_from_s3(
                     bucket=self.model_bucket,

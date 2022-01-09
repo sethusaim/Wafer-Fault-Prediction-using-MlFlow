@@ -1,7 +1,6 @@
 import os
 import re
 
-import botocore
 from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
@@ -270,6 +269,7 @@ class Prediction_Data_validation:
                         src_bucket=self.raw_data_bucket_name,
                         src_file=src_f,
                         dest_bucket=self.pred_data_bucket,
+                        dest_file=dest_f,
                         db_name=self.db_name,
                         collection_name=self.pred_name_valid_log,
                     )
@@ -320,7 +320,7 @@ class Prediction_Data_validation:
                 if file.endswith(".csv"):
                     csv = convert_object_to_dataframe(
                         obj=f,
-                        db_name=self.class_name,
+                        db_name=self.db_name,
                         collection_name=self.pred_col_val_log,
                     )
 
@@ -360,11 +360,10 @@ class Prediction_Data_validation:
     def validate_missing_values_in_col(self):
         """
         Method Name :   validate_missing_values_in_col
-        Description :   This function validates if any columns in the csv file has all missing. If all the
-                        values are missing, the file is not suitable for processing.Such files are moved to
-                        bad raw data
-        Written by  :   iNeuron Intelligence
+        Description :   This function validates the misisng values in column in the csv files, and
+                        corresponding missing values csv file is created
         On failure  :   Raise Exception
+        Written by  :   iNeuron Intelligence
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
@@ -391,7 +390,7 @@ class Prediction_Data_validation:
 
                 if abs_f.endswith(".csv"):
                     csv = convert_object_to_dataframe(
-                        obj=f,
+                        f,
                         db_name=self.db_name,
                         collection_name=self.pred_missing_values_log,
                     )
@@ -399,8 +398,8 @@ class Prediction_Data_validation:
                     count = 0
 
                     for cols in csv:
-                        if len(csv[cols] - csv[cols].count()) == len(csv[cols]):
-                            count = +1
+                        if (len(csv[cols]) - csv[cols].count()) == len(csv[cols]):
+                            count += 1
 
                             dest_f = os.path.join(self.bad_pred_data_dir, abs_f)
 
@@ -415,23 +414,32 @@ class Prediction_Data_validation:
 
                             break
 
-                if count == 0:
-                    csv.rename(columns={"Unamed: 0": "Wafer"}, inplace=True)
+                    if count == 0:
+                        csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
 
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.pred_missing_values_log,
-                        log_message=f"Converted {file} to csv and  created a local copy",
-                    )
+                        self.log_writer.log(
+                            db_name=self.db_name,
+                            collection_name=self.pred_missing_values_log,
+                            log_message="Wafer column added to files",
+                        )
 
-                    dest_f = os.path.join(self.good_pred_data_dir, abs_f)
+                        csv.to_csv(abs_f, index=None, header=True)
 
-                    self.s3_obj.upload_to_s3(
-                        src_file=abs_f,
-                        bucket=self.pred_data_bucket,
-                        db_name=self.db_name,
-                        collection_name=self.pred_missing_values_log,
-                    )
+                        self.log_writer.log(
+                            db_name=self.db_name,
+                            collection_name=self.pred_missing_values_log,
+                            log_message=f"Converted {file} to csv, and created local copy",
+                        )
+
+                        dest_f = os.path.join(self.good_pred_data_dir, abs_f)
+
+                        self.s3_obj.upload_to_s3(
+                            src_file=abs_f,
+                            bucket=self.pred_data_bucket,
+                            dest_file=dest_f,
+                            db_name=self.db_name,
+                            collection_name=self.pred_missing_values_log,
+                        )
 
                 else:
                     pass

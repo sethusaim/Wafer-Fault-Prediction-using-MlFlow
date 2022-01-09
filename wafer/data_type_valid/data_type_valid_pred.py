@@ -31,6 +31,8 @@ class dBOperation:
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
+        self.pred_input_file = self.config["export_pred_csv_file"]
+
         self.db_name = self.config["db_log"]["db_pred_log"]
 
         self.pred_db_insert_log = self.config["pred_db_log"]["db_insert"]
@@ -65,9 +67,7 @@ class dBOperation:
                     )
 
                     self.db_op.insert_dataframe_as_record(
-                        data_frame=df,
-                        db_name=db_name,
-                        collection_name=collection_name,
+                        data_frame=df, db_name=db_name, collection_name=collection_name,
                     )
 
                 else:
@@ -88,13 +88,15 @@ class dBOperation:
                 collection_name=self.pred_db_insert_log,
             )
 
-    def export_collection_to_csv(self, db_name, collection_name):
+    def export_collection_to_csv(self, export_db_name, export_collection_name):
         method_name = self.export_collection_to_csv.__name__
 
         try:
             df = self.db_op.convert_collection_to_dataframe(
-                db_name=db_name, collection_name=collection_name
+                db_name=export_db_name, collection_name=export_collection_name
             )
+
+            df.to_csv(self.pred_input_file, index=False, header=True)
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -102,20 +104,10 @@ class dBOperation:
                 log_message="Got the collection as dataframe",
             )
 
-            csv_file = self.config["export_pred_csv_file"]
-
-            df.to_csv(csv_file, index=False, header=True)
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_export_csv_log,
-                log_message="Dataframe is converted to csv file and local copy is created",
-            )
-
             self.s3_obj.upload_to_s3(
-                src_file=csv_file,
+                src_file=self.pred_input_file,
                 bucket=self.input_files_bucket,
-                dest_file=csv_file,
+                dest_file=self.pred_input_file,
                 db_name=self.db_name,
                 collection_name=self.pred_export_csv_log,
             )
@@ -125,6 +117,6 @@ class dBOperation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.pred_export_csv_log,
             )

@@ -35,6 +35,8 @@ class load_prod_model:
 
         self.num_clusters = num_clusters
 
+        self.exp_name = self.config["mlflow_config"]["experiment_name"]
+
         self.s3_obj = S3_Operations()
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
@@ -64,11 +66,9 @@ class load_prod_model:
 
             mlflow.set_tracking_uri(remote_server_uri)
 
-            client = MlflowClient(tracking_uri=remote_server_uri)
+            client = MlflowClient()
 
-            exp = client.get_experiment_by_name(
-                name=self.config["mlflow_config"]["experiment_name"]
-            )
+            exp = mlflow.get_experiment_by_name(name=self.exp_name)
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -94,32 +94,23 @@ class load_prod_model:
 
             Eg- metrics.XGBoost1-best_score
             """
-
-            # for i in range(0, self.num_clusters):
-            #     for model in self.config["model_names"].values():
-            #         if model != self.config["model_names"]["kmeans_model_name"]:
-            #             temp = "metrics." + str(model) + str(i) + "-best_score"
-
-            #             cols.append(temp)
-
-            #         else:
-            #             pass
-
-            # cols = [
-            #     "metrics." + str(model) + str(i) + "-best_score"
-            #     for i in range(0, self.num_clusters)
-            #     for model in self.config["model_names"].values()
-            #     if model != self.config["model_names"]["kmeans_model_name"]
-            # ]
-
             reg_model_names = [rm.name for rm in client.list_registered_models()]
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
+                log_message="Got registered model from mlflow",
+            )
+
             cols = [
-                f"metrics." + str(model) + "-best_score"
-                for i in range(0, self.num_clusters)
+                "metrics." + str(model) + "-best_score"
                 for model in reg_model_names
-                if not model.startswith("KMeans")
+                if model != "KMeans"
             ]
+
+            runs_cols = runs[cols].max().sort_values(ascending=False)
+
+            metrics_dict = runs_cols.to_dict()
 
             """ 
             Eg-output: For 3 clusters, 
@@ -158,21 +149,24 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message="Searching for best 3 models based on the metrics",
+                log_message="Searching for best models in the clusters based on the metrics",
             )
 
-            best_metrics = (
-                runs[cols]
-                .max()
-                .sort_values(ascending=False)[
-                    : self.config["mlflow_config"]["num_of_prod_models"]
-                ]
-            )
+            best_metrics_names = [
+                max(
+                    [
+                        (file, metrics_dict[file])[0]
+                        for file in metrics_dict
+                        if str(i) in file
+                    ]
+                )
+                for i in range(0, self.num_clusters)
+            ]
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message=f"Got top {self.config['mlflow_config']['num_of_prod_models']} model names based on the metrics",
+                log_message=f"Got top model names based on the metrics of clusters",
             )
 
             ## best_metrics will store the value of metrics, but we want the names of the models,
@@ -182,26 +176,26 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
 
             ## top_mn_lst - will store the top 3 model names
 
-            # for mn in best_metrics.index:
-            #     top_mn = mn.split("-")[0].split(".")[1]
+            top_mn_lst = [mn.split(".")[1].split("-")[0] for mn in best_metrics_names]
 
-            #     top_mn_lst.append(top_mn)
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
+                log_message=f"Got the top model names",
+            )
 
-            top_mn_lst = [mn.split("-")[0].split(".")[1] for mn in best_metrics.index]
-
-            ## Searching registered models in mlflow in descending order
             results = client.search_registered_models(order_by=["name DESC"])
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_message=f"Got the top {self.config['mlflow_config']['num_of_prod_models']} model names",
+                log_message="Got registered models in mlflow in descending order",
             )
 
             ## results - This will store all the registered models in mlflow
             ## Here we are iterating through all the registered model and for every latest registered model
             ## we are checking if the model name is in the top 3 model list, if present we are putting that
-            ## model into production.
+            ## model into production or staging
 
             for res in results:
                 for mv in res.latest_versions:
@@ -227,7 +221,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             collection_name=self.load_prod_model_log,
                             log_message="Started copying "
                             + mv.name
-                            + " from trained models folder to prod models folder",
+                            + " from trained models bucket to prod models bucket",
                         )
 
                         self.trained_model_file = os.path.join(

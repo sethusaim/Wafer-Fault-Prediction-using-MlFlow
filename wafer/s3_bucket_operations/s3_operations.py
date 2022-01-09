@@ -47,6 +47,8 @@ class S3_Operations:
     def find_correct_model_file(
         self, cluster_number, bucket_name, db_name, collection_name
     ):
+        method_name = self.find_correct_model_file.__name__
+
         try:
             prod_model_dir = self.config["models_dir"]["prod"]
 
@@ -58,22 +60,18 @@ class S3_Operations:
             )
 
             for file in list_of_files:
-                try:
-                    if file.index(str(cluster_number)) != -1:
-                        model_name = file
+                if file.index(str(cluster_number)) != -1 and file.endswith(".sav"):
+                    model_name = file
 
-                except:
-                    continue
+            crt_model_name = model_name.split(".")[0]
 
-            model_name = model_name.split(".")[0]
-
-            return model_name
+            return crt_model_name
 
         except Exception as e:
             raise_exception(
                 error=e,
-                class_name="",
-                method_name="",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=db_name,
                 collection_name=collection_name,
             )
@@ -82,9 +80,9 @@ class S3_Operations:
         method_name = self.delete_pred_file.__name__
 
         try:
-            bucket_name = (self.config["s3_bucket"]["input_files_bucket"],)
+            bucket_name = self.config["s3_bucket"]["input_files_bucket"]
 
-            file_name = self.config["export_pred_csv_file"]
+            file_name = self.config["pred_output_file"]
 
             self.s3_resource.Object(bucket_name, file_name).load()
 
@@ -95,7 +93,7 @@ class S3_Operations:
             )
 
             self.delete_file_from_s3(
-                bucket_name=bucket_name,
+                bucket=bucket_name,
                 file=file_name,
                 db_name=db_name,
                 collection_name=collection_name,
@@ -125,7 +123,7 @@ class S3_Operations:
 
         try:
             self.s3_resource.Object(bucket_name, folder_name).load()
-            
+
             self.log_writer.log(
                 db_name=db_name,
                 collection_name=collection_name,

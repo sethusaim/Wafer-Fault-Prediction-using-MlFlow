@@ -105,8 +105,10 @@ class pred_validation:
             )
 
             self.dBOperation.export_collection_to_csv(
-                db_name=self.config["mongodb"]["wafer_data_db_name"],
-                collection_name=self.config["mongodb"]["wafer_pred_data_collection"],
+                export_db_name=self.config["mongodb"]["wafer_data_db_name"],
+                export_collection_name=self.config["mongodb"][
+                    "wafer_pred_data_collection"
+                ],
             )
 
         except Exception as e:
