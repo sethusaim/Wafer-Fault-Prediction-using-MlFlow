@@ -29,9 +29,35 @@ class train_model:
 
         self.model_train_log = self.config["train_db_log"]["model_training"]
 
+        self.target_col = self.config["base"]["target_col"]
+
+        self.test_size = self.config["base"]["test_size"]
+
+        self.random_state = self.config["base"]["random_state"]
+
         self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
+        self.remote_server_uri = self.config["mlflow_config"]["remote_server_uri"]
+
+        self.experiment_name = self.config["mlflow_config"]["experiment_name"]
+
+        self.run_name = self.config["mlflow_config"]["run_name"]
+
         self.class_name = self.__class__.__name__
+
+        self.data_getter = Data_Getter(
+            db_name=self.db_name, collection_name=self.model_train_log
+        )
+
+        self.preprocessor = Preprocessor(
+            db_name=self.db_name, collection_name=self.model_train_log
+        )
+
+        self.kmeans = KMeansClustering(
+            db_name=self.db_name, collection_name=self.model_train_log
+        )
+
+        self.model_finder = Model_Finder(self.db_name, self.model_train_log)
 
         self.mlflow_op = Mlflow_Operations(
             db_name=self.db_name, collection_name=self.model_train_log
@@ -57,32 +83,26 @@ class train_model:
         )
 
         try:
-            data_getter = Data_Getter(self.db_name, self.model_train_log)
+            data = self.data_getter.get_data()
 
-            data = data_getter.get_data()
+            data = self.preprocessor.remove_columns(data, ["Wafer"])
 
-            preprocessor = Preprocessor(self.db_name, self.model_train_log)
-
-            data = preprocessor.remove_columns(data, ["Wafer"])
-
-            X, Y = preprocessor.separate_label_feature(
-                data, label_column_name=self.config["base"]["target_col"]
+            X, Y = self.preprocessor.separate_label_feature(
+                data, label_column_name=self.target_col
             )
 
-            is_null_present = preprocessor.is_null_present(X)
+            is_null_present = self.preprocessor.is_null_present(X)
 
             if is_null_present:
-                X = preprocessor.impute_missing_values(X)
+                X = self.preprocessor.impute_missing_values(X)
 
-            cols_to_drop = preprocessor.get_columns_with_zero_std_deviation(X)
+            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(X)
 
-            X = preprocessor.remove_columns(X, cols_to_drop)
+            X = self.preprocessor.remove_columns(X, cols_to_drop)
 
-            kmeans = KMeansClustering(self.db_name, self.model_train_log)
+            number_of_clusters = self.kmeans.elbow_plot(X)
 
-            number_of_clusters = kmeans.elbow_plot(X)
-
-            X, kmeans_model = kmeans.create_clusters(X, number_of_clusters)
+            X, kmeans_model = self.kmeans.create_clusters(X, number_of_clusters)
 
             X["Labels"] = Y
 
@@ -104,105 +124,68 @@ class train_model:
                 x_train, x_test, y_train, y_test = train_test_split(
                     cluster_features,
                     cluster_label,
-                    test_size=self.config["base"]["test_size"],
-                    random_state=self.config["base"]["random_state"],
+                    test_size=self.test_size,
+                    random_state=self.random_state,
                 )
-
-                model_finder = Model_Finder(self.db_name, self.model_train_log)
 
                 (
                     rf_model,
                     rf_model_score,
                     xgb_model,
                     xgb_model_score,
-                ) = model_finder.get_trained_models(x_train, y_train, x_test, y_test)
+                ) = self.model_finder.get_trained_models(
+                    x_train, y_train, x_test, y_test
+                )
 
-                rf_model_name = get_model_name(
+                kmeans_model_name = get_model_name(
+                    model=kmeans_model,
+                    db_name=self.db_name,
+                    collection_name=self.model_train_log,
+                )
+
+                self.s3_obj.save_model_to_s3(
+                    idx=i,
                     model=rf_model,
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
-                )
-
-                xgb_model_name = get_model_name(
-                    model=xgb_model,
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
-                )
-
-                saved_rf_model = self.s3_obj.save_model_to_s3(
-                    model=rf_model,
-                    filename=rf_model_name + str(i),
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
                     model_bucket=self.model_bucket,
-                )
-
-                saved_xgb_model = self.s3_obj.save_model_to_s3(
-                    model=xgb_model,
-                    filename=xgb_model_name + str(i),
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
-                    model_bucket=self.model_bucket,
+                )
+
+                self.s3_obj.save_model_to_s3(
+                    idx=i,
+                    model=xgb_model,
+                    model_bucket=xgb_model,
+                    db_name=self.db_name,
+                    collection_name=self.model_train_log,
                 )
 
                 try:
-                    remote_server_uri = self.config["mlflow_config"][
-                        "remote_server_uri"
-                    ]
-
-                    mlflow.set_tracking_uri(remote_server_uri)
-
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message="Set the remote server uri",
+                    self.mlflow_op.set_mlflow_tracking_uri(
+                        server_uri=self.remote_server_uri
                     )
 
-                    mlflow.set_experiment(
-                        experiment_name=self.config["mlflow_config"]["experiment_name"]
+                    self.mlflow_op.set_mlflow_experiment(
+                        experiment_name=self.experiment_name
                     )
 
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
-                        log_message="Started mlflow server with "
-                        + self.config["mlflow_config"]["run_name"],
-                    )
+                    with mlflow.start_run(run_name=self.run_name):
 
-                    with mlflow.start_run(
-                        run_name=self.config["mlflow_config"]["run_name"]
-                    ):
-                        self.mlflow_op.log_xgboost_params(
+                        self.mlflow_op.log_model(
+                            model=kmeans_model, model_name=kmeans_model_name
+                        )
+
+                        self.mlflow_op.log_all_for_model(
                             idx=i,
                             model=xgb_model,
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
+                            model_param_name="xgb_model",
+                            model_score=xgb_model_score,
                         )
 
-                        self.mlflow_op.log_rf_model_params(
+                        self.mlflow_op.log_all_for_model(
                             idx=i,
                             model=rf_model,
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        self.mlflow_op.log_trained_models(
-                            idx=i,
-                            kmeans_model=kmeans_model,
-                            xgb_model=xgb_model,
-                            rf_model=rf_model,
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
-                        )
-
-                        self.mlflow_op.log_metrics_of_trained_models(
-                            idx=i,
-                            xgb_model=xgb_model,
-                            rf_model=rf_model,
-                            xgb_score=xgb_model_score,
-                            rf_score=rf_model_score,
-                            db_name=self.db_name,
-                            collection_name=self.model_train_log,
+                            model_param_name="rf_model",
+                            model_score=rf_model_score,
                         )
 
                         self.log_writer.log(

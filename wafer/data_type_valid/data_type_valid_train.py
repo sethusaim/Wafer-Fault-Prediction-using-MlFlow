@@ -29,6 +29,8 @@ class dBOperation:
 
         self.good_data_train_dir = self.config["data"]["train"]["good_data_dir"]
 
+        self.csv_file = self.config["export_train_csv_file"]
+
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
         self.db_name = self.config["db_log"]["db_train_log"]
@@ -100,20 +102,11 @@ class dBOperation:
                 log_message="Got the collection as dataframe",
             )
 
-            csv_file = self.config["export_train_csv_file"]
-
-            df.to_csv(csv_file, index=False, header=True)
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_export_csv_log,
-                log_message="Dataframe is converted to csv file and local copy is created",
-            )
-
-            self.s3_obj.upload_to_s3(
-                src_file=csv_file,
+            self.s3_obj.upload_df_as_csv_to_s3(
+                data_frame=df,
+                file_name=self.csv_file,
                 bucket=self.input_files_bucket,
-                dest_file=csv_file,
+                dest_file_name=self.csv_file,
                 db_name=self.db_name,
                 collection_name=self.train_export_csv_log,
             )

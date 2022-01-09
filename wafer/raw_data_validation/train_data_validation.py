@@ -417,20 +417,13 @@ class Raw_Data_validation:
                             log_message="Wafer column added to files",
                         )
 
-                        csv.to_csv(abs_f, index=None, header=True)
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.train_missing_value_log,
-                            log_message=f"Converted {file} to csv, and created local copy",
-                        )
-
                         dest_f = os.path.join(self.good_train_data_dir, abs_f)
 
-                        self.s3_obj.upload_to_s3(
-                            src_file=abs_f,
+                        self.s3_obj.upload_df_as_csv_to_s3(
+                            data_frame=csv,
+                            file_name=abs_f,
                             bucket=self.train_data_bucket,
-                            dest_file=dest_f,
+                            dest_file_name=dest_f,
                             db_name=self.db_name,
                             collection_name=self.train_missing_value_log,
                         )

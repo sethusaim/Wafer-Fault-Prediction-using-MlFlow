@@ -1,10 +1,7 @@
-import os
-
-import mlflow
-from mlflow.tracking import MlflowClient
 from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.read_params import read_params
+from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -23,25 +20,23 @@ class load_prod_model:
 
         self.class_name = self.__class__.__name__
 
-        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
-
-        self.trained_models_dir = self.config["models_dir"]["trained"]
-
-        self.staged_models_dir = self.config["models_dir"]["stag"]
-
-        self.prod_models_dir = self.config["models_dir"]["prod"]
-
-        self.model_save_format = self.config["model_params"]["save_format"]
-
         self.num_clusters = num_clusters
 
-        self.exp_name = self.config["mlflow_config"]["experiment_name"]
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
-        self.s3_obj = S3_Operations()
+        self.db_name = self.config["db_log"]["db_train_log"]
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
 
-        self.db_name = self.config["db_log"]["db_train_log"]
+        self.exp_name = self.config["mlflow_config"]["experiment_name"]
+
+        self.remote_server_uri = self.config["mlflow_config"]["remote_server_uri"]
+
+        self.s3_obj = S3_Operations()
+
+        self.mlflow_op = Mlflow_Operations(
+            db_name=self.db_name, collection_name=self.load_prod_model_log
+        )
 
     def load_production_model(self):
         """
@@ -62,27 +57,11 @@ class load_prod_model:
         )
 
         try:
-            remote_server_uri = self.config["mlflow_config"]["remote_server_uri"]
+            self.mlflow_op.set_mlflow_tracking_uri(server_uri=self.remote_server_uri)
 
-            mlflow.set_tracking_uri(remote_server_uri)
+            exp = self.mlflow_op.get_experiment_from_mlflow(exp_name=self.exp_name)
 
-            client = MlflowClient()
-
-            exp = mlflow.get_experiment_by_name(name=self.exp_name)
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Set remote server uri",
-            )
-
-            runs = mlflow.search_runs(experiment_ids=exp.experiment_id)
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message=f"Completed searchiing for runs in mlflow with experiment ids as {exp.experiment_id}",
-            )
+            runs = self.mlflow_op.get_runs_from_mlflow(exp_id=exp.experiment_id)
 
             """
             Code Explaination: 
@@ -94,13 +73,8 @@ class load_prod_model:
 
             Eg- metrics.XGBoost1-best_score
             """
-            reg_model_names = [rm.name for rm in client.list_registered_models()]
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Got registered model from mlflow",
-            )
+            reg_model_names = self.mlflow_op.get_mlflow_models()
 
             cols = [
                 "metrics." + str(model) + "-best_score"
@@ -108,9 +82,27 @@ class load_prod_model:
                 if model != "KMeans"
             ]
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
+                log_message="Created cols for all registered model",
+            )
+
             runs_cols = runs[cols].max().sort_values(ascending=False)
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
+                log_message="Sorted the runs cols in descending order",
+            )
+
             metrics_dict = runs_cols.to_dict()
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
+                log_message="Converted runs cols to dict",
+            )
 
             """ 
             Eg-output: For 3 clusters, 
@@ -123,17 +115,7 @@ class load_prod_model:
                 metrics.RandomForest1-best_score,
                 metrics.RandomForest2-best_score
             ] 
-            """
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Got all registered models based on metrics",
-            )
 
-            ## sort the metrics in descending order and extract the first 3 metrics
-            ## this will return a series object
-
-            """
             Eg- runs_dataframe: I am only showing for 3 cols,actual runs dataframe will be different
                                 based on the number of clusters
                 
@@ -146,11 +128,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
     1                                                                                   1                 
     2                                                                           
             """
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Searching for best models in the clusters based on the metrics",
-            )
 
             best_metrics_names = [
                 max(
@@ -184,13 +161,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 log_message=f"Got the top model names",
             )
 
-            results = client.search_registered_models(order_by=["name DESC"])
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Got registered models in mlflow in descending order",
-            )
+            results = self.mlflow_op.search_mlflow_models(order="DESC")
 
             ## results - This will store all the registered models in mlflow
             ## Here we are iterating through all the registered model and for every latest registered model
@@ -200,43 +171,11 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             for res in results:
                 for mv in res.latest_versions:
                     if mv.name in top_mn_lst:
-                        current_version = mv.version
-
-                        client.transition_model_version_stage(
-                            name=mv.name, version=current_version, stage="Production"
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Transitioned "
-                            + mv.name
-                            + " with version "
-                            + current_version
-                            + " into production",
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Started copying "
-                            + mv.name
-                            + " from trained models bucket to prod models bucket",
-                        )
-
-                        self.trained_model_file = os.path.join(
-                            self.trained_models_dir, mv.name + self.model_save_format
-                        )
-
-                        self.prod_model_file = os.path.join(
-                            self.prod_models_dir, mv.name + self.model_save_format
-                        )
-
-                        self.s3_obj.copy_data_to_other_bucket(
-                            src_bucket=self.model_bucket,
-                            src_file=self.trained_model_file,
-                            dest_bucket=self.model_bucket,
-                            dest_file=self.prod_model_file,
+                        self.mlflow_op.transition_mlflow_model(
+                            model_version=mv.version,
+                            stage="Production",
+                            model_name=mv.name,
+                            bucket=self.model_bucket,
                             db_name=self.db_name,
                             collection_name=self.load_prod_model_log,
                         )
@@ -245,65 +184,21 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                     ## this model also needs to be in present in production, the code logic is present below
 
                     elif mv.name == "KMeans":
-                        current_version = mv.version
-
-                        client.transition_model_version_stage(
-                            name=mv.name, version=current_version, stage="Production"
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Transitioned "
-                            + mv.name
-                            + "to production in mlflow",
-                        )
-
-                        self.trained_kmeans_model_file = os.path.join(
-                            self.trained_models_dir, mv.name + self.model_save_format
-                        )
-
-                        self.prod_kmeans_model_file = os.path.join(
-                            self.prod_models_dir, mv.name + self.model_save_format
-                        )
-
-                        self.s3_obj.copy_data_to_other_bucket(
-                            src_bucket=self.model_bucket,
-                            src_file=self.trained_kmeans_model_file,
-                            dest_bucket=self.model_bucket,
-                            dest_file=self.prod_kmeans_model_file,
+                        self.mlflow_op.transition_mlflow_model(
+                            model_version=mv.version,
+                            stage="Production",
+                            model_name=mv.name,
+                            bucket=self.model_bucket,
                             db_name=self.db_name,
                             collection_name=self.load_prod_model_log,
                         )
 
                     else:
-                        current_version = mv.version
-
-                        client.transition_model_version_stage(
-                            name=mv.name, version=current_version, stage="Staging"
-                        )
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
-                            log_message="Transitioned "
-                            + mv.name
-                            + "to staging in mlflow",
-                        )
-
-                        self.trained_model_file = os.path.join(
-                            self.trained_models_dir, mv.name + self.model_save_format
-                        )
-
-                        self.stag_model_file = os.path.join(
-                            self.staged_models_dir, mv.name + self.model_save_format
-                        )
-
-                        self.s3_obj.copy_data_to_other_bucket(
-                            src_bucket=self.model_bucket,
-                            src_file=self.trained_model_file,
-                            dest_bucket=self.model_bucket,
-                            dest_file=self.stag_model_file,
+                        self.mlflow_op.transition_mlflow_model(
+                            model_version=mv.version,
+                            stage="Staging",
+                            model_name=mv.name,
+                            bucket=self.model_bucket,
                             db_name=self.db_name,
                             collection_name=self.load_prod_model_log,
                         )

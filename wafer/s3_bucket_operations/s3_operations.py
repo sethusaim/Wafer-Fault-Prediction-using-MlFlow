@@ -5,7 +5,11 @@ import boto3
 import botocore
 from utils.exception import raise_exception
 from utils.logger import App_Logger
-from utils.main_utils import convert_obj_to_json, convert_object_to_pickle
+from utils.main_utils import (
+    convert_obj_to_json,
+    convert_object_to_pickle,
+    get_model_name,
+)
 from utils.read_params import read_params
 
 
@@ -22,6 +26,12 @@ class S3_Operations:
         self.class_name = self.__class__.__name__
 
         self.file_format = self.config["model_params"]["save_format"]
+
+        self.train_data_bucket = self.config["s3_bucket"]["scania_train_data_bucket"]
+
+        self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
+
+        self.bad_train_data_dir = self.config["data"]["train"]["bad_data_dir"]
 
     def load_s3_obj(self, bucket_name, obj, db_name, collection_name):
         method_name = self.load_s3_obj.__name__
@@ -47,8 +57,6 @@ class S3_Operations:
     def find_correct_model_file(
         self, cluster_number, bucket_name, db_name, collection_name
     ):
-        method_name = self.find_correct_model_file.__name__
-
         try:
             prod_model_dir = self.config["models_dir"]["prod"]
 
@@ -60,18 +68,22 @@ class S3_Operations:
             )
 
             for file in list_of_files:
-                if file.index(str(cluster_number)) != -1 and file.endswith(".sav"):
-                    model_name = file
+                try:
+                    if file.index(str(cluster_number)) != -1:
+                        model_name = file
 
-            crt_model_name = model_name.split(".")[0]
+                except:
+                    continue
 
-            return crt_model_name
+            model_name = model_name.split(".")[0]
+
+            return model_name
 
         except Exception as e:
             raise_exception(
                 error=e,
-                class_name=self.class_name,
-                method_name=method_name,
+                class_name="",
+                method_name="",
                 db_name=db_name,
                 collection_name=collection_name,
             )
@@ -82,7 +94,7 @@ class S3_Operations:
         try:
             bucket_name = self.config["s3_bucket"]["input_files_bucket"]
 
-            file_name = self.config["pred_output_file"]
+            file_name = self.config["export_pred_csv_file"]
 
             self.s3_resource.Object(bucket_name, file_name).load()
 
@@ -93,7 +105,7 @@ class S3_Operations:
             )
 
             self.delete_file_from_s3(
-                bucket=bucket_name,
+                bucket_name=bucket_name,
                 file=file_name,
                 db_name=db_name,
                 collection_name=collection_name,
@@ -236,9 +248,9 @@ class S3_Operations:
     def copy_data_to_other_bucket(
         self, src_bucket, src_file, dest_bucket, dest_file, db_name, collection_name
     ):
-        try:
-            method_name = self.copy_data_to_other_bucket.__name__
+        method_name = self.copy_data_to_other_bucket.__name__
 
+        try:
             copy_source = {"Bucket": src_bucket, "Key": src_file}
 
             self.s3_resource.meta.client.copy(copy_source, dest_bucket, dest_file)
@@ -259,9 +271,9 @@ class S3_Operations:
             )
 
     def delete_file_from_s3(self, bucket, file, db_name, collection_name):
-        try:
-            method_name = self.delete_file_from_s3.__name__
+        method_name = self.delete_file_from_s3.__name__
 
+        try:
             self.s3_resource.Object(bucket, file).delete()
 
             self.log_writer.log(
@@ -282,14 +294,14 @@ class S3_Operations:
     def move_data_to_other_bucket(
         self, src_bucket, src_file, dest_bucket, dest_file, db_name, collection_name
     ):
-        try:
-            method_name = self.move_data_to_other_bucket.__name__
+        method_name = self.move_data_to_other_bucket.__name__
 
+        try:
             self.copy_data_to_other_bucket(
-                src_bucket,
-                src_file,
-                dest_bucket,
-                dest_file,
+                src_bucket=src_bucket,
+                src_file=src_file,
+                dest_bucket=dest_bucket,
+                dest_file=dest_file,
                 db_name=db_name,
                 collection_name=collection_name,
             )
@@ -316,19 +328,10 @@ class S3_Operations:
                 collection_name=collection_name,
             )
 
-        except Exception as e:
-            raise_exception(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
     def get_files_from_s3(self, bucket, folder_name, db_name, collection_name):
-        try:
-            method_name = self.get_files_from_s3.__name__
+        method_name = self.get_files_from_s3.__name__
 
+        try:
             lst = self.get_file_objects_from_s3(
                 bucket=bucket,
                 db_name=db_name,
@@ -341,7 +344,7 @@ class S3_Operations:
             self.log_writer.log(
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message=f"Got list of files from bukcet {bucket}",
+                log_message=f"Got list of files from bucket {bucket}",
             )
 
             return list_of_files
@@ -356,11 +359,11 @@ class S3_Operations:
             )
 
     def get_file_objects_from_s3(self, bucket, filename, db_name, collection_name):
-        try:
-            method_name = self.get_files_from_s3.__name__
+        method_name = self.get_file_objects_from_s3.__name__
 
+        try:
             s3_bucket = self.get_bucket_from_s3(
-                bucket=bucket, db_name=db_name, collection_name=collection_name
+                bucket=bucket, db_name=db_name, collection_name=collection_name,
             )
 
             lst_objs = [obj for obj in s3_bucket.objects.filter(Prefix=filename)]
@@ -387,9 +390,9 @@ class S3_Operations:
             )
 
     def load_model_from_s3(self, bucket, model_name, db_name, collection_name):
-        try:
-            method_name = self.load_model_from_s3.__name__
+        method_name = self.load_model_from_s3.__name__
 
+        try:
             model_obj = self.get_file_objects_from_s3(
                 bucket=bucket,
                 filename=model_name,
@@ -398,7 +401,7 @@ class S3_Operations:
             )
 
             model = convert_object_to_pickle(
-                obj=model_obj, db_name=db_name, collection_name=collection_name
+                obj=model_obj, db_name=db_name, collection_name=collection_name,
             )
 
             self.log_writer.log(
@@ -419,9 +422,9 @@ class S3_Operations:
             )
 
     def get_schema_from_s3(self, bucket, filename, db_name, collection_name):
-        try:
-            method_name = self.get_schema_from_s3.__name__
+        method_name = self.get_schema_from_s3.__name__
 
+        try:
             res = self.get_file_objects_from_s3(
                 bucket=bucket,
                 filename=filename,
@@ -450,23 +453,23 @@ class S3_Operations:
                 collection_name=collection_name,
             )
 
-    def create_folders_for_prod_and_stag(self, bucket_name, db_name, collection_name):
-        method_name = self.create_folders_for_prod_and_stag.__name__
+    def create_dirs_for_good_bad_data(self, db_name, collection_name):
+        method_name = self.create_dirs_for_good_bad_data.__name__
 
         try:
-            prod_model_dir = self.config["models_dir"]["prod"]
+            self.create_folder_in_s3(
+                bucket_name=self.train_data_bucket,
+                folder_name=self.good_train_data_dir,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
 
-            stag_model_dir = self.config["models_dir"]["stag"]
-
-            dir_list = [prod_model_dir, stag_model_dir]
-
-            for d in dir_list:
-                self.create_folder_in_s3(
-                    bucket_name=bucket_name,
-                    folder_name=d,
-                    db_name=db_name,
-                    collection_name=collection_name,
-                )
+            self.create_folder_in_s3(
+                bucket_name=self.train_data_bucket,
+                folder_name=self.bad_train_data_dir,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
 
         except Exception as e:
             raise_exception(
@@ -477,7 +480,38 @@ class S3_Operations:
                 collection_name=collection_name,
             )
 
-    def save_model_to_s3(self, model, filename, db_name, collection_name, model_bucket):
+    def create_folders_for_prod_and_stag(self, bucket_name, db_name, collection_name):
+        method_name = self.create_folders_for_prod_and_stag.__name__
+
+        try:
+            prod_model_dir = self.config["models_dir"]["prod"]
+
+            stag_model_dir = self.config["models_dir"]["stag"]
+
+            self.create_folder_in_s3(
+                bucket_name=bucket_name,
+                folder_name=prod_model_dir,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+            self.create_folder_in_s3(
+                bucket_name=bucket_name,
+                folder_name=stag_model_dir,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+    def save_model_to_s3(self, idx, model, model_bucket, db_name, collection_name):
         method_name = self.save_model_to_s3.__name__
 
         self.log_writer.log(
@@ -487,7 +521,15 @@ class S3_Operations:
         )
 
         try:
-            model_file = os.path.join(filename + self.file_format)
+            model_name = get_model_name(
+                model=model, db_name=db_name, collection_name=collection_name
+            )
+
+            if model_name == "KMeans":
+                model_file = model_name + self.file_format
+
+            else:
+                model_file = model_name + idx + self.file_format
 
             self.trained_model_dir = self.config["models_dir"]["trained"]
 
@@ -497,7 +539,7 @@ class S3_Operations:
             self.log_writer.log(
                 db_name=db_name,
                 collection_name=collection_name,
-                log_message="Model File " + filename + " saved. ",
+                log_message="Model File " + model_name + " saved. ",
             )
 
             s3_model_path = os.path.join(self.trained_model_dir, model_file)
@@ -523,10 +565,41 @@ class S3_Operations:
                 db_name=db_name,
                 collection_name=collection_name,
                 log_message="Model File "
-                + filename
+                + model_name
                 + f" could not be saved. Exited the {method_name} method of the {self.class_name} class",
             )
 
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+    def upload_df_as_csv_to_s3(
+        self, data_frame, file_name, bucket, dest_file_name, db_name, collection_name
+    ):
+        method_name = self.upload_df_as_csv_to_s3.__name__
+
+        try:
+            data_frame.to_csv(file_name, index=None, header=True)
+
+            self.log_writer.log(
+                db_name=db_name,
+                collection_name=collection_name,
+                log_message=f"Created a local copy of dataframe with name {file_name}",
+            )
+
+            self.upload_to_s3(
+                src_file=file_name,
+                bucket=bucket,
+                dest_file=dest_file_name,
+                db_name=db_name,
+                collection_name=collection_name,
+            )
+
+        except Exception as e:
             raise_exception(
                 error=e,
                 class_name=self.class_name,

@@ -3,6 +3,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
 from utils.exception import raise_exception
 from utils.logger import App_Logger
+from utils.main_utils import get_param_grid
 from utils.read_params import read_params
 from xgboost import XGBClassifier
 
@@ -53,25 +54,14 @@ class Model_Finder:
         )
 
         try:
-            self.param_grid_rf = {
-                "n_estimators": self.config["model_params"]["rf_model"]["n_estimators"],
-                "criterion": self.config["model_params"]["rf_model"]["criterion"],
-                "max_depth": self.config["model_params"]["rf_model"]["max_depth"],
-                "max_features": self.config["model_params"]["rf_model"]["max_features"],
-            }
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message="Got param grid for random forest from yaml file",
-            )
+            self.param_grid_rf = get_param_grid(model_key_name="rf_model",db_name=self.db_name,collection_name=self.collection_name)
 
             self.grid = GridSearchCV(
                 estimator=self.clf,
                 param_grid=self.param_grid_rf,
-                cv=self.config["model_params"]["cv"],
-                verbose=self.config["model_params"]["verbose"],
-                n_jobs=self.config["model_params"]["n_jobs"],
+                cv=self.config["model_utils"]["cv"],
+                verbose=self.config["model_utils"]["verbose"],
+                n_jobs=self.config["model_utils"]["n_jobs"],
             )
 
             self.log_writer.log(
@@ -107,7 +97,7 @@ class Model_Finder:
                 criterion=self.criterion,
                 max_depth=self.max_depth,
                 max_features=self.max_features,
-                n_jobs=self.config["model_params"]["n_jobs"],
+                n_jobs=self.config["model_utils"]["n_jobs"],
             )
 
             self.log_writer.log(
@@ -123,7 +113,7 @@ class Model_Finder:
                 collection_name=self.collection_name,
                 log_message="Random Forest best params: "
                 + str(self.grid.best_params_)
-                + ". Exited the get_best_params_for_random_forest method of the Model Finder class",
+                + f". Exited the {method_name} method of the {self.class_name} class",
             )
 
             return self.clf
@@ -132,8 +122,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Random forest parameter tuning failed. \
-                    Exited the get_best_params_for_random_forest method of the Model Finder class",
+                log_message=f"Random forest parameter tuning failed.Exited the {method_name} method of the {self.class_name} class",
             )
 
             raise_exception(
@@ -165,28 +154,14 @@ class Model_Finder:
         )
 
         try:
-            self.param_grid_xgb = {
-                "learning_rate": self.config["model_params"]["xgb_model"][
-                    "learning_rate"
-                ],
-                "max_depth": self.config["model_params"]["xgb_model"]["max_depth"],
-                "n_estimators": self.config["model_params"]["xgb_model"][
-                    "n_estimators"
-                ],
-            }
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message="Got param grid for random forest from yaml file",
-            )
+            self.param_grid_xgb = get_param_grid(model_key_name="xgb_model",db_name=self.db_name,collection_name=self.collection_name)
 
             self.grid = GridSearchCV(
                 XGBClassifier(objective="binary:logistic"),
                 self.param_grid_xgb,
-                verbose=self.config["model_params"]["verbose"],
-                cv=self.config["model_params"]["cv"],
-                n_jobs=self.config["model_params"]["n_jobs"],
+                verbose=self.config["model_utils"]["verbose"],
+                cv=self.config["model_utils"]["cv"],
+                n_jobs=self.config["model_utils"]["n_jobs"],
             )
 
             self.grid.fit(train_x, train_y)
@@ -207,7 +182,7 @@ class Model_Finder:
                 learning_rate=self.learning_rate,
                 max_depth=self.max_depth,
                 n_estimators=self.n_estimators,
-                n_jobs=self.config["model_params"]["n_jobs"],
+                n_jobs=self.config["model_utils"]["n_jobs"],
             )
 
             self.xgb.fit(train_x, train_y)
@@ -217,7 +192,7 @@ class Model_Finder:
                 collection_name=self.collection_name,
                 log_message="XGBoost best params: "
                 + str(self.grid.best_params_)
-                + ". exited the get_best_params_for_xgboost method of the Model Finder class",
+                + f". exited the {method_name} method of the {self.class_name} class",
             )
 
             return self.xgb
@@ -226,7 +201,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="XGBoost parameter tuning failed. Exited the get_best_params_for_xgboost method of the Model Finder class",
+                log_message=f"XGBoost parameter tuning failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
             raise_exception(
@@ -247,13 +222,14 @@ class Model_Finder:
         Version     :   1.1
         Revisions   :   modified code based on the config file
         """
+
+        method_name = self.get_trained_models.__name__
+
         self.log_writer.log(
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message="Entered the get_trained_models method of the Model Finder class",
+            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
-
-        method_name = self.get_trained_models.__name__
 
         try:
             ## creating the xgboost model
@@ -358,7 +334,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Model training failed. Exited the get_trained_models method of the Model Finder class",
+                log_message=f"Model training failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
             raise_exception(

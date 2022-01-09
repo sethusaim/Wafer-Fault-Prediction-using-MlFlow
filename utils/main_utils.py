@@ -1,4 +1,5 @@
 import json
+from logging import log
 import pickle
 from io import StringIO
 
@@ -6,8 +7,11 @@ import pandas as pd
 
 from utils.exception import raise_exception
 from utils.logger import App_Logger
+from utils.read_params import read_params
 
 log_writer = App_Logger()
+
+config = read_params()
 
 class_name = "main_utils.py"
 
@@ -148,6 +152,7 @@ def convert_object_to_bytes(obj, db_name, collection_name):
 
 
 def get_model_name(model, db_name, collection_name):
+    method_name = get_model_name.__name__
     try:
         model_name = model.__class__.__name__
 
@@ -163,10 +168,30 @@ def get_model_name(model, db_name, collection_name):
         raise_exception(
             error=e,
             class_name=class_name,
-            method_name="get_model_name",
+            method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
         )
+
+
+def get_param_grid(model_key_name,db_name,collection_name):
+    method_name = get_param_grid.__name__
+    try:
+        model_grid = {}
+
+        model_param_name = config["model_params"][model_key_name]
+
+        params_names = list(model_param_name.keys())
+
+        for param in params_names:
+            model_grid[param] = model_param_name[param]
+
+        log_writer.log(db_name=db_name,collection_name=collection_name,log_message=f"Inserted {model_key_name} params as to model_grid")
+
+        return model_grid
+
+    except Exception as e:
+        raise_exception(error=e,class_name=class_name,method_name=method_name,db_name=db_name,collection_name=collection_name)
 
 
 def convert_obj_to_json(obj, db_name, collection_name):

@@ -54,7 +54,7 @@ async def trainRouteClient():
 
         num_clusters = trainModelObj.training_model()
 
-        loadProdModelObj = load_prod_model(num_clusters=3)
+        loadProdModelObj = load_prod_model(num_clusters)
 
         loadProdModelObj.load_production_model()
 

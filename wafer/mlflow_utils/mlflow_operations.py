@@ -1,8 +1,12 @@
+import os
+
 import mlflow
+from mlflow.tracking import MlflowClient
 from utils.exception import raise_exception
 from utils.logger import App_Logger
 from utils.main_utils import get_model_name
 from utils.read_params import read_params
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class Mlflow_Operations:
@@ -13,26 +17,187 @@ class Mlflow_Operations:
 
         self.log_writer = App_Logger()
 
+        self.s3_obj = S3_Operations()
+
         self.db_name = db_name
 
         self.collection_name = collection_name
 
-    def log_model(self, model, model_name, db_name, collection_name):
+        self.mlflow_save_format = self.config["mlflow_config"]["serialization_format"]
+
+        self.remote_server_uri = self.config["mlflow_config"]["remote_server_uri"]
+
+        self.trained_models_dir = self.config["models_dir"]["trained"]
+
+        self.staged_models_dir = self.config["models_dir"]["stag"]
+
+        self.prod_models_dir = self.config["models_dir"]["prod"]
+
+        self.model_save_format = self.config["model_params"]["save_format"]
+
+    def get_experiment_from_mlflow(self, exp_name):
+        method_name = self.get_experiment_from_mlflow.__name__
+
+        try:
+            exp = mlflow.get_experiment_by_name(name=exp_name)
+
+            return exp
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def get_runs_from_mlflow(self, exp_id):
+        method_name = self.get_runs_from_mlflow.__name__
+
+        try:
+            runs = mlflow.search_runs(experiment_ids=exp_id)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Completed searchiing for runs in mlflow with experiment ids as {exp_id}",
+            )
+
+            return runs
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def set_mlflow_experiment(self, experiment_name):
+        method_name = self.set_mlflow_experiment.__name__
+
+        try:
+            mlflow.set_experiment(experiment_name=experiment_name)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Set mlflow experiment with name as {experiment_name}",
+            )
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def get_mlflow_client(self, server_uri):
+        method_name = self.get_mlflow_client.__name__
+
+        try:
+            client = MlflowClient(tracking_uri=server_uri)
+
+            return client
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def set_mlflow_tracking_uri(self, server_uri):
+        method_name = self.set_mlflow_tracking_uri.__name__
+
+        try:
+            mlflow.set_tracking_uri(server_uri)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Set mlflow tracking uri to {server_uri}",
+            )
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def get_mlflow_models(self):
+        method_name = self.get_mlflow_models.__name__
+
+        try:
+            client = self.get_mlflow_client(server_uri=self.remote_server_uri)
+
+            reg_model_names = [rm.name for rm in client.list_registered_models()]
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Got registered model from mlflow",
+            )
+
+            return reg_model_names
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def search_mlflow_models(self, order):
+        method_name = self.search_mlflow_models.__name__
+
+        try:
+            client = self.get_mlflow_client(server_uri=self.remote_server_uri)
+
+            results = client.search_registered_models(order_by=[f"name {order}"])
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message="Got registered models in mlflow in descending order",
+            )
+
+            return results
+
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def log_model(self, model, model_name):
         method_name = self.log_model.__name__
 
         try:
             mlflow.sklearn.log_model(
                 sk_model=model,
-                serialization_format=self.config["mlflow_config"][
-                    "serialization_format"
-                ],
+                serialization_format=self.mlflow_save_format,
                 registered_model_name=model_name,
                 artifact_path=model_name,
             )
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_message=f"Logged {model_name} in mlflow",
             )
 
@@ -41,19 +206,19 @@ class Mlflow_Operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-    def log_metric(self, model_name, metric, db_name, collection_name):
+    def log_metric(self, model_name, metric):
         method_name = self.log_metric.__name__
 
         try:
             mlflow.log_metric(key=model_name + "-best_score", value=metric)
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_message=model_name + "-best score logged in mlflow",
             )
 
@@ -62,11 +227,11 @@ class Mlflow_Operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-    def log_param(self, idx, model, model_name, param, db_name, collection_name):
+    def log_param(self, idx, model, model_name, param):
         method_name = self.log_param.__name__
 
         try:
@@ -85,153 +250,123 @@ class Mlflow_Operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-    def log_xgboost_params(self, idx, model, db_name, collection_name):
-        method_name = self.log_xgboost_params.__name__
+    def log_all_for_model(self, idx, model, model_param_name, model_score):
+        method_name = self.log_all_for_model.__name__
 
         try:
-            model_name = get_model_name(
-                model, db_name=db_name, collection_name=collection_name
+            base_model_name = get_model_name(
+                model=model, db_name=self.db_name, collection_name=self.collection_name
             )
 
-            params_list = list(self.config["model_params"]["xgb_model"].keys())
+            model_name = base_model_name + str(idx)
 
-            self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message="Got xgboost params list",
+            model_params_list = list(
+                self.config["model_params"][model_param_name].keys()
             )
 
-            for param in params_list:
+            for param in model_params_list:
                 self.log_param(
                     idx=idx,
                     model=model,
                     model_name=model_name,
                     param=param,
-                    db_name=db_name,
-                    collection_name=collection_name,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
                 )
 
-        except Exception as e:
-            raise_exception(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
-    def log_rf_model_params(self, idx, model, db_name, collection_name):
-        method_name = self.log_rf_model_params.__name__
-
-        try:
-            model_name = get_model_name(
-                model=model, db_name=db_name, collection_name=collection_name
-            )
-
-            params_list = list(self.config["model_params"]["rf_model"].keys())
-
-            self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message="Got rf model params",
-            )
-
-            for param in params_list:
-                self.log_param(
-                    idx=idx,
-                    model=model,
-                    model_name=model_name,
-                    param=param,
-                    db_name=db_name,
-                    collection_name=collection_name,
-                )
-
-        except Exception as e:
-            raise_exception(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
-    def log_trained_models(
-        self, kmeans_model, idx, xgb_model, rf_model, db_name, collection_name
-    ):
-        method_name = self.log_trained_models.__name__
-
-        try:
-            xgb_model_name = get_model_name(
-                model=xgb_model, db_name=db_name, collection_name=collection_name
-            )
-
-            rf_model_name = get_model_name(
-                model=rf_model, db_name=db_name, collection_name=collection_name
-            )
-
-            kmeans_model_name = get_model_name(
-                model=kmeans_model, db_name=db_name, collection_name=collection_name
-            )
-
             self.log_model(
-                model=kmeans_model,
-                model_name=kmeans_model_name,
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
-
-            self.log_model(
-                model=xgb_model,
-                model_name=xgb_model_name + str(idx),
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
-
-            self.log_model(
-                model=rf_model,
-                model_name=rf_model_name + str(idx),
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
-
-        except Exception as e:
-            raise_exception(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
-    def log_metrics_of_trained_models(
-        self, idx, xgb_model, rf_model, xgb_score, rf_score, db_name, collection_name
-    ):
-        method_name = self.log_metrics_of_trained_models.__name__
-
-        try:
-            self.log_metric(
-                model_name=xgb_model.__class__.__name__ + str(idx),
-                metric=float(xgb_score),
+                model=model,
+                model_name=model_name + str(idx),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             self.log_metric(
-                model_name=rf_model.__class__.__name__ + str(idx),
-                metric=float(rf_score),
+                model_name=model_name,
+                metric=float(model_score),
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
-            self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message="Metrics for trained models are looged in mlflow",
+        except Exception as e:
+            raise_exception(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
+
+    def transition_mlflow_model(
+        self, model_version, stage, model_name, bucket, db_name, collection_name
+    ):
+        method_name = self.transition_mlflow_model.__name__
+
+        try:
+            current_version = model_version
+
+            client = self.get_mlflow_client(server_uri=self.remote_server_uri)
+
+            model = model_name + self.model_save_format
+
+            trained_model_file = os.path.join(self.trained_models_dir, model)
+
+            stag_model_file = os.path.join(self.staged_models_dir, model)
+
+            prod_model_file = os.path.join(self.prod_models_dir, model)
+
+            if stage == "Production":
+                client.transition_model_version_stage(
+                    name=model_name, version=current_version, stage=stage
+                )
+
+                self.log_writer.log(
+                    db_name=db_name,
+                    collection_name=collection_name,
+                    log_message="Transitioned "
+                    + model_name
+                    + "to production in mlflow",
+                )
+
+                self.s3_obj.copy_data_to_other_bucket(
+                    src_bucket=bucket,
+                    src_file=trained_model_file,
+                    dest_bucket=bucket,
+                    dest_file=prod_model_file,
+                    db_name=db_name,
+                    collection_name=collection_name,
+                )
+
+            elif stage == "Staging":
+                client.transition_model_version_stage(
+                    name=model_name, version=current_version, stage=stage
+                )
+
+                self.log_writer.log(
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
+                    log_message="Transitioned " + model_name + "to staging in mlflow",
+                )
+
+                self.s3_obj.copy_data_to_other_bucket(
+                    src_bucket=bucket,
+                    src_file=trained_model_file,
+                    dest_bucket=bucket,
+                    dest_file=stag_model_file,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
+                )
+
+            else:
+                self.log_writer.log(
+                    db_name=db_name,
+                    collection_name=collection_name,
+                    log_message="Please select stage for model transition",
+                )
 
         except Exception as e:
             raise_exception(
