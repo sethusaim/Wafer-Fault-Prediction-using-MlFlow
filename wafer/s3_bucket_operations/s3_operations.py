@@ -3,7 +3,7 @@ import pickle
 
 import boto3
 import botocore
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import (
     convert_obj_to_json,
@@ -29,6 +29,12 @@ class S3_Operations:
 
         self.train_data_bucket = self.config["s3_bucket"]["scania_train_data_bucket"]
 
+        self.trained_model_dir = self.config["models_dir"]["trained"]
+
+        self.prod_model_dir = self.config["models_dir"]["prod"]
+
+        self.stag_model_dir = self.config["models_dir"]["stag"]
+
         self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
 
         self.bad_train_data_dir = self.config["data"]["train"]["bad_data_dir"]
@@ -46,7 +52,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -58,11 +64,9 @@ class S3_Operations:
         self, cluster_number, bucket_name, db_name, collection_name
     ):
         try:
-            prod_model_dir = self.config["models_dir"]["prod"]
-
             list_of_files = self.get_files_from_s3(
                 bucket=bucket_name,
-                folder_name=prod_model_dir,
+                folder_name=self.prod_model_dir,
                 db_name=db_name,
                 collection_name=collection_name,
             )
@@ -80,7 +84,7 @@ class S3_Operations:
             return model_name
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name="",
                 method_name="",
@@ -122,7 +126,7 @@ class S3_Operations:
                     log_message="Error occured in deleting the pred file",
                 )
 
-                raise_exception(
+                raise_exception_log(
                     error=e,
                     class_name=self.class_name,
                     method_name=method_name,
@@ -158,7 +162,7 @@ class S3_Operations:
                     log_message="Error occured in creating folder",
                 )
 
-                raise_exception(
+                raise_exception_log(
                     error=e,
                     class_name=self.class_name,
                     method_name=method_name,
@@ -179,7 +183,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -214,7 +218,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -237,7 +241,7 @@ class S3_Operations:
             return bucket
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -262,7 +266,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -283,7 +287,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -320,7 +324,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -350,7 +354,7 @@ class S3_Operations:
             return list_of_files
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -381,7 +385,7 @@ class S3_Operations:
                 return lst_objs
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -413,7 +417,7 @@ class S3_Operations:
             return model
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -445,7 +449,7 @@ class S3_Operations:
             return dic
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -472,7 +476,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -484,26 +488,22 @@ class S3_Operations:
         method_name = self.create_folders_for_prod_and_stag.__name__
 
         try:
-            prod_model_dir = self.config["models_dir"]["prod"]
-
-            stag_model_dir = self.config["models_dir"]["stag"]
-
             self.create_folder_in_s3(
                 bucket_name=bucket_name,
-                folder_name=prod_model_dir,
+                folder_name=self.prod_model_dir,
                 db_name=db_name,
                 collection_name=collection_name,
             )
 
             self.create_folder_in_s3(
                 bucket_name=bucket_name,
-                folder_name=stag_model_dir,
+                folder_name=self.stag_model_dir,
                 db_name=db_name,
                 collection_name=collection_name,
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -531,8 +531,6 @@ class S3_Operations:
             else:
                 model_file = model_name + idx + self.file_format
 
-            self.trained_model_dir = self.config["models_dir"]["trained"]
-
             with open(file=model_file, mode="wb") as f:
                 pickle.dump(model, f)
 
@@ -542,7 +540,7 @@ class S3_Operations:
                 log_message="Model File " + model_name + " saved. ",
             )
 
-            s3_model_path = os.path.join(self.trained_model_dir, model_file)
+            s3_model_path = self.trained_model_dir + "/" + model_file
 
             self.upload_to_s3(
                 src_file=model_file,
@@ -569,7 +567,7 @@ class S3_Operations:
                 + f" could not be saved. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -600,7 +598,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

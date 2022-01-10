@@ -1,8 +1,8 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
-from wafer.mongo_db_operations.db_operations import MongoDBOperation
+from wafer.mongo_db_operations.db_operations import MongoDB_Operation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
@@ -19,7 +19,7 @@ class dBOperation:
 
         self.s3_obj = S3_Operations()
 
-        self.db_op = MongoDBOperation()
+        self.db_op = MongoDB_Operation()
 
         self.log_writer = App_Logger()
 
@@ -80,7 +80,7 @@ class dBOperation:
                 )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -112,7 +112,7 @@ class dBOperation:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

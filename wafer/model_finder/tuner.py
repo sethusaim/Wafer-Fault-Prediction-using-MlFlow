@@ -1,9 +1,9 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
-from utils.main_utils import get_param_grid
+from utils.main_utils import get_model_param_grid
 from utils.read_params import read_params
 from xgboost import XGBClassifier
 
@@ -54,7 +54,11 @@ class Model_Finder:
         )
 
         try:
-            self.param_grid_rf = get_param_grid(model_key_name="rf_model",db_name=self.db_name,collection_name=self.collection_name)
+            self.param_grid_rf = get_model_param_grid(
+                model_key_name="rf_model",
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
 
             self.grid = GridSearchCV(
                 estimator=self.clf,
@@ -125,7 +129,7 @@ class Model_Finder:
                 log_message=f"Random forest parameter tuning failed.Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -154,7 +158,11 @@ class Model_Finder:
         )
 
         try:
-            self.param_grid_xgb = get_param_grid(model_key_name="xgb_model",db_name=self.db_name,collection_name=self.collection_name)
+            self.param_grid_xgb = get_model_param_grid(
+                model_key_name="xgb_model",
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
 
             self.grid = GridSearchCV(
                 XGBClassifier(objective="binary:logistic"),
@@ -204,7 +212,7 @@ class Model_Finder:
                 log_message=f"XGBoost parameter tuning failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -337,7 +345,7 @@ class Model_Finder:
                 log_message=f"Model training failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

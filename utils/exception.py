@@ -3,7 +3,7 @@ from utils.logger import App_Logger
 log_writer = App_Logger()
 
 
-def raise_exception(error, class_name, method_name, db_name, collection_name):
+def raise_exception_log(error, class_name, method_name, db_name, collection_name):
     exception_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {str(error)}"
 
     log_writer.log(

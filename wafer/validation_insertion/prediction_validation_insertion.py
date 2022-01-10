@@ -1,4 +1,4 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_pred import data_transform_pred
@@ -29,6 +29,12 @@ class pred_validation:
         self.db_name = self.config["db_log"]["db_pred_log"]
 
         self.pred_main_log = self.config["pred_db_log"]["pred_main"]
+
+        self.wafer_data_db_name = self.config["mongodb"]["wafer_data_db_name"]
+
+        self.wafer_pred_data_collection = self.config["mongodb"][
+            "wafer_pred_data_collection"
+        ]
 
         self.log_writer = App_Logger()
 
@@ -88,14 +94,14 @@ class pred_validation:
             )
 
             self.dBOperation.insert_good_data_as_record(
-                db_name=self.config["mongodb"]["wafer_data_db_name"],
-                collection_name=self.config["mongodb"]["wafer_pred_data_collection"],
+                db_name=self.wafer_data_db_name,
+                collection_name=self.wafer_pred_data_collection,
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Insertion in good data in MongoDB !!!",
+                log_message="Inserted in good data in MongoDB !!!",
             )
 
             self.log_writer.log(
@@ -105,14 +111,12 @@ class pred_validation:
             )
 
             self.dBOperation.export_collection_to_csv(
-                export_db_name=self.config["mongodb"]["wafer_data_db_name"],
-                export_collection_name=self.config["mongodb"][
-                    "wafer_pred_data_collection"
-                ],
+                export_db_name=self.wafer_data_db_name,
+                export_collection_name=self.wafer_pred_data_collection,
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

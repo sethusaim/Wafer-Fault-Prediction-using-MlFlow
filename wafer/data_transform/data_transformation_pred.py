@@ -1,4 +1,4 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -40,7 +40,6 @@ class data_transform_pred:
         Written by  :   iNeuron Intelligence
         Revisions   :   modified code based on params.yaml file
         """
-
         method_name = self.rename_target_column.__name__
 
         try:
@@ -77,18 +76,11 @@ class data_transform_pred:
                         log_message=f"Renamed the output columns for the file {file}",
                     )
 
-                    df.to_csv(abs_f, index=None, header=True)
-
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.pred_data_transform_log,
-                        log_message=f"Converted {file} to csv file and local copy is created",
-                    )
-
-                    self.s3_obj.upload_to_s3(
-                        src_file=abs_f,
+                    self.s3_obj.upload_df_as_csv_to_s3(
+                        data_frame=df,
+                        file_name=abs_f,
                         bucket=self.pred_data_bucket,
-                        dest_file=file,
+                        dest_file_name=file,
                         db_name=self.db_name,
                         collection_name=self.pred_data_transform_log,
                     )
@@ -97,7 +89,7 @@ class data_transform_pred:
                     pass
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -152,18 +144,11 @@ class data_transform_pred:
                         log_message=f"Replaced missing values with null for the file {file}",
                     )
 
-                    df.to_csv(abs_f, index=None, header=True)
-
-                    self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.pred_data_transform_log,
-                        log_message=f"Converted {file} to csv file and local copy is created",
-                    )
-
-                    self.s3_obj.upload_to_s3(
-                        src_file=abs_f,
+                    self.s3_obj.upload_df_as_csv_to_s3(
+                        data_frame=df,
+                        file_name=abs_f,
                         bucket=self.pred_data_bucket,
-                        dest_file=file,
+                        dest_file_name=file,
                         db_name=self.db_name,
                         collection_name=self.pred_data_transform_log,
                     )
@@ -172,7 +157,7 @@ class data_transform_pred:
                     pass
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

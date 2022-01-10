@@ -1,4 +1,4 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -41,7 +41,6 @@ class data_transform:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-
         method_name = self.rename_target_column.__name__
 
         try:
@@ -91,7 +90,7 @@ class data_transform:
                     pass
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -160,7 +159,7 @@ class data_transform:
                     pass
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

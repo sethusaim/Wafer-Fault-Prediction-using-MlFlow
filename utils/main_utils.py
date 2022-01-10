@@ -1,11 +1,10 @@
 import json
-from logging import log
 import pickle
 from io import StringIO
 
 import pandas as pd
 
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 
@@ -29,7 +28,7 @@ def make_readable(data, db_name, collection_name):
         return f
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name="make_readable",
@@ -59,7 +58,7 @@ def convert_object_to_dataframe(obj, db_name, collection_name):
         return df
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name="convert_object_to_dataframe",
@@ -92,7 +91,7 @@ def read_s3_obj(obj, db_name, collection_name, decode=True):
             return content
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name="read_s3_obj",
@@ -118,7 +117,7 @@ def convert_object_to_pickle(obj, db_name, collection_name):
         return model
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name="convert_object_to_pickle",
@@ -142,7 +141,7 @@ def convert_object_to_bytes(obj, db_name, collection_name):
         return content
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name="convert_object_to_bytes",
@@ -165,7 +164,7 @@ def get_model_name(model, db_name, collection_name):
         return model_name
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name=method_name,
@@ -174,8 +173,8 @@ def get_model_name(model, db_name, collection_name):
         )
 
 
-def get_param_grid(model_key_name,db_name,collection_name):
-    method_name = get_param_grid.__name__
+def get_model_param_grid(model_key_name, db_name, collection_name):
+    method_name = get_model_param_grid.__name__
     try:
         model_grid = {}
 
@@ -186,12 +185,22 @@ def get_param_grid(model_key_name,db_name,collection_name):
         for param in params_names:
             model_grid[param] = model_param_name[param]
 
-        log_writer.log(db_name=db_name,collection_name=collection_name,log_message=f"Inserted {model_key_name} params as to model_grid")
+        log_writer.log(
+            db_name=db_name,
+            collection_name=collection_name,
+            log_message=f"Inserted {model_key_name} params as to model_grid",
+        )
 
         return model_grid
 
     except Exception as e:
-        raise_exception(error=e,class_name=class_name,method_name=method_name,db_name=db_name,collection_name=collection_name)
+        raise_exception_log(
+            error=e,
+            class_name=class_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
+        )
 
 
 def convert_obj_to_json(obj, db_name, collection_name):
@@ -211,7 +220,7 @@ def convert_obj_to_json(obj, db_name, collection_name):
         return dic
 
     except Exception as e:
-        raise_exception(
+        raise_exception_log(
             error=e,
             class_name=class_name,
             method_name="convert_obj_to_json",

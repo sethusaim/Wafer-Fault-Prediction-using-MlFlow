@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -25,6 +25,8 @@ class Preprocessor:
         self.s3_obj = S3_Operations()
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
+        self.null_values_file = self.config["null_values_csv_file"]
 
         self.log_writer = App_Logger()
 
@@ -70,7 +72,7 @@ class Preprocessor:
                 log_message=f"Column removal Unsuccessful. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -115,7 +117,7 @@ class Preprocessor:
                 log_message=f"Label Separation Unsuccessful.Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -160,20 +162,11 @@ class Preprocessor:
                     data.isna().sum()
                 )
 
-                null_values_file = self.config["null_values_csv_file"]
-
-                dataframe_with_null.to_csv(null_values_file)
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Prepared the null values csv file and created a local copy of the same",
-                )
-
-                self.s3_obj.upload_to_s3(
-                    src_file=null_values_file,
+                self.s3_obj.upload_df_as_csv_to_s3(
+                    data_frame=dataframe_with_null,
+                    file_name=self.null_values_file,
                     bucket=self.input_files_bucket,
-                    dest_file=null_values_file,
+                    dest_file_name=self.null_values_file,
                     db_name=self.db_name,
                     collection_name=self.collection_name,
                 )
@@ -194,7 +187,7 @@ class Preprocessor:
                 log_message=f"Finding missing values failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -250,7 +243,7 @@ class Preprocessor:
                 log_message=f"Imputing missing values failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -277,16 +270,10 @@ class Preprocessor:
             log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
-        self.columns = data.columns
-
         self.data_n = data.describe()
 
-        self.col_to_drop = []
-
         try:
-            for x in self.columns:
-                if self.data_n[x]["std"] == 0:
-                    self.col_to_drop.append(x)
+            self.col_to_drop = [x for x in data.columns if self.data_n[x]["std"] == 0]
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -303,7 +290,7 @@ class Preprocessor:
                 log_message=f"Column search for Standard Deviation of Zero Failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

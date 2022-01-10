@@ -1,4 +1,4 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_train import data_transform
@@ -25,6 +25,12 @@ class train_validation:
         self.config = read_params()
 
         self.class_name = self.__class__.__name__
+
+        self.wafer_data_db_name = self.config["mongodb"]["wafer_data_db_name"]
+
+        self.wafer_train_data_collection = self.config["mongodb"][
+            "wafer_train_data_collection"
+        ]
 
         self.db_name = self.config["db_log"]["db_train_log"]
 
@@ -99,8 +105,8 @@ class train_validation:
             )
 
             self.dBOperation.insert_good_data_as_record(
-                db_name=self.config["mongodb"]["wafer_data_db_name"],
-                collection_name=self.config["mongodb"]["wafer_train_data_collection"],
+                db_name=self.wafer_data_db_name,
+                collection_name=self.wafer_train_data_collection,
             )
 
             self.log_writer.log(
@@ -116,12 +122,12 @@ class train_validation:
             )
 
             self.dBOperation.export_collection_to_csv(
-                db_name=self.config["mongodb"]["wafer_data_db_name"],
-                collection_name=self.config["mongodb"]["wafer_train_data_collection"],
+                db_name=self.wafer_data_db_name,
+                collection_name=self.wafer_train_data_collection,
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

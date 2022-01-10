@@ -1,7 +1,7 @@
 import os
 
 import pandas as pd
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_prediction import Data_Getter_Pred
@@ -29,11 +29,17 @@ class prediction:
 
         self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
+        self.prod_model_dir = self.config["models_dir"]["prod"]
+
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+
+        self.pred_output_file = self.config["pred_output_file"]
 
         self.log_writer = App_Logger()
 
-        self.prod_model_dir = self.config["models_dir"]["prod"]
+        self.data_getter = Data_Getter_Pred(self.db_name, self.pred_log)
+
+        self.preprocessor = Preprocessor(self.db_name, self.pred_log)
 
         self.class_name = self.__class__.__name__
 
@@ -59,22 +65,18 @@ class prediction:
                 log_message="Start of Prediction",
             )
 
-            data_getter = Data_Getter_Pred(self.db_name, self.pred_log)
+            data = self.data_getter.get_data()
 
-            data = data_getter.get_data()
-
-            preprocessor = Preprocessor(self.db_name, self.pred_log)
-
-            is_null_present = preprocessor.is_null_present(data)
+            is_null_present = self.preprocessor.is_null_present(data)
 
             if is_null_present:
-                data = preprocessor.impute_missing_values(data)
+                data = self.preprocessor.impute_missing_values(data)
 
-            cols_to_drop = preprocessor.get_columns_with_zero_std_deviation(data)
+            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(data)
 
-            data = preprocessor.remove_columns(data, cols_to_drop)
+            data = self.preprocessor.remove_columns(data, cols_to_drop)
 
-            kmeans_model_name = os.path.join(self.prod_model_dir, "KMeans")
+            kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
 
             kmeans = self.s3_obj.load_model_from_s3(
                 bucket=self.model_bucket,
@@ -105,7 +107,7 @@ class prediction:
                     collection_name=self.pred_log,
                 )
 
-                prod_model_name = os.path.join(self.prod_model_dir, crt_model_name)
+                prod_model_name = self.prod_model_dir + "/" + crt_model_name
 
                 model = self.s3_obj.load_model_from_s3(
                     bucket=self.model_bucket,
@@ -120,20 +122,11 @@ class prediction:
                     list(zip(wafer_names, result)), columns=["Wafer", "Prediction"]
                 )
 
-                path = self.config["pred_output_file"]
-
-                result.to_csv(path, header=True, mode="a+")
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.pred_log,
-                    log_message="Local copy of the prediction file is created",
-                )
-
-                self.s3_obj.upload_to_s3(
-                    src_file=path,
+                self.s3_obj.upload_df_as_csv_to_s3(
+                    data_frame=result,
+                    file_name=self.pred_output_file,
                     bucket=self.input_files_bucket,
-                    dest_file=path,
+                    dest_file_name=self.pred_output_file,
                     db_name=self.db_name,
                     collection_name=self.pred_log,
                 )
@@ -145,7 +138,7 @@ class prediction:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -153,4 +146,8 @@ class prediction:
                 collection_name=self.pred_log,
             )
 
-        return path, result.head().to_json(orient="records")
+        return (
+            self.input_files_bucket,
+            self.pred_output_file,
+            result.head().to_json(orient="records"),
+        )

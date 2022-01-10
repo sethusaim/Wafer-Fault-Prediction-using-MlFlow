@@ -1,7 +1,6 @@
-import os
 import re
 
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -100,7 +99,7 @@ class Raw_Data_validation:
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
                 log_message=f"Exception occured in Class : {self.class_name},  \
-                    Method : {method_name}, Error : ValueError:Value not found inside schema_training.json",
+                    Method : {method_name}, Error : ValueError:Value not found inside {self.train_schema_file}",
             )
 
             raise ValueError
@@ -109,14 +108,13 @@ class Raw_Data_validation:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
-                log_message=f"Exception occured in class : {self.class_name},  \
-                    Method : {method_name}, Error : KeyError:Key value error incorrect key passed",
+                log_message=f"Exception occured in class : {self.class_name},Method : {method_name}, Error : KeyError:Key value error incorrect key passed",
             )
 
             raise KeyError
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -145,10 +143,16 @@ class Raw_Data_validation:
         try:
             regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+                log_message=f"Got {regex} pattern",
+            )
+
             return regex
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -171,7 +175,7 @@ class Raw_Data_validation:
                 )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -205,6 +209,12 @@ class Raw_Data_validation:
             train_batch_files = [f.split("/")[1] for f in onlyfiles]
 
             for filename in train_batch_files:
+                raw_data_file_name = self.raw_train_data_dir + "/" + filename
+
+                good_data_file_name = self.good_train_data_dir + "/" + filename
+
+                bad_data_file_name = self.bad_train_data_dir + "/" + filename
+
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
 
@@ -212,64 +222,47 @@ class Raw_Data_validation:
 
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
-
-                            src_f = os.path.join(self.raw_train_data_dir, filename)
-
-                            dest_f = os.path.join(self.good_train_data_dir, filename)
-
                             self.s3_obj.copy_data_to_other_bucket(
                                 src_bucket=self.raw_data_bucket_name,
-                                src_file=src_f,
+                                src_file=raw_data_file_name,
                                 dest_bucket=self.train_data_bucket,
-                                dest_file=dest_f,
+                                dest_file=good_data_file_name,
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
                             )
 
                         else:
-                            src_f = os.path.join(self.raw_train_data_dir, filename)
-
-                            dest_f = os.path.join(self.bad_train_data_dir, filename)
-
                             self.s3_obj.copy_data_to_other_bucket(
                                 src_bucket=self.raw_data_bucket_name,
-                                src_file=src_f,
+                                src_file=raw_data_file_name,
                                 dest_bucket=self.train_data_bucket,
-                                dest_file=dest_f,
+                                dest_file=bad_data_file_name,
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
                             )
 
                     else:
-                        src_f = os.path.join(self.raw_train_data_dir, filename)
-
-                        dest_f = os.path.join(self.bad_train_data_dir, filename)
-
                         self.s3_obj.copy_data_to_other_bucket(
                             src_bucket=self.raw_data_bucket_name,
-                            src_file=src_f,
+                            src_file=raw_data_file_name,
                             dest_bucket=self.train_data_bucket,
-                            dest_file=dest_f,
+                            dest_file=bad_data_file_name,
                             db_name=self.db_name,
                             collection_name=self.train_name_valid_log,
                         )
 
                 else:
-                    src_f = os.path.join(self.raw_train_data_dir, filename)
-
-                    dest_f = os.path.join(self.bad_train_data_dir, filename)
-
                     self.s3_obj.copy_data_to_other_bucket(
                         src_bucket=self.raw_data_bucket_name,
-                        src_file=src_f,
+                        src_file=raw_data_file_name,
                         dest_bucket=self.train_data_bucket,
-                        dest_file=dest_f,
+                        dest_file=bad_data_file_name,
                         db_name=self.db_name,
                         collection_name=self.train_name_valid_log,
                     )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -322,7 +315,7 @@ class Raw_Data_validation:
                         pass
 
                     else:
-                        dest_f = os.path.join(self.bad_train_data_dir, abs_f)
+                        dest_f = self.bad_train_data_dir + "/" + abs_f
 
                         self.s3_obj.move_data_to_other_bucket(
                             src_bucket=self.train_data_bucket,
@@ -343,7 +336,7 @@ class Raw_Data_validation:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -395,7 +388,7 @@ class Raw_Data_validation:
                         if (len(csv[cols]) - csv[cols].count()) == len(csv[cols]):
                             count += 1
 
-                            dest_f = os.path.join(self.bad_train_data_dir, abs_f)
+                            dest_f = self.bad_train_data_dir + "/" + abs_f
 
                             self.s3_obj.move_data_to_other_bucket(
                                 src_bucket=self.train_data_bucket,
@@ -417,7 +410,7 @@ class Raw_Data_validation:
                             log_message="Wafer column added to files",
                         )
 
-                        dest_f = os.path.join(self.good_train_data_dir, abs_f)
+                        dest_f = self.good_train_data_dir + "/" + abs_f
 
                         self.s3_obj.upload_df_as_csv_to_s3(
                             data_frame=csv,
@@ -432,7 +425,7 @@ class Raw_Data_validation:
                     pass
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

@@ -1,4 +1,4 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -64,7 +64,7 @@ class Data_Getter_Pred:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Data Load Successful.Exited the get_data method of the Data_Getter class",
+                log_message=f"Data Load Successful.Exited the {method_name} method of the {self.class_name} class",
             )
 
             return df
@@ -76,7 +76,7 @@ class Data_Getter_Pred:
                 log_message="Data Load Unsuccessful.Exited the get_data method of the Data_Getter class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

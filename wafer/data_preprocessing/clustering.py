@@ -1,7 +1,7 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -106,7 +106,7 @@ class KMeansClustering:
                 log_message=f"Finding the number of clusters failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -155,7 +155,7 @@ class KMeansClustering:
             return self.data, self.kmeans
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

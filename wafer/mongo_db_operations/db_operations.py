@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from utils.read_params import read_params
 
 
-class MongoDBOperation:
+class MongoDB_Operation:
     def __init__(self):
         self.config = read_params()
 

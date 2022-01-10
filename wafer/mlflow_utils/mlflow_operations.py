@@ -1,8 +1,6 @@
-import os
-
 import mlflow
 from mlflow.tracking import MlflowClient
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import get_model_name
 from utils.read_params import read_params
@@ -44,7 +42,7 @@ class Mlflow_Operations:
             return exp
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -67,7 +65,7 @@ class Mlflow_Operations:
             return runs
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -88,7 +86,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -105,7 +103,7 @@ class Mlflow_Operations:
             return client
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -126,7 +124,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -151,7 +149,7 @@ class Mlflow_Operations:
             return reg_model_names
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -170,13 +168,13 @@ class Mlflow_Operations:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Got registered models in mlflow in descending order",
+                log_message=f"Got registered models in mlflow in {order} order",
             )
 
             return results
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -202,7 +200,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -223,7 +221,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -231,11 +229,11 @@ class Mlflow_Operations:
                 collection_name=self.collection_name,
             )
 
-    def log_param(self, idx, model, model_name, param):
+    def log_param(self, model, model_name, param):
         method_name = self.log_param.__name__
 
         try:
-            name = model_name + str(idx) + f"-{param}"
+            name = model_name + f"-{param}"
 
             mlflow.log_param(key=name, value=model.__dict__[param])
 
@@ -246,7 +244,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -269,31 +267,14 @@ class Mlflow_Operations:
             )
 
             for param in model_params_list:
-                self.log_param(
-                    idx=idx,
-                    model=model,
-                    model_name=model_name,
-                    param=param,
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                )
+                self.log_param(model=model, model_name=model_name, param=param)
 
-            self.log_model(
-                model=model,
-                model_name=model_name + str(idx),
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            self.log_model(model=model, model_name=model_name)
 
-            self.log_metric(
-                model_name=model_name,
-                metric=float(model_score),
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-            )
+            self.log_metric(model_name=model_name, metric=float(model_score))
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -313,11 +294,11 @@ class Mlflow_Operations:
 
             model = model_name + self.model_save_format
 
-            trained_model_file = os.path.join(self.trained_models_dir, model)
+            trained_model_file = self.trained_models_dir + "/" + model
 
-            stag_model_file = os.path.join(self.staged_models_dir, model)
+            stag_model_file = self.staged_models_dir + "/" + model
 
-            prod_model_file = os.path.join(self.prod_models_dir, model)
+            prod_model_file = self.prod_models_dir + "/" + model
 
             if stage == "Production":
                 client.transition_model_version_stage(
@@ -369,7 +350,7 @@ class Mlflow_Operations:
                 )
 
         except Exception as e:
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

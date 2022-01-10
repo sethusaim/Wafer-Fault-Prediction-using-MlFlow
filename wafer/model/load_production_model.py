@@ -1,4 +1,4 @@
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
@@ -47,7 +47,6 @@ class load_prod_model:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-
         method_name = self.load_production_model.__name__
 
         self.log_writer.log(
@@ -216,7 +215,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 log_message="Transitioning of models failed",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

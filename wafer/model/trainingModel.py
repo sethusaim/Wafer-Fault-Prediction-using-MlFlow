@@ -1,6 +1,6 @@
 import mlflow
 from sklearn.model_selection import train_test_split
-from utils.exception import raise_exception
+from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import get_model_name
 from utils.read_params import read_params
@@ -169,7 +169,6 @@ class train_model:
                     )
 
                     with mlflow.start_run(run_name=self.run_name):
-
                         self.mlflow_op.log_model(
                             model=kmeans_model, model_name=kmeans_model_name
                         )
@@ -202,7 +201,7 @@ class train_model:
                         log_message="Mlflow logging of params,metrics and models failed",
                     )
 
-                    raise_exception(
+                    raise_exception_log(
                         error=e,
                         class_name=self.class_name,
                         method_name=method_name,
@@ -231,7 +230,7 @@ class train_model:
                 log_message="Unsuccessful End of Training",
             )
 
-            raise_exception(
+            raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
