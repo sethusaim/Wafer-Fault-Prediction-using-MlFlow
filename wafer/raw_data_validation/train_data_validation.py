@@ -6,12 +6,12 @@ from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
-class Raw_train_data_validation:
+class raw_train_data_validation:
     """
-    Description :   This class shall be used for validating the training raw data
-    Written by  :   iNeuron Intelligence
-    Version     :   1.0
-    Revisions   :   None
+    Description :   This method is used for validating the raw training data
+
+    Version     :   1.2
+    Revisions   :   moved to setup to cloud
     """
 
     def __init__(self, raw_data_bucket_name):
@@ -31,15 +31,15 @@ class Raw_train_data_validation:
 
         self.raw_train_data_dir = self.config["data"]["raw_data"]["train_batch"]
 
-        self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
-
-        self.bad_train_data_dir = self.config["data"]["train"]["bad_data_dir"]
-
         self.db_name = self.config["db_log"]["db_train_log"]
 
         self.train_schema_file = self.config["schema_file"]["train_schema_file"]
 
         self.train_schema_log = self.config["train_db_log"]["values_from_schema"]
+
+        self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
+
+        self.bad_train_data_dir = self.config["data"]["train"]["bad_data_dir"]
 
         self.train_gen_log = self.config["train_db_log"]["general"]
 
@@ -54,15 +54,22 @@ class Raw_train_data_validation:
     def values_from_schema(self):
         """
         Method Name :   values_from_schema
-        Description :   This method extracts all the relevant information from the pre defined schema file
-        Output      :   LengthOfDateStampInFile,LengthOfTimeStampInFile,column_names,NumberofColumns,
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Description :   This method is used for getting values from schema_training.json
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.values_from_schema.__name__
 
         try:
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.train_schema_log,
+            )
+
             dic = self.s3_obj.get_schema_from_s3(
                 bucket=self.input_files_bucket,
                 filename=self.train_schema_file,
@@ -93,27 +100,23 @@ class Raw_train_data_validation:
                 log_message=message,
             )
 
-        except ValueError:
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_schema_log,
-                log_message=f"Exception occured in Class : {self.class_name},  \
-                    Method : {method_name}, Error : ValueError:Value not found inside {self.train_schema_file}",
             )
 
-            raise ValueError
-
-        except KeyError:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.train_schema_log,
-                log_message=f"Exception occured in class : {self.class_name},Method : {method_name}, Error : KeyError:Key value error incorrect key passed",
+            return (
+                LengthOfDateStampInFile,
+                LengthOfTimeStampInFile,
+                column_names,
+                NumberofColumns,
             )
-
-            raise KeyError
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -121,26 +124,26 @@ class Raw_train_data_validation:
                 collection_name=self.train_schema_log,
             )
 
-        return (
-            LengthOfDateStampInFile,
-            LengthOfTimeStampInFile,
-            column_names,
-            NumberofColumns,
-        )
-
     def get_regex_pattern(self):
         """
         Method Name :   get_regex_pattern
-        Description :   This method contains a manually defined regex based on the filename given in
-                        the schema file
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Description :   This method is used for getting regex pattern for file validation
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.get_regex_pattern.__name__
 
         try:
-            regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+            )
+
+            regex = "['apsfailure']+['\_'']+[\d_]+[\d]+\.csv"
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -148,38 +151,23 @@ class Raw_train_data_validation:
                 log_message=f"Got {regex} pattern",
             )
 
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.train_gen_log,
+            )
+
             return regex
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
                 db_name=self.db_name,
-                collection_name=self.train_schema_log,
-            )
-
-    def create_dirs_for_good_bad_data(self):
-        method_name = self.create_dirs_for_good_bad_data.__name__
-
-        try:
-            folders = [self.good_train_data_dir, self.bad_train_data_dir]
-
-            for folder in folders:
-                self.s3_obj.create_folder_in_s3(
-                    bucket_name=self.train_data_bucket,
-                    folder_name=folder,
-                    db_name=self.db_name,
-                    collection_name=self.train_gen_log,
-                )
-
-        except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.train_name_valid_log,
+                collection_name=self.train_gen_log,
             )
 
     def validate_raw_file_name(
@@ -187,17 +175,26 @@ class Raw_train_data_validation:
     ):
         """
         Method Name :   validate_raw_file_name
-        Description :   This function validates the name of the prediction csv file as per the given name
-                        in the schema. Regex pattern is used to do the validation if name format do not match
-                        the file is moved to bad raw data folder else in good raw data folder
-        On Failure  :   Raise Exception
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Description :   This method is used for validating raw file name based on the regex pattern
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.validate_raw_file_name.__name__
 
         try:
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.train_name_valid_log,
+            )
+
+            self.s3_obj.create_dirs_for_good_bad_data(
+                db_name=self.db_name, collection_name=self.train_name_valid_log
+            )
+
             onlyfiles = self.s3_obj.get_files_from_s3(
                 bucket=self.raw_data_bucket_name,
                 folder_name=self.raw_train_data_dir,
@@ -207,12 +204,18 @@ class Raw_train_data_validation:
 
             train_batch_files = [f.split("/")[1] for f in onlyfiles]
 
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.train_name_valid_log,
+                log_message="Got train batch files without path",
+            )
+
             for filename in train_batch_files:
-                raw_data_file_name = self.raw_train_data_dir + "/" + filename
+                raw_data_train_filename = self.raw_train_data_dir + "/" + filename
 
-                good_data_file_name = self.good_train_data_dir + "/" + filename
+                good_data_train_filename = self.good_train_data_dir + "/" + filename
 
-                bad_data_file_name = self.bad_train_data_dir + "/" + filename
+                bad_data_train_filename = self.bad_train_data_dir + "/" + filename
 
                 if re.match(regex, filename):
                     splitAtDot = re.split(".csv", filename)
@@ -223,9 +226,9 @@ class Raw_train_data_validation:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
                             self.s3_obj.copy_data_to_other_bucket(
                                 src_bucket=self.raw_data_bucket_name,
-                                src_file=raw_data_file_name,
+                                src_file=raw_data_train_filename,
                                 dest_bucket=self.train_data_bucket,
-                                dest_file=good_data_file_name,
+                                dest_file=good_data_train_filename,
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
                             )
@@ -233,9 +236,9 @@ class Raw_train_data_validation:
                         else:
                             self.s3_obj.copy_data_to_other_bucket(
                                 src_bucket=self.raw_data_bucket_name,
-                                src_file=raw_data_file_name,
+                                src_file=raw_data_train_filename,
                                 dest_bucket=self.train_data_bucket,
-                                dest_file=bad_data_file_name,
+                                dest_file=bad_data_train_filename,
                                 db_name=self.db_name,
                                 collection_name=self.train_name_valid_log,
                             )
@@ -243,9 +246,9 @@ class Raw_train_data_validation:
                     else:
                         self.s3_obj.copy_data_to_other_bucket(
                             src_bucket=self.raw_data_bucket_name,
-                            src_file=raw_data_file_name,
+                            src_file=raw_data_train_filename,
                             dest_bucket=self.train_data_bucket,
-                            dest_file=bad_data_file_name,
+                            dest_file=bad_data_train_filename,
                             db_name=self.db_name,
                             collection_name=self.train_name_valid_log,
                         )
@@ -253,15 +256,23 @@ class Raw_train_data_validation:
                 else:
                     self.s3_obj.copy_data_to_other_bucket(
                         src_bucket=self.raw_data_bucket_name,
-                        src_file=raw_data_file_name,
+                        src_file=raw_data_train_filename,
                         dest_bucket=self.train_data_bucket,
-                        dest_file=bad_data_file_name,
+                        dest_file=bad_data_train_filename,
                         db_name=self.db_name,
                         collection_name=self.train_name_valid_log,
                     )
 
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.train_name_valid_log,
+            )
+
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -272,23 +283,20 @@ class Raw_train_data_validation:
     def validate_col_length(self, NumberofColumns):
         """
         Method Name :   validate_col_length
-        Description :   This function validates the number of columns in the csv files. It should be same
-                        as given in the schema file. If not same file is not suitable for processing and
-                        thus is moved to baw raw data folder. If the column number matches, the file is
-                        kept in good raw data folder for processing. This csv file is missing the first
-                        column name,this function changes the missing name to "Wafer".
-        On failure  :   Raise Exception
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Description :   This method is used for validating the column length of the csv file
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.validate_col_length.__name__
 
         try:
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message="Column Length Validation Started !!",
             )
 
             csv_file_objs = self.s3_obj.get_file_objects_from_s3(
@@ -328,14 +336,16 @@ class Raw_train_data_validation:
                 else:
                     pass
 
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_col_valid_log,
-                log_message="Column Length Validation completed !!",
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -346,20 +356,20 @@ class Raw_train_data_validation:
     def validate_missing_values_in_col(self):
         """
         Method Name :   validate_missing_values_in_col
-        Description :   This function validates the misisng values in column in the csv files, and
-                        corresponding missing values csv file is created
-        On failure  :   Raise Exception
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Description :   This method is used for validating the missing values in columns
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.validate_missing_values_in_col.__name__
 
         try:
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.train_missing_value_log,
-                log_message="Missing Values Validation Started!!",
             )
 
             csv_file_objs = self.s3_obj.get_file_objects_from_s3(
@@ -401,14 +411,6 @@ class Raw_train_data_validation:
                             break
 
                     if count == 0:
-                        csv.rename(columns={"Unnamed: 0": "Wafer"}, inplace=True)
-
-                        self.log_writer.log(
-                            db_name=self.db_name,
-                            collection_name=self.train_missing_value_log,
-                            log_message="Wafer column added to files",
-                        )
-
                         dest_f = self.good_train_data_dir + "/" + abs_f
 
                         self.s3_obj.upload_df_as_csv_to_s3(
@@ -423,8 +425,16 @@ class Raw_train_data_validation:
                 else:
                     pass
 
+                self.log_writer.start_log(
+                    key="exit",
+                    class_name=self.class_name,
+                    method_name=method_name,
+                    db_name=self.db_name,
+                    collection_name=self.train_missing_value_log,
+                )
+
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

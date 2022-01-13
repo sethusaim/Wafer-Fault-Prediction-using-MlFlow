@@ -1,21 +1,19 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.model_selection import GridSearchCV
-
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 from utils.logger import App_Logger
-from utils.main_utils import get_model_param_grid
+from utils.model_utils import get_best_score_for_model, get_model_param_grid
 from utils.read_params import read_params
-from xgboost import XGBClassifier
 
 
 class Model_Finder:
     """
-    Description :   This class shall be to train all the selected models with metrics as accuracy and
-                    roc auc score
-    Written By  :   iNeuron Intelligence
-    Version     :   1.1
-    Revisions   :   code changed from returning best models to returning all the trained models
-                    modified code based on params.yaml file
+    Description :   This method is used for hyperparameter tuning of selected models  
+                    some preprocessing steps and then train the models and register them in mlflow
+
+    Version     :   1.2
+    Revisions   :   moved to setup to cloud
     """
 
     def __init__(self, db_name, collection_name):
@@ -23,113 +21,118 @@ class Model_Finder:
 
         self.collection_name = collection_name
 
-        self.config = read_params()
-
         self.class_name = self.__class__.__name__
+
+        self.config = read_params()
 
         self.log_writer = App_Logger()
 
-        self.clf = RandomForestClassifier()
+        self.cv = self.config["model_utils"]["cv"]
 
-        self.xgb = XGBClassifier(objective="binary:logistic")
+        self.verbose = self.config["model_utils"]["verbose"]
 
-    def get_best_params_for_random_forest(self, train_x, train_y):
+        self.n_jobs = self.config["model_utils"]["n_jobs"]
+
+        self.svm = SVC()
+
+        self.knn = KNeighborsClassifier()
+
+        self.lr = LogisticRegression()
+
+    def get_best_params_for_lr(self, train_x, train_y):
         """
-        Method name :   get_best_params_for_random_forest
-        Description :   get the parameters for Random Forest Algorithm which gives the best results
-                        Used Hyperparameter tuning, Grid Search CV
-        Output      :   The model with best parameters
-        On Failure  :   Raise Exception
-        Written By  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on config file
+        Method Name :   get_best_params_for_lr
+        Description :   This method is used for getting the best params for logistic regression model
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
+        method_name = self.get_best_params_for_lr.__name__
 
-        method_name = self.get_best_params_for_random_forest.__name__
-
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of {self.class_name} class",
         )
 
         try:
-            self.param_grid_rf = get_model_param_grid(
-                model_key_name="rf_model",
+            self.lr_param_grid = get_model_param_grid(
+                model_key_name="lr_model",
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
-            self.grid = GridSearchCV(
-                estimator=self.clf,
-                param_grid=self.param_grid_rf,
-                cv=self.config["model_utils"]["cv"],
-                verbose=self.config["model_utils"]["verbose"],
-                n_jobs=self.config["model_utils"]["n_jobs"],
+            self.lr_grid = RandomizedSearchCV(
+                estimator=self.lr,
+                param_grid=self.svm_param_grid,
+                cv=self.cv,
+                verbose=self.verbose,
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Initialized grid search cv as hyperparameter tuning method to find best params",
+                log_message=f"Initialized {self.lr_param_grid.__class__.__name__} model with {self.lr_param_grid} as params",
+            )
+
+            self.lr_grid.fit(train_x, train_y)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Found the best params for {self.lr.__class__.__name__} model based on {self.lr_param_grid} as params",
+            )
+
+            self.C = self.lr_grid.best_params_["C"]
+
+            self.penalty = self.lr_grid.best_params_["penalty"]
+
+            self.max_iter = self.lr_grid.best_params_["max_iter"]
+
+            self.solver = self.lr_grid.best_params_["solver"]
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"{self.lr.__class__.__name__} model best params are {self.lr_grid.best_params_}",
+            )
+
+            self.lr = LogisticRegression(
+                penalty=self.penalty,
+                C=self.C,
+                max_iter=self.max_iter,
+                solver=self.solver,
+                n_jobs=self.n_jobs,
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Started searching for best params using grid search cv",
+                log_message=f"Initialized {self.lr.__class__,__name__} with {self.lr_grid.best_params_} as params",
             )
 
-            self.grid.fit(train_x, train_y)
+            self.lr.fit(train_x, train_y)
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Finised seraching for best params",
+                log_message=f"Created {self.lr.__class__.__name__} model with {self.lr_grid.best_params_} as params",
             )
 
-            self.criterion = self.grid.best_params_["criterion"]
-
-            self.max_depth = self.grid.best_params_["max_depth"]
-
-            self.max_features = self.grid.best_params_["max_features"]
-
-            self.n_estimators = self.grid.best_params_["n_estimators"]
-
-            self.clf = RandomForestClassifier(
-                n_estimators=self.n_estimators,
-                criterion=self.criterion,
-                max_depth=self.max_depth,
-                max_features=self.max_features,
-                n_jobs=self.config["model_utils"]["n_jobs"],
-            )
-
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Initialized and starting training xgb_model with best params",
             )
 
-            self.clf.fit(train_x, train_y)
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message="Random Forest best params: "
-                + str(self.grid.best_params_)
-                + f". Exited the {method_name} method of the {self.class_name} class",
-            )
-
-            return self.clf
+            return self.lr
 
         except Exception as e:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Random forest parameter tuning failed.Exited the {method_name} method of the {self.class_name} class",
-            )
-
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -137,82 +140,196 @@ class Model_Finder:
                 collection_name=self.collection_name,
             )
 
-    def get_best_params_for_xgboost(self, train_x, train_y):
+    def get_best_params_for_svm(self, train_x, train_y):
         """
-        Method Name :   get_best_params_for_xgboost
-        Description :   get the parameters for XGBoost Algorithm which give the best metric
-                        Used Hyper parameter tuning - Grid Search CV
-        Output      :   The model with best parameters
-        On Failure  :   Raise Exception
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on the config file
+        Method Name :   get_best_params_for_svm
+        Description :   This method is used for getting the best params for svm model
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
+        method_name = self.get_best_params_for_svm.__name__
 
-        method_name = self.get_best_params_for_xgboost.__name__
-
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         try:
-            self.param_grid_xgb = get_model_param_grid(
-                model_key_name="xgb_model",
+            self.svm_param_grid = get_model_param_grid(
+                model_key_name="svm_model",
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
-            self.grid = GridSearchCV(
-                XGBClassifier(objective="binary:logistic"),
-                self.param_grid_xgb,
-                verbose=self.config["model_utils"]["verbose"],
-                cv=self.config["model_utils"]["cv"],
-                n_jobs=self.config["model_utils"]["n_jobs"],
+            self.svm_grid = RandomizedSearchCV(
+                estimator=self.svm,
+                param_grid=self.svm_param_grid,
+                cv=self.cv,
+                verbose=self.verbose,
             )
-
-            self.grid.fit(train_x, train_y)
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Finised seraching for best params",
+                log_message=f"Initialized {self.svm_param_grid.__class__.__name__} model with {self.svm_param_grid} as params",
             )
 
-            self.learning_rate = self.grid.best_params_["learning_rate"]
-
-            self.max_depth = self.grid.best_params_["max_depth"]
-
-            self.n_estimators = self.grid.best_params_["n_estimators"]
-
-            self.xgb = XGBClassifier(
-                learning_rate=self.learning_rate,
-                max_depth=self.max_depth,
-                n_estimators=self.n_estimators,
-                n_jobs=self.config["model_utils"]["n_jobs"],
-            )
-
-            self.xgb.fit(train_x, train_y)
+            self.svm_grid.fit(train_x, train_y)
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="XGBoost best params: "
-                + str(self.grid.best_params_)
-                + f". exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Found the best params {self.svm.__class__.__name__} based on {self.svm_param_grid} as params",
             )
 
-            return self.xgb
+            self.kernel = self.svm_grid.best_params_["kernel"]
+
+            self.C = self.svm_grid.best_params_["C"]
+
+            self.random_state = self.svm_grid.best_params_["random_state"]
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"The best params for {self.svm.__class__.__name__} are {self.svm_grid.best_params_}",
+            )
+
+            self.svm = SVC(kernel=self.kernel, C=self.C, random_state=self.random_state)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Initialized {self.svm.__class__.__name__} model with the {self.svm_grid.best_params_}",
+            )
+
+            self.svm.fit(train_x, train_y)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Created {self.svm.__class__.__name__} model with {self.svm_grid.best_params_}",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+            return self.svm
 
         except Exception as e:
+            self.log_writer.raise_exception_log(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+    def get_best_params_for_knn(self, train_x, train_y):
+        """
+        Method Name :   get_best_params_for_knn
+        Description :   This method is used for getting the best params for knn model
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
+        method_name = self.get_best_params_for_knn.__name__
+
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
+        )
+
+        try:
+            self.knn_param_grid = get_model_param_grid(
+                model_key_name="knn_model",
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+            self.knn_grid = RandomizedSearchCV(
+                self.knn, self.knn_param_grid, verbose=self.verbose, cv=self.cv
+            )
+
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"XGBoost parameter tuning failed. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Initialized {self.knn_grid.__class__.__name__} model  with {self.knn_grid} as params",
             )
 
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.knn_grid.fit(train_x, train_y)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Found the best params {self.knn.__class__.__name__} model based on {self.knn_param_grid} as params",
+            )
+
+            self.algorithm = self.knn_grid.best_params_["algorithm"]
+
+            self.leaf_size = self.knn_grid.best_params_["leaf_size"]
+
+            self.n_neighbors = self.knn_grid.best_params_["n_neighbors"]
+
+            self.p = self.knn_grid.best_params_["p"]
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"The best params for {self.knn.__class__.__name__} are {self.knn_grid.best_params_}",
+            )
+
+            self.knn = KNeighborsClassifier(
+                algorithm=self.algorithm,
+                leaf_size=self.leaf_size,
+                n_neighbors=self.n_neighbors,
+                p=self.p,
+                n_jobs=self.n_jobs,
+            )
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Initialized {self.knn.__class__.__name__} with the {self.knn_grid.best_params_}",
+            )
+
+            self.knn.fit(train_x, train_y)
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"Created {self.knn.__class__.__name__} with the {self.knn_grid.best_params_}",
+            )
+
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_message=f"{self.knn.__class__.__name__} best params are {str(self.knn_grid.best_params_)}",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
+
+            return self.knn
+
+        except Exception as e:
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -223,129 +340,69 @@ class Model_Finder:
     def get_trained_models(self, train_x, train_y, test_x, test_y):
         """
         Method Name :   get_trained_models
-        Description :   Return all the trained models with thier corresponding metric
-        Output      :   The trained model and model score
-        On Failure  :   Raise Exception
-        Written By  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on the config file
+        Description :   this method traines all the given models, and returns the best score
+        Output      :   trained models with thier best scores
         """
-
         method_name = self.get_trained_models.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         try:
-            ## creating the xgboost model
-            self.xgboost = self.get_best_params_for_xgboost(train_x, train_y)
+            self.knn = self.get_best_params_for_knn(train_x, train_y)
 
-            self.log_writer.log(
+            self.knn_score = get_best_score_for_model(
+                model=self.knn,
+                test_x=test_x,
+                test_y=test_y,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Started prediction using xgboost model",
             )
 
-            self.pred_xgboost = self.xgboost.predict(test_x)
+            self.svm = self.get_best_params_for_svm(train_x=train_x, train_y=train_y)
 
-            self.log_writer.log(
+            self.svm_score = get_best_score_for_model(
+                model=self.svm,
+                test_x=test_x,
+                test_y=test_y,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Prediction done using xgboost model",
             )
 
-            if len(test_y.unique()) == 1:
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Started calculating the accuracy score of xgb_model",
-                )
+            self.lr = self.get_best_params_for_lr(train_x=train_x, train_y=train_y)
 
-                self.xgboost_score = accuracy_score(test_y, self.pred_xgboost)
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Accuracy for XGBoost: " + str(self.xgboost_score),
-                )
-
-            else:
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Started calculating the roc auc score of xgb_model",
-                )
-
-                self.xgboost_score = roc_auc_score(test_y, self.pred_xgboost)
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="AUC score for XGBoost: " + str(self.xgboost_score),
-                )
-
-            ## creating the random forest model
-            self.random_forest = self.get_best_params_for_random_forest(
-                train_x, train_y
-            )
-
-            self.log_writer.log(
+            self.lr_score = get_best_score_for_model(
+                model=self.lr,
+                test_x=test_x,
+                test_y=test_y,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Started prediction using random forest model",
             )
 
-            self.pred_rf = self.random_forest.predict(test_x)
-
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="Prediction done using random forest model",
             )
 
-            if len(test_y.unique()) == 1:
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Started calculating accuracy score of random forest model",
-                )
-
-                self.rf_score = accuracy_score(test_y, self.pred_rf)
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Accuracy score for RF: " + str(self.rf_score),
-                )
-
-            else:
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="Started calculating roc auc score of random forest model",
-                )
-
-                self.rf_score = roc_auc_score(test_y, self.pred_rf)
-
-                self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.collection_name,
-                    log_message="AUC score for XGB: " + str(self.rf_score),
-                )
-
-            return self.random_forest, self.rf_score, self.xgboost, self.xgboost_score
+            return (
+                self.knn,
+                self.knn_score,
+                self.lr,
+                self.lr_score,
+                self.svm,
+                self.svm_score,
+            )
 
         except Exception as e:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Model training failed. Exited the {method_name} method of the {self.class_name} class",
-            )
-
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

@@ -1,16 +1,14 @@
-
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
-class Data_Getter:
+class data_getter_train:
     """
-    Description :   This class shall be used for obtaining the df from the source for training
-    Written by  :   iNeuron Intelligence
-    Version     :   1.0
-    Revisions   :   None
+    Description :   This class shall be used for obtaining the df from the source for prediction
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud run setup
     """
 
     def __init__(self, db_name, collection_name):
@@ -36,16 +34,17 @@ class Data_Getter:
         Description :   This method reads the data from the source
         Output      :   A pandas dataframe
         On failure  :   Raise Exception
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Version     :   1.2
+        Revisions   :   Moved to setup to cloud run setup
         """
         method_name = self.get_data.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         try:
@@ -60,21 +59,17 @@ class Data_Getter:
                 obj=csv_obj, db_name=self.db_name, collection_name=self.collection_name
             )
 
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Data Load Successful.Exited the {method_name} method of the {self.class_name} class",
             )
 
             return df
 
         except Exception as e:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Data Load Unsuccessful.Exited the {method_name} method of the {self.class_name} class",
-            )
-
             self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,

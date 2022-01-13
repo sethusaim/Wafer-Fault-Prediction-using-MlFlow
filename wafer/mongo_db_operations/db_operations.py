@@ -6,6 +6,13 @@ from utils.read_params import read_params
 
 
 class MongoDB_Operation:
+    """
+    Description :   This method is used for all mongodb operations  
+
+    Version     :   1.2
+    Revisions   :   moved to setup to cloud
+    """
+
     def __init__(self):
         self.config = read_params()
 
@@ -14,6 +21,13 @@ class MongoDB_Operation:
         self.DB_URL = self.config["mongodb"]["url"]
 
     def get_client(self):
+        """
+        Method Name :   get_client
+        Description :   This method is used for getting the client from MongoDB
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.get_client.__name__
 
         try:
@@ -27,6 +41,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def create_db(self, client, db_name):
+        """
+        Method Name :   create_db
+        Description :   This method is creating a database in MongoDB
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.create_db.__name__
 
         try:
@@ -38,6 +59,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def create_collection(self, database, collection_name):
+        """
+        Method Name :   create_collection
+        Description :   This method is used for creating a collection in created database
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.create_collection.__name__
 
         try:
@@ -49,6 +77,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def get_collection(self, collection_name, database):
+        """
+        Method Name :   get_collection
+        Description :   This method is used for getting collection from a database
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.get_collection.__name__
 
         try:
@@ -62,6 +97,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def convert_collection_to_dataframe(self, db_name, collection_name):
+        """
+        Method Name :   convert_collection_to_dataframe
+        Description :   This method is used for converting the selected collection to dataframe
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.convert_collection_to_dataframe.__name__
 
         try:
@@ -84,6 +126,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def is_record_present(self, db_name, collection_name, record):
+        """
+        Method Name :   is_record_present
+        Description :   This method is used for checking whether the record exists or not 
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.is_record_present.__name__
 
         try:
@@ -93,9 +142,9 @@ class MongoDB_Operation:
 
             collection = self.get_collection(collection_name, database)
 
-            recordfound = collection.find(record)
+            record_count = collection.count_documents(filter=record)
 
-            if recordfound.count() > 0:
+            if record_count > 0:
                 client.close()
 
                 return True
@@ -113,6 +162,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def create_one_record(self, collection, data):
+        """
+        Method Name :   create_one_record
+        Description :   This method is used for creating a single record in the collection
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.create_one_record.__name__
 
         try:
@@ -126,6 +182,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def insert_dataframe_as_record(self, data_frame, db_name, collection_name):
+        """
+        Method Name :   insert_dataframe_as_record
+        Description :   This method is used for inserting the dataframe in collection as record
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.insert_dataframe_as_record.__name__
 
         try:
@@ -145,6 +208,13 @@ class MongoDB_Operation:
             raise Exception(exception_msg)
 
     def insert_one_record(self, db_name, collection_name, record):
+        """
+        Method Name :   insert_one_record
+        Description :   This method is used for inserting one record into a collection
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.insert_one_record.__name__
 
         try:

@@ -30,7 +30,7 @@ class S3_Operations:
 
         self.file_format = self.config["model_utils"]["save_format"]
 
-        self.train_data_bucket = self.config["s3_bucket"]["scania_train_data_bucket"]
+        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data_bucket"]
 
         self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
 
@@ -88,7 +88,7 @@ class S3_Operations:
             return content
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 file_name=self.class_name,
                 method_name=method_name,
@@ -132,7 +132,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -197,7 +197,7 @@ class S3_Operations:
             return model_name
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -252,7 +252,7 @@ class S3_Operations:
                 pass
 
             else:
-                self.log_writer.self.log_writer.raise_exception_log(
+                self.log_writer.raise_exception_log(
                     error=e,
                     class_name=self.class_name,
                     method_name=method_name,
@@ -311,7 +311,7 @@ class S3_Operations:
                     log_message="Error occured in creating folder",
                 )
 
-                self.log_writer.self.log_writer.raise_exception_log(
+                self.log_writer.raise_exception_log(
                     error=e,
                     class_name=self.class_name,
                     method_name=method_name,
@@ -355,7 +355,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -429,7 +429,7 @@ class S3_Operations:
                 )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -475,7 +475,7 @@ class S3_Operations:
             return bucket
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -523,7 +523,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -567,7 +567,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -627,7 +627,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -680,7 +680,7 @@ class S3_Operations:
             return list_of_files
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -734,7 +734,7 @@ class S3_Operations:
             return file_objs
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -789,7 +789,7 @@ class S3_Operations:
             return model
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -844,7 +844,7 @@ class S3_Operations:
             return dic
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -894,7 +894,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -944,7 +944,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -1029,7 +1029,7 @@ class S3_Operations:
                 log_message=f"Model file {model_name} could not be saved",
             )
 
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -1075,7 +1075,7 @@ class S3_Operations:
             )
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

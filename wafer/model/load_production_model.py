@@ -1,4 +1,3 @@
-
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
@@ -42,17 +41,19 @@ class load_prod_model:
         """
         Method Name :   load_production_model
         Description :   This method is responsible for moving the models from the trained models dir to
-                        prod models dir and stag models dir based on the metrics
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+                        prod models dir and stag models dir based on the metrics of the cluster
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.load_production_model.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.load_prod_model_log,
-            log_message="Started transitioning of models based on metrics",
         )
 
         try:
@@ -72,7 +73,6 @@ class load_prod_model:
 
             Eg- metrics.XGBoost1-best_score
             """
-
             reg_model_names = self.mlflow_op.get_mlflow_models()
 
             cols = [
@@ -209,12 +209,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             )
 
         except Exception as e:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
-                log_message="Transitioning of models failed",
-            )
-
             self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,

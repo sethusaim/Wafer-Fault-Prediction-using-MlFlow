@@ -79,7 +79,7 @@ class Preprocessor:
             return self.useful_data
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -134,7 +134,7 @@ class Preprocessor:
                 log_message=f"Label Separation Unsuccessful",
             )
 
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -213,7 +213,7 @@ class Preprocessor:
                 log_message=f"Finding missing values failed",
             )
 
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -277,7 +277,7 @@ class Preprocessor:
                 log_message=f"Imputing missing values failed",
             )
 
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -295,7 +295,6 @@ class Preprocessor:
         Version     :   1.1
         Revisions   :   modified code based on params.yaml file
         """
-
         method_name = self.get_columns_with_zero_std_deviation.__name__
 
         self.log_writer.start_log(
@@ -334,7 +333,7 @@ class Preprocessor:
                 log_message=f"Column search for Standard Deviation of Zero Failed.",
             )
 
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

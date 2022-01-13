@@ -1,4 +1,3 @@
-
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -7,7 +6,7 @@ from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 class data_transform_pred:
     """
-    Description :   This class shall be used for transforming the good raw training data before loading
+    Description :   This class shall be used for transforming the good raw prediction data before loading
                     it in database
     Written by  :   iNeuron Intelligence
     Version     :   1.0
@@ -41,6 +40,14 @@ class data_transform_pred:
         Revisions   :   modified code based on params.yaml file
         """
         method_name = self.rename_target_column.__name__
+
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
+            db_name=self.db_name,
+            collection_name=self.pred_data_transform_log,
+        )
 
         try:
             csv_file_objs = self.s3_obj.get_file_objects_from_s3(
@@ -88,6 +95,14 @@ class data_transform_pred:
                 else:
                     pass
 
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.pred_data_transform_log,
+            )
+
         except Exception as e:
             self.log_writer.raise_exception_log(
                 error=e,
@@ -107,6 +122,14 @@ class data_transform_pred:
         Revisions   :   modified code based on params.yaml file
         """
         method_name = self.replace_missing_with_null.__name__
+
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
+            db_name=self.db_name,
+            collection_name=self.pred_data_transform_log,
+        )
 
         try:
             csv_file_objs = self.s3_obj.get_file_objects_from_s3(
@@ -155,6 +178,14 @@ class data_transform_pred:
 
                 else:
                     pass
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.pred_data_transform_log,
+            )
 
         except Exception as e:
             self.log_writer.raise_exception_log(

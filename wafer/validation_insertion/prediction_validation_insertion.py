@@ -1,38 +1,36 @@
-
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_pred import data_transform_pred
-from wafer.data_type_valid.data_type_valid_pred import dBOperation
-from wafer.raw_data_validation.pred_data_validation import Prediction_Data_validation
+from wafer.data_type_valid.data_type_valid_pred import db_operation_pred
+from wafer.raw_data_validation.pred_data_validation import raw_pred_data_validation
 
 
 class pred_validation:
     """
-    Description :   This class shall be used for validating all the prediction raw data and then perform
-                    some operations on the data
-    Written by  :   iNeuron Intelligence
-    Version     :   1.0
-    Revisions   :   None
+    Description :   This class is used for validating all the prediction batch files
+
+    Version     :   1.2
+    Revisions   :   moved to setup to cloud
     """
 
     def __init__(self, bucket_name):
-        self.raw_data = Prediction_Data_validation(bucket_name)
+        self.raw_data = raw_pred_data_validation(raw_data_bucket_name=bucket_name)
 
         self.data_transform = data_transform_pred()
 
-        self.dBOperation = dBOperation()
-
-        self.class_name = self.__class__.__name__
+        self.db_operation = db_operation_pred()
 
         self.config = read_params()
+
+        self.class_name = self.__class__.__name__
 
         self.db_name = self.config["db_log"]["db_pred_log"]
 
         self.pred_main_log = self.config["pred_db_log"]["pred_main"]
 
-        self.wafer_data_db_name = self.config["mongodb"]["wafer_data_db_name"]
+        self.good_data_db_name = self.config["mongodb"]["wafer_data_db_name"]
 
-        self.wafer_pred_data_collection = self.config["mongodb"][
+        self.good_data_collection_name = self.config["mongodb"][
             "wafer_pred_data_collection"
         ]
 
@@ -40,20 +38,21 @@ class pred_validation:
 
     def prediction_validation(self):
         """
-        Method Name :   prediction_validation
-        Description :   This method is responsible for validating the prediction data,using the preprocesssing
-                        functions
-        Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Method Name :   load_s3_obj
+        Description :   This method is used for validating the prediction btach files
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.prediction_validation.__name__
 
         try:
-            self.log_writer.log(
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Start of Validation on files for prediction!!",
             )
 
             (
@@ -69,50 +68,52 @@ class pred_validation:
                 regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
             )
 
-            self.raw_data.validate_col_length(noofcolumns)
+            self.raw_data.validate_col_length(NumberofColumns=noofcolumns)
 
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Raw Data Validation Complete!!",
+                log_message="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Starting Data Transforamtion!!",
+                log_message="Starting Data Transformation",
             )
 
-            self.data_transform.replace_missing_with_null()
+            self.data_transform.add_quotes_to_string()
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="data_transformation Completed!!!",
+                log_message="Data Transformation completed !!",
             )
 
-            self.dBOperation.insert_good_data_as_record(
-                db_name=self.wafer_data_db_name,
-                collection_name=self.wafer_pred_data_collection,
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.pred_main_log,
-                log_message="Inserted in good data in MongoDB !!!",
+            self.db_operation.insert_good_data_as_record(
+                db_name=self.good_data_db_name,
+                collection_name=self.good_data_collection_name,
             )
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.pred_main_log,
-                log_message="Extracting csv file from MongoDB",
+                log_message="Data type validation Operation completed !!",
             )
 
-            self.dBOperation.export_collection_to_csv(
-                export_db_name=self.wafer_data_db_name,
-                export_collection_name=self.wafer_pred_data_collection,
+            self.db_operation.export_collection_to_csv(
+                db_name=self.good_data_db_name,
+                collection_name=self.good_data_collection_name,
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.pred_main_log,
             )
 
         except Exception as e:

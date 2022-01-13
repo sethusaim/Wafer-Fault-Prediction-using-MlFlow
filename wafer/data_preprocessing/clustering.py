@@ -22,7 +22,7 @@ class KMeansClustering:
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
-        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
         self.random_state = self.config["base"]["random_state"]
 
@@ -123,7 +123,7 @@ class KMeansClustering:
             return self.kn.knee
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -188,7 +188,7 @@ class KMeansClustering:
             return self.data, self.kmeans
 
         except Exception as e:
-            self.log_writer.self.log_writer.raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
