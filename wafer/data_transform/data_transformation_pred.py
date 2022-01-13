@@ -1,4 +1,4 @@
-from utils.exception import raise_exception_log
+
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -89,7 +89,7 @@ class data_transform_pred:
                     pass
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -157,7 +157,7 @@ class data_transform_pred:
                     pass
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

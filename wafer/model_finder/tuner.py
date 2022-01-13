@@ -1,7 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
-from utils.exception import raise_exception_log
+
 from utils.logger import App_Logger
 from utils.main_utils import get_model_param_grid
 from utils.read_params import read_params
@@ -129,7 +129,7 @@ class Model_Finder:
                 log_message=f"Random forest parameter tuning failed.Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -212,7 +212,7 @@ class Model_Finder:
                 log_message=f"XGBoost parameter tuning failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -345,7 +345,7 @@ class Model_Finder:
                 log_message=f"Model training failed. Exited the {method_name} method of the {self.class_name} class",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

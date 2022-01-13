@@ -1,6 +1,6 @@
 import re
 
-from utils.exception import raise_exception_log
+
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -113,7 +113,7 @@ class Prediction_Data_validation:
             raise KeyError
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -151,7 +151,7 @@ class Prediction_Data_validation:
             return regex
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -183,7 +183,7 @@ class Prediction_Data_validation:
                 )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -271,7 +271,7 @@ class Prediction_Data_validation:
                     )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -345,7 +345,7 @@ class Prediction_Data_validation:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -434,7 +434,7 @@ class Prediction_Data_validation:
                     pass
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

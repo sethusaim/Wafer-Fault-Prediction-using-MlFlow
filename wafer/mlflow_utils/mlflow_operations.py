@@ -1,6 +1,6 @@
 import mlflow
 from mlflow.tracking import MlflowClient
-from utils.exception import raise_exception_log
+
 from utils.logger import App_Logger
 from utils.main_utils import get_model_name
 from utils.read_params import read_params
@@ -42,7 +42,7 @@ class Mlflow_Operations:
             return exp
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -65,7 +65,7 @@ class Mlflow_Operations:
             return runs
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -86,7 +86,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -103,7 +103,7 @@ class Mlflow_Operations:
             return client
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -124,7 +124,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -149,7 +149,7 @@ class Mlflow_Operations:
             return reg_model_names
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -174,7 +174,7 @@ class Mlflow_Operations:
             return results
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -200,7 +200,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -221,7 +221,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -244,7 +244,7 @@ class Mlflow_Operations:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -274,7 +274,7 @@ class Mlflow_Operations:
             self.log_metric(model_name=model_name, metric=float(model_score))
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -350,7 +350,7 @@ class Mlflow_Operations:
                 )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

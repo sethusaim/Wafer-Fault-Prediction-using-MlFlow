@@ -1,4 +1,4 @@
-from utils.exception import raise_exception_log
+
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_train import data_transform
@@ -127,7 +127,7 @@ class train_validation:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

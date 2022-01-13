@@ -3,19 +3,38 @@ import pickle
 from io import StringIO
 
 import pandas as pd
+from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
-from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 
-log_writer = App_Logger()
+file_name = "main_utils.py"
 
 config = read_params()
 
-class_name = "main_utils.py"
+log_writer = App_Logger()
+
+s3_obj = S3_Operations()
 
 
 def make_readable(data, db_name, collection_name):
+    """
+    Method Name :   make_readable
+    Description :   This method is used for converting the bytes object to string data
+
+    Version     :   1.2
+    Revisions   :   moved setup to cloud
+    """
+    method_name = make_readable.__name__
+
+    log_writer.start_log(
+        key="start",
+        class_name=file_name,
+        method_name=method_name,
+        db_name=db_name,
+        collection_name=collection_name,
+    )
+
     try:
         f = StringIO(data)
 
@@ -25,19 +44,44 @@ def make_readable(data, db_name, collection_name):
             log_message="Converted bytes content to string content using StringIO",
         )
 
+        log_writer.start_log(
+            key="exit",
+            class_name=file_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
+        )
+
         return f
 
     except Exception as e:
-        raise_exception_log(
+        log_writer.self.log_writer.raise_exception_log(
             error=e,
-            class_name=class_name,
-            method_name="make_readable",
+            file_name=file_name,
+            method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
         )
 
 
 def convert_object_to_dataframe(obj, db_name, collection_name):
+    """
+    Method Name :   convert_object_to_dataframe
+    Description :   This method is used for converting the s3 object to dataframe
+
+    Version     :   1.2
+    Revisions   :   moved setup to cloud
+    """
+    method_name = convert_object_to_dataframe.__name__
+
+    log_writer.start_log(
+        key="start",
+        class_name=file_name,
+        method_name=method_name,
+        db_name=db_name,
+        collection_name=collection_name,
+    )
+
     try:
         content = convert_object_to_bytes(
             obj, db_name=db_name, collection_name=collection_name
@@ -55,55 +99,47 @@ def convert_object_to_dataframe(obj, db_name, collection_name):
             log_message=f"Converted {obj} to dataframe",
         )
 
-        return df
-
-    except Exception as e:
-        raise_exception_log(
-            error=e,
-            class_name=class_name,
-            method_name="convert_object_to_dataframe",
+        log_writer.start_log(
+            key="start",
+            class_name=file_name,
+            method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
         )
 
-
-def read_s3_obj(obj, db_name, collection_name, decode=True):
-    try:
-        if decode:
-            content = obj.get()["Body"].read().decode()
-
-            log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message=f"Read the object with decode as {decode}",
-            )
-
-            return content
-
-        else:
-            content = obj.get()["Body"].read()
-
-            log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message=f"Read the object with decode as {decode}",
-            )
-            return content
+        return df
 
     except Exception as e:
-        raise_exception_log(
+        log_writer.self.log_writer.raise_exception_log(
             error=e,
-            class_name=class_name,
-            method_name="read_s3_obj",
+            file_name=file_name,
+            method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
         )
 
 
 def convert_object_to_pickle(obj, db_name, collection_name):
+    """
+    Method Name :   convert_object_to_pickle
+    Description :   This method is used for converting the s3 obj to pickle format
+
+    Version     :   1.2
+    Revisions   :   moved setup to cloud
+    """
+    method_name = convert_object_to_pickle.__name__
+
+    log_writer.start_log(
+        key="start",
+        class_name=file_name,
+        method_name=method_name,
+        db_name=db_name,
+        collection_name=collection_name,
+    )
+
     try:
-        model_content = read_s3_obj(
-            obj, decode=False, db_name=db_name, collection_name=collection_name
+        model_content = s3_obj.read_s3_obj(
+            obj, decode=False, db_name=db_name, collection_name=collection_name,
         )
 
         model = pickle.loads(model_content)
@@ -114,89 +150,69 @@ def convert_object_to_pickle(obj, db_name, collection_name):
             log_message=f"Loaded {obj} as pickle model",
         )
 
+        log_writer.start_log(
+            key="start",
+            class_name=file_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
+        )
+
         return model
 
     except Exception as e:
-        raise_exception_log(
+        log_writer.self.log_writer.raise_exception_log(
             error=e,
-            class_name=class_name,
-            method_name="convert_object_to_pickle",
-            db_name=db_name,
-            collection_name=collection_name,
-        )
-
-
-def convert_object_to_bytes(obj, db_name, collection_name):
-    try:
-        content = read_s3_obj(
-            obj, decode=True, db_name=db_name, collection_name=collection_name
-        )
-
-        log_writer.log(
-            db_name=db_name,
-            collection_name=collection_name,
-            log_message="Converted s3 object to bytes",
-        )
-
-        return content
-
-    except Exception as e:
-        raise_exception_log(
-            error=e,
-            class_name=class_name,
-            method_name="convert_object_to_bytes",
-            db_name=db_name,
-            collection_name=collection_name,
-        )
-
-
-def get_model_name(model, db_name, collection_name):
-    method_name = get_model_name.__name__
-    try:
-        model_name = model.__class__.__name__
-
-        log_writer.log(
-            db_name=db_name,
-            collection_name=collection_name,
-            log_message=f"Got the {model} model_name",
-        )
-
-        return model_name
-
-    except Exception as e:
-        raise_exception_log(
-            error=e,
-            class_name=class_name,
+            file_name=file_name,
             method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
         )
 
 
-def get_model_param_grid(model_key_name, db_name, collection_name):
-    method_name = get_model_param_grid.__name__
+def convert_object_to_bytes(obj, db_name, collection_name):
+    """
+    Method Name :   convert_object_to_bytes
+    Description :   This method is used for converting the s3 object to bytes
+
+    Version     :   1.2
+    Revisions   :   moved setup to cloud
+    """
+    method_name = convert_object_to_bytes.__name__
+
+    log_writer.start_log(
+        key="start",
+        class_name=file_name,
+        method_name=method_name,
+        db_name=db_name,
+        collection_name=collection_name,
+    )
+
     try:
-        model_grid = {}
-
-        model_param_name = config["model_params"][model_key_name]
-
-        params_names = list(model_param_name.keys())
-
-        for param in params_names:
-            model_grid[param] = model_param_name[param]
+        content = s3_obj.read_s3_obj(
+            obj, decode=True, db_name=db_name, collection_name=collection_name,
+        )
 
         log_writer.log(
             db_name=db_name,
             collection_name=collection_name,
-            log_message=f"Inserted {model_key_name} params as to model_grid",
+            log_message=f"Converted {obj} to bytes",
         )
 
-        return model_grid
+        log_writer.start_log(
+            key="start",
+            class_name=file_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
+        )
+
+        return content
 
     except Exception as e:
-        raise_exception_log(
+        log_writer.self.log_writer.raise_exception_log(
             error=e,
-            class_name=class_name,
+            file_name=file_name,
             method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
@@ -204,6 +220,23 @@ def get_model_param_grid(model_key_name, db_name, collection_name):
 
 
 def convert_obj_to_json(obj, db_name, collection_name):
+    """
+    Method Name :   convert_obj_to_json
+    Description :   This method is used for converting the s3 object to json 
+
+    Version     :   1.2
+    Revisions   :   moved setup to cloud
+    """
+    method_name = convert_obj_to_json.__name__
+
+    log_writer.start_log(
+        key="start",
+        class_name=file_name,
+        method_name=method_name,
+        db_name=db_name,
+        collection_name=collection_name,
+    )
+
     try:
         res = convert_object_to_bytes(
             obj=obj, db_name=db_name, collection_name=collection_name
@@ -214,16 +247,24 @@ def convert_obj_to_json(obj, db_name, collection_name):
         log_writer.log(
             db_name=db_name,
             collection_name=collection_name,
-            log_message="Converted s3 object to json",
+            log_message=f"Converted {obj} to json",
+        )
+
+        log_writer.start_log(
+            key="start",
+            class_name=file_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
         )
 
         return dic
 
     except Exception as e:
-        raise_exception_log(
+        log_writer.self.log_writer.raise_exception_log(
             error=e,
-            class_name=class_name,
-            method_name="convert_obj_to_json",
+            file_name=file_name,
+            method_name=method_name,
             db_name=db_name,
             collection_name=collection_name,
         )

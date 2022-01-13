@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
-from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -28,6 +27,10 @@ class Preprocessor:
 
         self.null_values_file = self.config["null_values_csv_file"]
 
+        self.knn_n_neighbors = self.config["knn_imputer"]["n_neighbors"]
+
+        self.knn_weights = self.config["knn_imputer"]["weights"]
+
         self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
@@ -44,10 +47,12 @@ class Preprocessor:
         """
         method_name = self.remove_columns.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         self.data = data
@@ -60,19 +65,21 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Column removal Successful.Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Column removal Successful",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.useful_data
 
         except Exception as e:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Column removal Unsuccessful. Exited the {method_name} method of the {self.class_name} class",
-            )
-
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -91,10 +98,12 @@ class Preprocessor:
         """
         method_name = self.separate_label_feature.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         try:
@@ -105,7 +114,15 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Label Separation Successful. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Label Separation Successful",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.X, self.Y
@@ -114,10 +131,10 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Label Separation Unsuccessful.Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Label Separation Unsuccessful",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -137,10 +154,12 @@ class Preprocessor:
         """
         method_name = self.is_null_present.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         self.null_present = False
@@ -174,8 +193,15 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Finding missing values is a success.Data written to the null values file.  \
-                    Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Finding missing values is a success.Data written to the null values file",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.null_present
@@ -184,10 +210,10 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Finding missing values failed. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Finding missing values failed",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -205,21 +231,22 @@ class Preprocessor:
         Version     :   1.1
         Revisions   :   modified code based on the params.yaml file
         """
-
         method_name = self.impute_missing_values.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         self.data = data
 
         try:
             imputer = KNNImputer(
-                n_neighbors=self.config["knn_imputer"]["n_neighbors"],
-                weights=self.config["knn_imputer"]["weights"],
+                n_neighbors=self.knn_n_neighbors,
+                weights=self.knn_weights,
                 missing_values=np.nan,
             )
 
@@ -230,8 +257,15 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Imputing missing values Successful. \
-                    Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Imputing missing values Successful",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.new_data
@@ -240,10 +274,10 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Imputing missing values failed. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Imputing missing values failed",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -264,10 +298,12 @@ class Preprocessor:
 
         method_name = self.get_columns_with_zero_std_deviation.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         self.data_n = data.describe()
@@ -278,7 +314,15 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Column search for Standard Deviation of Zero Successful.Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Column search for Standard Deviation of Zero Successful.",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.col_to_drop
@@ -287,10 +331,10 @@ class Preprocessor:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Column search for Standard Deviation of Zero Failed. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Column search for Standard Deviation of Zero Failed.",
             )
 
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

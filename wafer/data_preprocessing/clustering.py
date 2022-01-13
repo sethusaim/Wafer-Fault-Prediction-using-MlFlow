@@ -1,13 +1,18 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
-from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
 class KMeansClustering:
+    """
+    Description :   This class shall  be used to divide the data into clusters before training.
+    Version     :   1.2
+    Revisions   :   moved to the setup to cloud
+    """
+
     def __init__(self, db_name, collection_name):
         self.db_name = db_name
 
@@ -17,7 +22,7 @@ class KMeansClustering:
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
-        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
+        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
 
         self.random_state = self.config["base"]["random_state"]
 
@@ -40,12 +45,22 @@ class KMeansClustering:
         self.class_name = self.__class__.__name__
 
     def elbow_plot(self, data):
+        """
+        Method Name :   elbow_plot
+        Description :   This method saves the plot to s3 bucket and decides the optimum number of clusters to the file.
+        Output      :   A picture saved to the s3_bucket 
+        On Failure  :   Raise Exception
+        Version     :   1.0
+        Revisions   :   None
+        """
         method_name = self.elbow_plot.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         wcss = []
@@ -94,19 +109,21 @@ class KMeansClustering:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"The optimum number of clusters is {str(self.kn.knee)}. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"The optimum number of clusters is {str(self.kn.knee)}.",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.kn.knee
 
         except Exception as e:
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Finding the number of clusters failed. Exited the {method_name} method of the {self.class_name} class",
-            )
-
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -115,12 +132,22 @@ class KMeansClustering:
             )
 
     def create_clusters(self, data, number_of_clusters):
+        """
+        Method Name :   create_clusters
+        Description :   Create a new dataframe consisting of the cluster information.
+        Output      :   A datframe with cluster column
+        On Failure  :   Raise Exception
+        Version     :   1.0
+        Revisions   :   None
+        """
         method_name = self.create_clusters.__name__
 
-        self.log_writer.log(
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
             db_name=self.db_name,
             collection_name=self.collection_name,
-            log_message=f"Entered the {method_name} method of the {self.class_name} class",
         )
 
         self.data = data
@@ -147,15 +174,21 @@ class KMeansClustering:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message="succesfully created "
-                + str(self.kn.knee)
-                + f" clusters. Exited the {method_name} method of the {self.class_name} class",
+                log_message=f"Successfully created {str(self.kn.knee)} clusters",
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.data, self.kmeans
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,

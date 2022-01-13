@@ -1,4 +1,3 @@
-from utils.exception import raise_exception_log
 from utils.logger import App_Logger
 from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
@@ -6,7 +5,7 @@ from wafer.mongo_db_operations.db_operations import MongoDB_Operation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 
-class dBOperation:
+class Train_db_operation:
     """
     Description :    This class shall be used for handling all the db operations
     Written by  :    iNeuron Intelligence
@@ -80,7 +79,7 @@ class dBOperation:
                 )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
@@ -112,7 +111,7 @@ class dBOperation:
             )
 
         except Exception as e:
-            raise_exception_log(
+            self.log_writer.self.log_writer.raise_exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
