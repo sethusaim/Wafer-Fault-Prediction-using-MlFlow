@@ -62,46 +62,46 @@ class prediction:
         )
 
         try:
+            self.log_writer.log(
+                db_name=self.db_name,
+                collection_name=self.pred_log,
+                log_message="Start of Prediction",
+            )
+
             self.s3_obj.delete_pred_file(
                 db_name=self.db_name, collection_name=self.pred_log
             )
 
             data = self.data_getter_pred.get_data()
 
-            data = self.preprocessor.replace_invalid_values(data=data)
-
-            is_null_present = self.preprocessor.is_null_present(data=data)
+            is_null_present = self.preprocessor.is_null_present(data)
 
             if is_null_present:
-                data = self.preprocessor.impute_missing_values(data=data)
+                data = self.preprocessor.impute_missing_values(data)
 
-            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(
-                data=data
-            )
+            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(data)
 
-            X = self.preprocessor.remove_columns(data, cols_to_drop)
+            data = self.preprocessor.remove_columns(data, cols_to_drop)
 
-            X = self.preprocessor.scale_numerical_columns(data=X)
-
-            X = self.preprocessor.apply_pca_transform(X_scaled_data=X)
-
-            kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
-
-            kmeans_model = self.s3_obj.load_model_from_s3(
+            kmeans = self.s3_obj.load_model_from_s3(
                 bucket=self.model_bucket,
-                model_name=kmeans_model_name,
+                model_name="KMeans",
                 db_name=self.db_name,
                 collection_name=self.pred_log,
             )
 
-            clusters = kmeans_model.predict(data)
+            clusters = kmeans.predict(data.drop(["Wafer"], axis=1))
 
             data["clusters"] = clusters
 
-            unique_clusters = data["clusters"].unique()
+            clusters = data["clusters"].unique()
 
-            for i in unique_clusters:
+            for i in clusters:
                 cluster_data = data[data["clusters"] == i]
+
+                wafer_names = list(cluster_data["Wafer"])
+
+                cluster_data = data.drop(labels=["Wafer"], axis=1)
 
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
@@ -112,20 +112,18 @@ class prediction:
                     collection_name=self.pred_log,
                 )
 
-                prod_model_name = self.prod_model_dir + "/" + model_name
-
                 model = self.s3_obj.load_model_from_s3(
                     bucket=self.model_bucket,
-                    model_name=prod_model_name,
+                    model_name=model_name,
                     db_name=self.db_name,
                     collection_name=self.pred_log,
                 )
 
                 result = list(model.predict(cluster_data))
 
-                result = pd.DataFrame(result, columns=["Predictions"])
-
-                result["Predictions"] = result["Predictions"].map({0: "neg", 1: "pos"})
+                result = pd.DataFrame(
+                    list(zip(wafer_names, result)), columns=["Wafer", "Prediction"]
+                )
 
                 self.s3_obj.upload_df_as_csv_to_s3(
                     data_frame=result,
