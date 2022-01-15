@@ -55,7 +55,7 @@ def make_readable(data, db_name, collection_name):
         return f
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             file_name=file_name,
             method_name=method_name,
@@ -110,7 +110,7 @@ def convert_object_to_dataframe(obj, db_name, collection_name):
         return df
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             file_name=file_name,
             method_name=method_name,
@@ -161,7 +161,7 @@ def convert_object_to_pickle(obj, db_name, collection_name):
         return model
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             file_name=file_name,
             method_name=method_name,
@@ -210,7 +210,7 @@ def convert_object_to_bytes(obj, db_name, collection_name):
         return content
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             file_name=file_name,
             method_name=method_name,
@@ -261,7 +261,7 @@ def convert_obj_to_json(obj, db_name, collection_name):
         return dic
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             file_name=file_name,
             method_name=method_name,

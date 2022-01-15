@@ -143,7 +143,7 @@ class raw_train_data_validation:
                 collection_name=self.train_gen_log,
             )
 
-            regex = "['apsfailure']+['\_'']+[\d_]+[\d]+\.csv"
+            regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
 
             self.log_writer.log(
                 db_name=self.db_name,

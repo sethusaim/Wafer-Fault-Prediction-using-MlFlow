@@ -75,7 +75,7 @@ async def predictRouteClient():
 
         pred = prediction()
 
-        bucket, filename, json_predictions = pred.prediction_from_model()
+        bucket, filename, json_predictions = pred.predict_from_model()
 
         return Response(
             f"Prediction file created in {bucket} bucket with filename as {filename}, and few of the predictions are {str(json.loads(json_predictions))}"

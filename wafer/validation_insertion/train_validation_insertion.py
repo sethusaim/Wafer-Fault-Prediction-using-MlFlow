@@ -84,7 +84,9 @@ class train_validation:
                 log_message="Starting Data Transformation",
             )
 
-            self.data_transform.add_quotes_to_string()
+            self.data_transform.rename_target_column()
+
+            self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
                 db_name=self.db_name,

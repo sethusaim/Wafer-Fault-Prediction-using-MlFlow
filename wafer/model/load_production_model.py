@@ -128,6 +128,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
     2                                                                           
             """
 
+            '''(metrics.RandomForest1-best_score,0.5),(metrics.XGBoost1-best_score,1)'''
+
             best_metrics_names = [
                 max(
                     [

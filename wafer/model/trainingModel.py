@@ -87,34 +87,24 @@ class train_model:
         )
 
         try:
-            df = self.data_getter_train_obj.get_data()
+            data = self.data_getter_train_obj.get_data()
 
-            df = self.preprocessor_obj.replace_invalid_values(data=df)
-
-            df = self.preprocessor_obj.encode_target_cols(data=df)
-
-            is_null_present = self.preprocessor_obj.is_null_present(data=df)
-
-            if is_null_present:
-                df = self.preprocessor_obj.impute_missing_values(data=df)
+            data = self.preprocessor_obj.remove_columns(data, ["Wafer"])
 
             X, Y = self.preprocessor_obj.separate_label_feature(
-                data=df, label_column_name=self.target_col
+                data, label_column_name=self.target_col
             )
 
-            cols_to_drop = self.preprocessor_obj.get_columns_with_zero_std_deviation(
-                data=X
-            )
+            is_null_present = self.preprocessor_obj.is_null_present(X)
 
-            X = self.preprocessor_obj.remove_columns(data=X, columns=cols_to_drop)
+            if is_null_present:
+                X = self.preprocessor_obj.impute_missing_values(X)
 
-            X = self.preprocessor_obj.scale_numerical_columns(data=X)
+            cols_to_drop = self.preprocessor_obj.get_columns_with_zero_std_deviation(X)
 
-            X = self.preprocessor_obj.apply_pca_transform(X_scaled_data=X)
+            X = self.preprocessor_obj.remove_columns(X, cols_to_drop)
 
-            X, Y = self.preprocessor_obj.apply_smote(X=X, Y=Y)
-
-            number_of_clusters = self.kmeans_obj.elbow_plot(data=X)
+            number_of_clusters = self.kmeans_obj.elbow_plot(X)
 
             X, kmeans_model = self.kmeans_obj.create_clusters(
                 data=X, number_of_clusters=number_of_clusters
@@ -123,12 +113,6 @@ class train_model:
             X["Labels"] = Y
 
             list_of_clusters = X["Cluster"].unique()
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
-                log_message="Got unique list of clusters",
-            )
 
             for i in list_of_clusters:
                 cluster_data = X[X["Cluster"] == i]
@@ -157,10 +141,10 @@ class train_model:
                 )
 
                 (
-                    knn_model,
-                    knn_model_score,
-                    svm_model,
-                    svm_model_score,
+                    xgb_model,
+                    xgb_model_score,
+                    rf_model,
+                    rf_model_score,
                 ) = self.model_finder_obj.get_trained_models(
                     x_train, y_train, x_test, y_test
                 )
@@ -173,7 +157,7 @@ class train_model:
 
                 self.s3_obj.save_model_to_s3(
                     idx=i,
-                    model=knn_model,
+                    model=xgb_model,
                     model_bucket=self.model_bucket,
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
@@ -181,7 +165,7 @@ class train_model:
 
                 self.s3_obj.save_model_to_s3(
                     idx=i,
-                    model=svm_model,
+                    model=rf_model,
                     model_bucket=self.model_bucket,
                     db_name=self.db_name,
                     collection_name=self.model_train_log,
@@ -203,16 +187,16 @@ class train_model:
 
                         self.mlflow_op.log_all_for_model(
                             idx=i,
-                            model=knn_model,
-                            model_param_name="knn_model",
-                            model_score=knn_model_score,
+                            model=xgb_model,
+                            model_param_name="xgb_model",
+                            model_score=xgb_model_score,
                         )
 
                         self.mlflow_op.log_all_for_model(
                             idx=i,
-                            model=svm_model,
-                            model_param_name="svm_model",
-                            model_score=svm_model_score,
+                            model=rf_model,
+                            model_param_name="rf_model",
+                            model_score=rf_model_score,
                         )
 
                 except Exception as e:

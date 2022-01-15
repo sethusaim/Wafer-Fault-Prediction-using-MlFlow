@@ -21,7 +21,6 @@ data:
     bad_data_dir: bad/pred
 
 mongodb:
-  url: localhost:27017
   wafer_data_db_name: wafer-data
   wafer_train_data_collection: wafer-train-data
   wafer_pred_data_collection: wafer-pred-data
@@ -100,7 +99,7 @@ model_params:
     
 mlflow_config:
   experiment_name : wafer-ops-test
-  remote_server_uri : http://54.205.83.65:8080
+  remote_server_uri : 
   run_name : mlops
   serialization_format : cloudpickle  
   num_of_prod_models : 3

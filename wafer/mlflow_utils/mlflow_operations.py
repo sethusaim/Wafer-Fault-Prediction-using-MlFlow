@@ -447,7 +447,7 @@ class Mlflow_Operations:
                 collection_name=self.collection_name,
             )
 
-    def log_param(self, idx, model, model_name, param):
+    def log_param(self,model, model_name, param):
         """
         Method Name :   log_param
         Description :   This method logs the params of the model to mlflow
@@ -466,7 +466,7 @@ class Mlflow_Operations:
         )
 
         try:
-            name = model_name + str(idx) + f"-{param}"
+            name = model_name + f"-{param}"
 
             mlflow.log_param(key=name, value=model.__dict__[param])
 
@@ -546,7 +546,7 @@ class Mlflow_Operations:
 
             self.log_model(
                 model=model,
-                model_name=model_name + str(idx),
+                model_name=model_name,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )

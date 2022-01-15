@@ -48,7 +48,7 @@ def get_model_name(model, db_name, collection_name):
         return model_name
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             file_name=file_name,
             method_name=method_name,
@@ -102,7 +102,7 @@ def get_model_param_grid(model_key_name, db_name, collection_name):
         return model_grid
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             class_name=file_name,
             method_name=method_name,
@@ -167,7 +167,7 @@ def get_best_score_for_model(model, test_x, test_y, db_name, collection_name):
         return model_score
 
     except Exception as e:
-        log_writer.self.log_writer.raise_exception_log(
+        log_writer.raise_exception_log(
             error=e,
             class_name=file_name,
             method_name=method_name,
