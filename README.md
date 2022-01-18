@@ -1,5 +1,5 @@
 
-# Wafer Fault Detection using MlOps Integration
+# Wafer Fault Detection using MLOps Integration
 
 This is an end to end machine learning system with MLFlow integration for predicting the quality of wafer sensors.
 
