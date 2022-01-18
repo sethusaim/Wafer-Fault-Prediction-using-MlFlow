@@ -119,6 +119,56 @@ def convert_object_to_dataframe(obj, db_name, collection_name):
         )
 
 
+def read_s3_obj(obj, db_name, collection_name, decode=True):
+    """
+    Method Name :   read_s3_obj
+    Description :   This method is used for reading a object from s3 bucket
+
+    Version     :   1.2
+    Revisions   :   moved setup to cloud
+    """
+    method_name = read_s3_obj.__name__
+
+    log_writer.start_log(
+        key="start",
+        class_name=file_name,
+        method_name=method_name,
+        db_name=db_name,
+        collection_name=collection_name,
+    )
+
+    try:
+        if decode:
+            content = obj.get()["Body"].read().decode()
+
+        else:
+            content = obj.get()["Body"].read()
+
+        log_writer.log(
+            db_name=db_name,
+            collection_name=collection_name,
+            log_message=f"Read the object with decode as {decode}",
+        )
+
+        log_writer.start_log(
+            key="exit",
+            class_name=file_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
+        )
+
+        return content
+
+    except Exception as e:
+        log_writer.raise_exception_log(
+            error=e,
+            class_name=file_name,
+            method_name=method_name,
+            db_name=db_name,
+            collection_name=collection_name,
+        )
+
 def convert_object_to_pickle(obj, db_name, collection_name):
     """
     Method Name :   convert_object_to_pickle

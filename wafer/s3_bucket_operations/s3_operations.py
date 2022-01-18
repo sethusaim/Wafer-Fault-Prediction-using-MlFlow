@@ -46,56 +46,6 @@ class S3_Operations:
 
         self.trained_model_dir = self.config["models_dir"]["trained"]
 
-    def read_s3_obj(self, obj, db_name, collection_name, decode=True):
-        """
-        Method Name :   read_s3_obj
-        Description :   This method is used for reading a object from s3 bucket
-
-        Version     :   1.2
-        Revisions   :   moved setup to cloud
-        """
-        method_name = self.read_s3_obj.__name__
-
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            db_name=db_name,
-            collection_name=collection_name,
-        )
-
-        try:
-            if decode:
-                content = obj.get()["Body"].read().decode()
-
-            else:
-                content = obj.get()["Body"].read()
-
-            self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
-                log_message=f"Read the object with decode as {decode}",
-            )
-
-            self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
-            return content
-
-        except Exception as e:
-            self.log_writer.raise_exception_log(
-                error=e,
-                file_name=self.class_name,
-                method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
-
     def load_s3_obj(self, bucket_name, obj, db_name, collection_name):
         """
         Method Name :   load_s3_obj
@@ -698,7 +648,7 @@ class S3_Operations:
         """
         method_name = self.get_file_objects_from_s3.__name__
 
-        self.log_writer.start_log(  
+        self.log_writer.start_log(
             key="start",
             class_name=self.class_name,
             method_name=method_name,
