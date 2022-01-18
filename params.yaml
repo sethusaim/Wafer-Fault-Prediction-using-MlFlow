@@ -21,6 +21,7 @@ data:
     bad_data_dir: bad/pred
 
 mongodb:
+  mongo_url: 
   wafer_data_db_name: wafer-data
   wafer_train_data_collection: wafer-train-data
   wafer_pred_data_collection: wafer-pred-data
