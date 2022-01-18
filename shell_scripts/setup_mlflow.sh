@@ -1,12 +1,12 @@
-sudo pip3 install mlflow -y
+sudo pip3 install -y mlflow
 
 echo "Installed mlflow"
 
-sudo apt install nginx -y
+sudo apt install -y nginx 
 
 echo "Installed nginx"
 
-sudo apt-get install apache2-utils -y
+sudo apt-get install -y apache2-utils
 
 echo "Installed apache2-utils"
 
