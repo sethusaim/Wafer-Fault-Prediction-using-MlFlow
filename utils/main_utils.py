@@ -3,7 +3,6 @@ import pickle
 from io import StringIO
 
 import pandas as pd
-from wafer.s3_bucket_operations.s3_operations import S3_Operations
 
 from utils.logger import App_Logger
 from utils.read_params import read_params
@@ -13,9 +12,6 @@ file_name = "main_utils.py"
 config = read_params()
 
 log_writer = App_Logger()
-
-s3_obj = S3_Operations()
-
 
 def make_readable(data, db_name, collection_name):
     """
@@ -188,7 +184,7 @@ def convert_object_to_pickle(obj, db_name, collection_name):
     )
 
     try:
-        model_content = s3_obj.read_s3_obj(
+        model_content = read_s3_obj(
             obj, decode=False, db_name=db_name, collection_name=collection_name,
         )
 
@@ -239,7 +235,7 @@ def convert_object_to_bytes(obj, db_name, collection_name):
     )
 
     try:
-        content = s3_obj.read_s3_obj(
+        content = read_s3_obj(
             obj, decode=True, db_name=db_name, collection_name=collection_name,
         )
 
