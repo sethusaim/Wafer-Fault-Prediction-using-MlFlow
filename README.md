@@ -4,7 +4,7 @@
 This is an end to end machine learning system with MLFlow integration for predicting the quality of wafer sensors.
 
 ## Demo
-- 
+- Link is not avaiable due to instances charges
 
 ## Table of Contents
 - Problem Statement
