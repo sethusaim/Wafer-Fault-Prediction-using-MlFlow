@@ -698,7 +698,7 @@ class S3_Operations:
         """
         method_name = self.get_file_objects_from_s3.__name__
 
-        self.log_writer.start_log(
+        self.log_writer.start_log(  
             key="start",
             class_name=self.class_name,
             method_name=method_name,
