@@ -13,6 +13,7 @@ config = read_params()
 
 log_writer = App_Logger()
 
+
 def make_readable(data, db_name, collection_name):
     """
     Method Name :   make_readable
@@ -164,6 +165,7 @@ def read_s3_obj(obj, db_name, collection_name, decode=True):
             db_name=db_name,
             collection_name=collection_name,
         )
+
 
 def convert_object_to_pickle(obj, db_name, collection_name):
     """

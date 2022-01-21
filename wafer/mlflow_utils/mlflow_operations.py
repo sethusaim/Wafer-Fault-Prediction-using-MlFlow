@@ -1,3 +1,5 @@
+import os
+
 import mlflow
 from mlflow.tracking import MlflowClient
 from utils.logger import App_Logger
@@ -29,7 +31,7 @@ class Mlflow_Operations:
 
         self.mlflow_save_format = self.config["mlflow_config"]["serialization_format"]
 
-        self.remote_server_uri = self.config["mlflow_config"]["remote_server_uri"]
+        self.remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
         self.trained_models_dir = self.config["models_dir"]["trained"]
 

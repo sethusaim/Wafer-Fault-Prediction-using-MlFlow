@@ -58,10 +58,10 @@ async def trainRouteClient():
 
         loadProdModelObj.load_production_model()
 
-    except Exception as e:
-        return "Error Occurred! %s" % e
+        return Response("Training successfull!!")
 
-    return "Training successfull!!"
+    except Exception as e:
+        return Response(f"Error Occurred! {e}")
 
 
 @app.get("/predict")
@@ -82,7 +82,7 @@ async def predictRouteClient():
         )
 
     except Exception as e:
-        return Response("Error Occurred! %s" % e)
+        return Response(f"Error Occurred! {e}")
 
 
 if __name__ == "__main__":
