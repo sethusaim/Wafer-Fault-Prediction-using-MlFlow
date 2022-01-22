@@ -1,7 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
 from utils.logger import App_Logger
-from utils.model_utils import get_best_score_for_model, get_model_param_grid
+from utils.model_utils import get_best_params_for_model, get_best_score_for_model
 from utils.read_params import read_params
 from xgboost import XGBClassifier
 
@@ -56,39 +55,27 @@ class Model_Finder:
         )
 
         try:
-            self.rf_param_grid = get_model_param_grid(
+            self.rf_best_params = get_best_params_for_model(
+                model=self.rf_model,
                 model_key_name="rf_model",
+                x_train=train_x,
+                y_train=train_y,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
-            self.rf_grid = GridSearchCV(
-                estimator=self.rf_model,
-                param_grid=self.rf_param_grid,
-                cv=self.cv,
-                verbose=self.verbose,
-            )
+            self.criterion = self.rf_best_params["criterion"]
+
+            self.max_depth = self.rf_best_params["max_depth"]
+
+            self.max_features = self.rf_best_params["max_features"]
+
+            self.n_estimators = self.rf_best_params["n_estimators"]
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Initialiazed {self.rf_grid.__class__.__name__} with {self.rf_param_grid} as params",
-            )
-
-            self.rf_grid.fit(train_x, train_y)
-
-            self.criterion = self.rf_grid.best_params_["criterion"]
-
-            self.max_depth = self.rf_grid.best_params_["max_depth"]
-
-            self.max_features = self.rf_grid.best_params_["max_features"]
-
-            self.n_estimators = self.rf_grid.best_params_["n_estimators"]
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Got best params from {self.rf_grid.__class__.__name__}. Best_params are {self.rf_grid.best_params_}",
+                log_message=f"{self.rf_model.__class__.__name__} model best params are {self.rf_best_params}",
             )
 
             rf_model = RandomForestClassifier(
@@ -101,7 +88,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Initialized {rf_model.__class__.__name__} with {self.rf_grid.best_params_} as params",
+                log_message=f"Initialized {rf_model.__class__.__name__} with {self.rf_best_params} as params",
             )
 
             rf_model.fit(train_x, train_y)
@@ -109,7 +96,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Created {rf_model.__class__.__name__} based on the {self.rf_grid.best_params_} as params",
+                log_message=f"Created {rf_model.__class__.__name__} based on the {self.rf_best_params} as params",
             )
 
             self.log_writer.start_log(
@@ -154,37 +141,26 @@ class Model_Finder:
         )
 
         try:
-            self.xgb_param_grid = get_model_param_grid(
+
+            self.xgb_best_params = get_best_params_for_model(
+                model=self.xgb_model,
                 model_key_name="xgb_model",
+                x_train=train_x,
+                y_train=train_y,
                 db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
-            self.xgb_grid = GridSearchCV(
-                XGBClassifier(objective="binary:logistic"),
-                self.xgb_param_grid,
-                verbose=self.verbose,
-                cv=self.cv,
-            )
+            self.learning_rate = self.xgb_best_params["learning_rate"]
+
+            self.max_depth = self.xgb_best_params["max_depth"]
+
+            self.n_estimators = self.rf_best_params["n_estimators"]
 
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Initialized {self.xgb_grid.__class__.__name__} with {self.xgb_param_grid} as params",
-            )
-
-            self.xgb_grid.fit(train_x, train_y)
-
-            self.learning_rate = self.xgb_grid.best_params_["learning_rate"]
-
-            self.max_depth = self.xgb_grid.best_params_["max_depth"]
-
-            self.n_estimators = self.rf_grid.best_params_["n_estimators"]
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_message=f"Found out the best params from {self.xgb_grid.__class__.__name__} with best params as {self.xgb_grid.best_params_}",
+                log_message=f"{self.rf_model.__class__.__name__} model best params are {self.rf_best_params}",
             )
 
             xgb_model = XGBClassifier(
@@ -196,7 +172,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Initialized {self.xgb_model.__class__.__name__} model with best params as {self.xgb_grid.best_params_}",
+                log_message=f"Initialized {self.xgb_model.__class__.__name__} model with best params as {self.xgb_best_params}",
             )
 
             xgb_model.fit(train_x, train_y)
@@ -204,7 +180,7 @@ class Model_Finder:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_message=f"Created {self.xgb_model.__class__.__name__} model with best params as {self.xgb_grid.best_params_}",
+                log_message=f"Created {self.xgb_model.__class__.__name__} model with best params as {self.xgb_best_params}",
             )
 
             self.log_writer.start_log(
@@ -229,7 +205,7 @@ class Model_Finder:
     def get_trained_models(self, train_x, train_y, test_x, test_y):
         """
         Method Name :   get_trained_models
-        Description :   Find out the Model which has the best AUC score.
+        Description :   Find out the Model which has the best score.
         Output      :   The best model name and the model object
         On Failure  :   Raise Exception
 

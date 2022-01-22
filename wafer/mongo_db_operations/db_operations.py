@@ -18,7 +18,7 @@ class MongoDB_Operation:
         self.config = read_params()
 
         self.class_name = self.__class__.__name__
-        
+
         self.DB_URL = os.environ["MONGODB_URL"]
 
     def get_client(self):
