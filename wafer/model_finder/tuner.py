@@ -1,11 +1,11 @@
 from sklearn.ensemble import RandomForestClassifier
-from utils.logger import App_Logger
+from utils.logger import app_logger
 from utils.model_utils import get_model_name, get_model_params, get_model_score
 from utils.read_params import read_params
 from xgboost import XGBClassifier
 
 
-class Model_Finder:
+class model_finder:
     """
     This class shall  be used to find the model with best accuracy and AUC score.
     Written By: iNeuron Intelligence
@@ -24,7 +24,7 @@ class Model_Finder:
 
         self.verbose = self.config["model_utils"]["verbose"]
 
-        self.log_writer = App_Logger()
+        self.log_writer = app_logger()
 
         self.rf_model = RandomForestClassifier()
 

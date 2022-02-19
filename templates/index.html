@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-	<title>Prediction Page</title>
+	<title>prediction Page</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="shortcut icon"
@@ -292,7 +292,7 @@
 					type: "POST",
 					data: { filepath: path },
 					success: function (response) {
-						$(".json-result").html('<p>"Prediction File created at !!!Prediction_Output_File/Predictions.csvand few of the predictions are"</p><pre>' + response + '</pre>');
+						$(".json-result").html('<p>"prediction File created at !!!Prediction_Output_File/Predictions.csvand few of the predictions are"</p><pre>' + response + '</pre>');
 						$('#loading').hide();
 					}
 				});
@@ -307,7 +307,7 @@
 					type: "POST",
 					data: { filepath: path },
 					success: function (response) {
-						$(".json-result").html('<p>"Prediction File created !!!</p><pre>' + response + '</pre>');
+						$(".json-result").html('<p>"prediction File created !!!</p><pre>' + response + '</pre>');
 						$('#loading').hide();
 					}
 				});

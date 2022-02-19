@@ -1,4 +1,4 @@
-from utils.logger import App_Logger
+from utils.logger import app_logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_train import data_transform_train
 from wafer.data_type_valid.data_type_valid_train import db_operation_train
@@ -34,7 +34,7 @@ class train_validation:
             "wafer_train_data_collection"
         ]
 
-        self.log_writer = App_Logger()
+        self.log_writer = app_logger()
 
     def training_validation(self):
         """

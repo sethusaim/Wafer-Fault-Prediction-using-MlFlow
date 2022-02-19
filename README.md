@@ -49,7 +49,7 @@ uvicorn main:app --reload
 ### WorkFlow of the Project 
 To solve the problem statement we have proposed a customized machine learning approach. 
 
-![WorkFlow of Project](https://github.com/sethusaim/Wafer-Fault-Prediction-using-MlFlow/blob/main/docs/Other/Wafer%20Architecture.jpg?raw=True)
+![WorkFlow of Project](https://github.com/sethusaim/Wafer-Fault-prediction-using-MlFlow/blob/main/docs/Other/Wafer%20Architecture.jpg?raw=True)
 
 In the first place, whenever we start a machine learning project, we need to sign a data sharing agreement with the client, where sign off some of the parameters like,
 
@@ -100,10 +100,10 @@ For this project we have trained 6 models and we will productionize 3 models alo
 
 Here is glimpse of the mlflow server showing stages of the models (Staging or Production based on metrics)
 
-![mlflow server image](https://github.com/sethusaim/Wafer-Fault-Prediction-using-MlFlow/blob/main/docs/Other/MLOPS%20server%20page.png?raw=True)
+![mlflow server image](https://github.com/sethusaim/Wafer-Fault-prediction-using-MlFlow/blob/main/docs/Other/MLOPS%20server%20page.png?raw=True)
 
 
-### Prediction pipeline
+### prediction pipeline
 The prediction pipeline will be triggered following prediction validation and prediction from the model. In this prediction pipeline, the same validation steps like validating file name and so on. The prediction pipeline, and the preprocessing of prediction data. For the prediction, we will load the trained kmeans model and then predict the number of clusters, and for every cluster, model will be loaded and the prediction will be done. The predictions will saved to predictions.csv file and then prediction is completed.
 
 

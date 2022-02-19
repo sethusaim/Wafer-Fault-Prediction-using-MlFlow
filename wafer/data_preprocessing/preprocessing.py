@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
-from utils.logger import App_Logger
+from utils.logger import app_logger
 from utils.read_params import read_params
-from wafer.s3_bucket_operations.s3_operations import S3_Operations
+from wafer.s3_bucket_operations.s3_operations import s3_operations
 
 
-class Preprocessor:
+class preprocessor:
     """
     Description :   This class shall be used to clean and transform the data before training
     Written by  :   iNeuron Intelligence
@@ -21,7 +21,7 @@ class Preprocessor:
 
         self.config = read_params()
 
-        self.s3 = S3_Operations()
+        self.s3 = s3_operations()
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
@@ -31,7 +31,7 @@ class Preprocessor:
 
         self.knn_weights = self.config["knn_imputer"]["weights"]
 
-        self.log_writer = App_Logger()
+        self.log_writer = app_logger()
 
         self.class_name = self.__class__.__name__
 
