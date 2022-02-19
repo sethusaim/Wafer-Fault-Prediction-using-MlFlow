@@ -38,7 +38,7 @@ class pred_validation:
 
     def prediction_validation(self):
         """
-        Method Name :   load_s3_obj
+        Method Name :   load_s3
         Description :   This method is used for validating the prediction btach files
 
         Version     :   1.2
@@ -51,7 +51,6 @@ class pred_validation:
                 key="start",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
             )
 
@@ -73,13 +72,11 @@ class pred_validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_message="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_message="Starting Data Transformation",
             )
@@ -89,7 +86,6 @@ class pred_validation:
             self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_message="Data Transformation completed !!",
             )
@@ -100,7 +96,6 @@ class pred_validation:
             )
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_message="Data type validation Operation completed !!",
             )
@@ -114,15 +109,13 @@ class pred_validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
             )
 
         except Exception as e:
-            self.log_writer.raise_exception_log(
+            self.log_writer.exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
                 collection_name=self.pred_main_log,
             )

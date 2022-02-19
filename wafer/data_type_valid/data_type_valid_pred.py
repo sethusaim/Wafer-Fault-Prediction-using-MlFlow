@@ -1,5 +1,4 @@
 from utils.logger import App_Logger
-from utils.main_utils import convert_object_to_dataframe
 from utils.read_params import read_params
 from wafer.mongo_db_operations.db_operations import MongoDB_Operation
 from wafer.s3_bucket_operations.s3_operations import S3_Operations
@@ -9,22 +8,16 @@ class db_operation_pred:
     """
     Description :    This class shall be used for handling all the db operations
 
-    Version     :    1.0
-    Revisions   :    None
+    Version     :    1.2
+    Revisions   :    moved setup to cloud
     """
 
     def __init__(self):
         self.config = read_params()
 
-        self.s3_obj = S3_Operations()
-
-        self.db_op = MongoDB_Operation()
-
-        self.log_writer = App_Logger()
-
         self.class_name = self.__class__.__name__
 
-        self.pred_data_bucket = self.config["s3_bucket"]["wafer_pred_data_bucket"]
+        self.pred_data_bucket = self.config["s3_bucket"]["scania_pred_data_bucket"]
 
         self.pred_export_csv_file = self.config["export_pred_csv_file"]
 
@@ -32,13 +25,17 @@ class db_operation_pred:
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
-        self.db_name = self.config["db_log"]["db_pred_log"]
-
         self.pred_db_insert_log = self.config["pred_db_log"]["db_insert"]
 
         self.pred_export_csv_log = self.config["pred_db_log"]["export_csv"]
 
-    def insert_good_data_as_record(self, db_name, collection_name):
+        self.s3 = S3_Operations()
+
+        self.db_op = MongoDB_Operation()
+
+        self.log_writer = App_Logger()
+
+    def insert_good_data_as_record(self, good_data_db_name, good_data_collection_name):
         """
         Method Name :   insert_good_data_as_record
         Description :   This method inserts the good data in MongoDB as collection
@@ -52,38 +49,35 @@ class db_operation_pred:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=self.db_name,
-            collection_name=self.pred_db_insert_log,
+            table_name=self.pred_db_insert_log,
         )
 
         try:
-            csv_files = self.s3_obj.get_file_objects_from_s3(
+            lst = self.s3.read_csv(
                 bucket=self.pred_data_bucket,
-                filename=self.good_data_pred_dir,
-                db_name=self.db_name,
-                collection_name=self.pred_db_insert_log,
+                file_name=self.good_data_pred_dir,
+                table_name=self.pred_db_insert_log,
+                folder=True,
             )
 
-            for f in csv_files:
-                file = f.key
+            for idx, f in enumerate(lst):
+                df = f[idx][1]
+
+                file = f[idx][2]
 
                 if file.endswith(".csv"):
-                    df = convert_object_to_dataframe(
-                        obj=f,
-                        db_name=self.db_name,
-                        collection_name=self.pred_db_insert_log,
-                    )
-
                     self.db_op.insert_dataframe_as_record(
-                        data_frame=df, db_name=db_name, collection_name=collection_name,
+                        data_frame=df,
+                        db_name=good_data_db_name,
+                        collection_name=good_data_collection_name,
+                        table_name=self.pred_db_insert_log,
                     )
 
                 else:
                     pass
 
                 self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.pred_db_insert_log,
+                    table_name=self.pred_db_insert_log,
                     log_message="Inserted dataframe as collection record in mongodb",
                 )
 
@@ -91,24 +85,22 @@ class db_operation_pred:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.pred_db_insert_log,
+                table_name=self.pred_db_insert_log,
             )
 
         except Exception as e:
-            self.log_writer.raise_exception_log(
+            self.log_writer.exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.pred_db_insert_log,
+                table_name=self.pred_db_insert_log,
             )
 
-    def export_collection_to_csv(self, db_name, collection_name):
+    def export_collection_to_csv(self, good_data_db_name, good_data_collection_name):
         """
         Method Name :   export_collection_to_csv
 
-        Description :   This method extracts the inserted data to csv file, which will be used for prediction
+        Description :   This method extracts the inserted data to csv file, which will be used for preding
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
@@ -118,37 +110,35 @@ class db_operation_pred:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=self.db_name,
-            collection_name=self.pred_export_csv_log,
+            table_name=self.pred_export_csv_log,
         )
 
         try:
-            df = self.db_op.convert_collection_to_dataframe(
-                db_name=db_name, collection_name=collection_name
+            df = self.db_op.get_collection_as_dataframe(
+                db_name=good_data_db_name,
+                collection_name=good_data_collection_name,
+                table_name=self.pred_export_csv_log,
             )
 
-            self.s3_obj.upload_df_as_csv_to_s3(
+            self.s3.upload_df_as_csv(
                 data_frame=df,
                 file_name=self.pred_export_csv_file,
                 bucket=self.input_files_bucket,
                 dest_file_name=self.pred_export_csv_file,
-                db_name=self.db_name,
-                collection_name=self.pred_export_csv_log,
+                table_name=self.pred_export_csv_log,
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.pred_export_csv_log,
+                table_name=self.pred_export_csv_log,
             )
 
         except Exception as e:
-            self.log_writer.raise_exception_log(
+            self.log_writer.exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                table_name=self.pred_export_csv_log,
             )

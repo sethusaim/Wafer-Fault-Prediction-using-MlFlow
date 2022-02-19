@@ -36,22 +36,21 @@ class train_validation:
 
         self.log_writer = App_Logger()
 
-    def train_validation(self):
+    def training_validation(self):
         """
-        Method Name :   train_validation
+        Method Name :   training_validation
         Description :   This method is used for validating the training batch files
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        method_name = self.train_validation.__name__
+        method_name = self.training_validation.__name__
 
         try:
             self.log_writer.start_log(
                 key="start",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
             )
 
@@ -73,13 +72,11 @@ class train_validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
                 log_message="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
                 log_message="Starting Data Transformation",
             )
@@ -89,7 +86,6 @@ class train_validation:
             self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
                 log_message="Data Transformation completed !!",
             )
@@ -100,7 +96,6 @@ class train_validation:
             )
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
                 log_message="Data type validation Operation completed !!",
             )
@@ -114,15 +109,13 @@ class train_validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
             )
 
         except Exception as e:
-            self.log_writer.raise_exception_log(
+            self.log_writer.exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
                 collection_name=self.train_main_log,
             )

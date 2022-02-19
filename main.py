@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -7,10 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 
+from utils.log_tables import create_log_table
 from utils.read_params import read_params
-from wafer.model.load_production_model import load_prod_model
-from wafer.model.predictionFromModel import prediction
-from wafer.model.trainingModel import train_model
+from wafer.model.load_production_model import Load_Prod_Model
+from wafer.model.prediction_from_model import Prediction
+from wafer.model.training_model import train_model
 from wafer.validation_insertion.prediction_validation_insertion import pred_validation
 from wafer.validation_insertion.train_validation_insertion import train_validation
 
@@ -46,22 +48,28 @@ async def trainRouteClient():
     try:
         raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
 
-        train_valObj = train_validation(raw_data_train_bucket_name)
+        table_obj = create_log_table()
 
-        train_valObj.train_validation()
+        table_obj.generate_log_tables(type="train")
 
-        trainModelObj = train_model()
+        time.sleep(5)
 
-        num_clusters = trainModelObj.training_model()
+        train_val_obj = train_validation(bucket_name=raw_data_train_bucket_name)
 
-        loadProdModelObj = load_prod_model(num_clusters)
+        train_val_obj.training_validation()
 
-        loadProdModelObj.load_production_model()
+        train_model_obj = train_model()
 
-        return Response("Training successfull!!")
+        num_clusters = train_model_obj.training_model()
+
+        load_prod_model_obj = Load_Prod_Model(num_clusters=num_clusters)
+
+        load_prod_model_obj.load_production_model()
 
     except Exception as e:
-        return Response(f"Error Occurred! {e}")
+        return Response("Error Occurred! %s" % e)
+
+    return Response("Training successfull!!")
 
 
 @app.get("/predict")
@@ -69,11 +77,15 @@ async def predictRouteClient():
     try:
         raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
 
+        table_obj = create_log_table()
+
+        table_obj.generate_log_tables(type="pred")
+
         pred_val = pred_validation(raw_data_pred_bucket_name)
 
         pred_val.prediction_validation()
 
-        pred = prediction()
+        pred = Prediction()
 
         bucket, filename, json_predictions = pred.predict_from_model()
 
@@ -82,7 +94,7 @@ async def predictRouteClient():
         )
 
     except Exception as e:
-        return Response(f"Error Occurred! {e}")
+        return Response("Error Occurred! %s" % e)
 
 
 if __name__ == "__main__":

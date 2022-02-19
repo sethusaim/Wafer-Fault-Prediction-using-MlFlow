@@ -1,10 +1,9 @@
 from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.mlflow_utils.mlflow_operations import Mlflow_Operations
-from wafer.s3_bucket_operations.s3_operations import S3_Operations
+from wafer.mlflow_utils.mlflow_operations import MLFlow_Operations
 
 
-class load_prod_model:
+class Load_Prod_Model:
     """
     Description :   This class shall be used for loading the production model
     Written by  :   iNeuron Intelligence
@@ -21,21 +20,13 @@ class load_prod_model:
 
         self.num_clusters = num_clusters
 
-        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
-
-        self.db_name = self.config["db_log"]["db_train_log"]
+        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
 
         self.exp_name = self.config["mlflow_config"]["experiment_name"]
 
-        self.remote_server_uri = self.config["mlflow_config"]["remote_server_uri"]
-
-        self.s3_obj = S3_Operations()
-
-        self.mlflow_op = Mlflow_Operations(
-            db_name=self.db_name, collection_name=self.load_prod_model_log
-        )
+        self.mlflow_op = MLFlow_Operations(table_name=self.load_prod_model_log)
 
     def load_production_model(self):
         """
@@ -52,12 +43,11 @@ class load_prod_model:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=self.db_name,
-            collection_name=self.load_prod_model_log,
+            table_name=self.load_prod_model_log,
         )
 
         try:
-            self.mlflow_op.set_mlflow_tracking_uri(server_uri=self.remote_server_uri)
+            self.mlflow_op.set_mlflow_tracking_uri()
 
             exp = self.mlflow_op.get_experiment_from_mlflow(exp_name=self.exp_name)
 
@@ -82,24 +72,21 @@ class load_prod_model:
             ]
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
                 log_message="Created cols for all registered model",
             )
 
             runs_cols = runs[cols].max().sort_values(ascending=False)
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
                 log_message="Sorted the runs cols in descending order",
             )
 
             metrics_dict = runs_cols.to_dict()
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
                 log_message="Converted runs cols to dict",
             )
 
@@ -128,8 +115,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
     2                                                                           
             """
 
-            """(metrics.RandomForest1-best_score,0.5),(metrics.XGBoost1-best_score,1)"""
-
             best_metrics_names = [
                 max(
                     [
@@ -142,8 +127,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             ]
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
                 log_message=f"Got top model names based on the metrics of clusters",
             )
 
@@ -157,8 +141,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             top_mn_lst = [mn.split(".")[1].split("-")[0] for mn in best_metrics_names]
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
                 log_message=f"Got the top model names",
             )
 
@@ -177,8 +160,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             stage="Production",
                             model_name=mv.name,
                             bucket=self.model_bucket,
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
                         )
 
                     ## In the registered models, even kmeans model is present, so during prediction,
@@ -190,8 +171,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             stage="Production",
                             model_name=mv.name,
                             bucket=self.model_bucket,
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
                         )
 
                     else:
@@ -200,21 +179,24 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             stage="Staging",
                             model_name=mv.name,
                             bucket=self.model_bucket,
-                            db_name=self.db_name,
-                            collection_name=self.load_prod_model_log,
                         )
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
                 log_message="Transitioning of models based on scores successfully done",
             )
 
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                table_name=self.load_prod_model_log,
+            )
+
         except Exception as e:
-            self.log_writer.raise_exception_log(
+            self.log_writer.exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.load_prod_model_log,
+                table_name=self.load_prod_model_log,
             )
