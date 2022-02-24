@@ -24,7 +24,7 @@ class raw_pred_data_validation:
 
         self.s3 = s3_operations()
 
-        self.pred_data_bucket = self.config["s3_bucket"]["scania_pred_data_bucket"]
+        self.pred_data_bucket = self.config["s3_bucket"]["wafer_pred_data_bucket"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 

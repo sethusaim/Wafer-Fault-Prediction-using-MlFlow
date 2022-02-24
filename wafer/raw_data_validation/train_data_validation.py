@@ -24,7 +24,7 @@ class raw_train_data_validation:
 
         self.s3 = s3_operations()
 
-        self.train_data_bucket = self.config["s3_bucket"]["scania_train_data_bucket"]
+        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data_bucket"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 

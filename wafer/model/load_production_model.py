@@ -21,7 +21,7 @@ class load_prod_model:
 
         self.num_clusters = num_clusters
 
-        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
         self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
 

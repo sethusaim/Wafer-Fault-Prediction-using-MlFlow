@@ -22,9 +22,9 @@ data:
 
 mongodb:
   mongo_url: 
-  phising_data_db_name: phising-data
-  phising_train_data_collection: phising-train-data
-  phising_pred_data_collection: phising-pred-data
+  wafer_data_db_name: wafer-data
+  wafer_train_data_collection: wafer-train-data
+  wafer_pred_data_collection: wafer-pred-data
 
 knn_imputer:
   n_neighbors : 3
@@ -40,11 +40,11 @@ kmeans_cluster:
 
 s3_bucket:
   input_files_bucket: input-files-for-train-and-pred
-  phising_model_bucket: phising-model
-  phising-mlflow_bucket: phising-mlflow
-  phising_pred_data_bucket: phising-pred-data
-  phising_train_data_bucket: phising-train-data
-  phising_raw_data_bucket: phising-raw-data
+  wafer_model_bucket: wafer-model
+  wafer-mlflow_bucket: wafer-mlflow
+  wafer_pred_data_bucket: wafer-pred-data
+  wafer_train_data_bucket: wafer-train-data
+  wafer_raw_data_bucket: wafer-raw-data
 
 models_dir:
   trained : trained/
@@ -99,14 +99,14 @@ model_params:
       - 200
     
 mlflow_config:
-  experiment_name : phising-ops-test
+  experiment_name : wafer-ops-test
   run_name : mlops
   serialization_format : cloudpickle  
   num_of_prod_models : 3
 
 db_log:
-  db_train_log : phising_training_logs
-  db_pred_log : phising_prediction_logs
+  db_train_log : wafer_training_logs
+  db_pred_log : wafer_prediction_logs
 
 train_db_log:
   model_training : model_training_log
