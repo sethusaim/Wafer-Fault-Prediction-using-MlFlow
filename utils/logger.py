@@ -4,7 +4,7 @@ import boto3
 
 class app_logger:
     """
-    Description :   This class is used for logging the info to MongoDB
+    Description :   This class is used for logging the info to DynamoDB
 
     Version     :   1.2
     Revisions   :   moved to setup to cloud
@@ -18,7 +18,7 @@ class app_logger:
     def log(self, table_name, log_message):
         """
         Method Name :   log
-        Description :   This method is used for log the info to MongoDB
+        Description :   This method is used for log the info to DynamoDB
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
