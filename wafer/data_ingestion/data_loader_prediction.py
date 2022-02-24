@@ -15,7 +15,7 @@ class data_getter_pred:
 
         self.table_name = table_name
 
-        self.prediction_file = self.config["export_pred_csv_file"]
+        self.prediction_file = self.config["export_csv_file"]["pred"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
