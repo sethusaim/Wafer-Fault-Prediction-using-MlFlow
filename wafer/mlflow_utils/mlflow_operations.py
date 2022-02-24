@@ -1,6 +1,4 @@
-from email.mime import base
 import os
-from statistics import mode
 
 import mlflow
 from mlflow.tracking import MlflowClient
