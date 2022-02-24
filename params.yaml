@@ -34,7 +34,7 @@ knn_imputer:
 kmeans_cluster:
   init          : k-means++
   max_clusters  : 11
-  knee_locator:
+  knee:
     curve     : convex
     direction : decreasing
 
@@ -139,6 +139,8 @@ schema_file:
 elbow_plot_fig : K-Means_Elbow.PNG
 
 null_values_csv_file : null_values.csv
+
+regex_file : wafer-regex.txt
 
 pred_output_file : predictions.csv
 

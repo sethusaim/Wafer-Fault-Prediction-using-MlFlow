@@ -72,12 +72,12 @@ class train_validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
-                collection_name=self.train_main_log,
+                table_name=self.train_main_log,
                 log_message="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
-                collection_name=self.train_main_log,
+                table_name=self.train_main_log,
                 log_message="Starting Data Transformation",
             )
 
@@ -86,7 +86,7 @@ class train_validation:
             self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
-                collection_name=self.train_main_log,
+                table_name=self.train_main_log,
                 log_message="Data Transformation completed !!",
             )
 
@@ -96,7 +96,7 @@ class train_validation:
             )
 
             self.log_writer.log(
-                collection_name=self.train_main_log,
+                table_name=self.train_main_log,
                 log_message="Data type validation Operation completed !!",
             )
 

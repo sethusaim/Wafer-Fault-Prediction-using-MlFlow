@@ -8,8 +8,9 @@ class data_transform_pred:
     Description :   This class shall be used for transforming the good raw prediction data before loading
                     it in database
     Written by  :   iNeuron Intelligence
-    Version     :   1.0
-    Revisions   :   None
+
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud 
     """
 
     def __init__(self):
@@ -35,8 +36,9 @@ class data_transform_pred:
         Description :   This method renames the target column from Good/Bad to Output.
                         We are using substring in the first column to keep only "Integer" data for ease up the
                         loading.This columns is anyways going to be removed during prediction
+
         Written by  :   iNeuron Intelligence
-        Revisions   :   modified code based on params.yaml file
+        Revisions   :   moved setup to cloud
         """
         method_name = self.rename_target_column.__name__
 
@@ -103,7 +105,7 @@ class data_transform_pred:
                         We are using substring in the first column to keep only "Integer" data for ease up the
                         loading.This columns is anyways going to be removed during prediction
         Written by  :   iNeuron Intelligence
-        Revisions   :   modified code based on params.yaml file
+        Revisions   :   moved setup to cloud
         """
         method_name = self.replace_missing_with_null.__name__
 

@@ -10,14 +10,12 @@ class preprocessor:
     """
     Description :   This class shall be used to clean and transform the data before training
     Written by  :   iNeuron Intelligence
-    Version     :   1.0
-    Revisions   :   None
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud 
     """
 
-    def __init__(self, db_name, collection_name):
-        self.collection_name = collection_name
-
-        self.db_name = db_name
+    def __init__(self, table_name):
+        self.table_name = table_name
 
         self.config = read_params()
 
@@ -42,7 +40,7 @@ class preprocessor:
         Output      :   A pandas dataframe after the removing the specified columns
         On failure  :   Raise Exception
         Written by  :   iNeuron Intelligence
-        Version     :   1.1
+        Version     :   1.2
         Revisions   :   Modified code based on the params.yaml file
         """
         method_name = self.remove_columns.__name__
@@ -88,8 +86,9 @@ class preprocessor:
         Description :   This method separates the features and a label columns
         Output      :   Returns two separate dataframe, one containing features and other containing labels
         On failure  :   Raise Exception
-        Version     :   1.1
-        Revisions   :   modified code based on the params.yaml file
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.separate_label_feature.__name__
 
@@ -139,7 +138,7 @@ class preprocessor:
         Output      :   Returns a boolean value. True if null is present in the dataframe, False they are
                         not present
         On failure  :   1.1
-        Revisions   :   modified code based on the params.yaml file
+        Revisions   :   moved setup to cloud
         """
         method_name = self.is_null_present.__name__
 
@@ -179,7 +178,7 @@ class preprocessor:
 
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"Finding missing values is a success.Data written to the null values file",
+                log_message="Finding missing values is a success.Data written to the null values file",
             )
 
             self.log_writer.start_log(
@@ -193,8 +192,7 @@ class preprocessor:
 
         except Exception as e:
             self.log_writer.log(
-                table_name=self.table_name,
-                log_message=f"Finding missing values failed",
+                table_name=self.table_name, log_message="Finding missing values failed",
             )
 
             self.log_writer.exception_log(
@@ -211,8 +209,9 @@ class preprocessor:
         Output      :   A dataframe which has all missing values imputed
         On failure  :   Raise Exception
         Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on the params.yaml file
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.impute_missing_values.__name__
 
@@ -270,8 +269,8 @@ class preprocessor:
         Output      :   a dataframe which has all missing values imputed
         On failure  :   Raise Exception
         Written by  :   iNeuron Intelligence
-        Version     :   1.1
-        Revisions   :   modified code based on params.yaml file
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
         """
         method_name = self.get_columns_with_zero_std_deviation.__name__
 
@@ -304,7 +303,7 @@ class preprocessor:
         except Exception as e:
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"Column search for Standard Deviation of Zero Failed.",
+                log_message="Column search for Standard Deviation of Zero Failed.",
             )
 
             self.log_writer.exception_log(

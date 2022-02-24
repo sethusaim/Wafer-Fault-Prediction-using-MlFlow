@@ -32,6 +32,8 @@ class raw_train_data_validation:
 
         self.train_schema_file = self.config["schema_file"]["train_schema_file"]
 
+        self.regex_file = self.config["regex_file"]
+
         self.train_schema_log = self.config["train_db_log"]["values_from_schema"]
 
         self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
@@ -133,7 +135,11 @@ class raw_train_data_validation:
                 table_name=self.train_gen_log,
             )
 
-            regex = "['wafer']+['\_'']+[\d_]+[\d]+\.csv"
+            regex = self.s3.read_text(
+                file_name=self.regex_file,
+                bucket_name=self.input_files_bucket,
+                table_name=self.train_gen_log,
+            )
 
             self.log_writer.log(
                 table_name=self.train_gen_log, log_message=f"Got {regex} pattern",
@@ -156,6 +162,51 @@ class raw_train_data_validation:
                 table_name=self.train_gen_log,
             )
 
+    def create_dirs_for_good_bad_data(self, table_name):
+        """
+        Method Name :   create_dirs_for_good_bad_data
+        Description :   This method is used for creating directory for good and bad data in s3 bucket
+
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
+        method_name = self.create_dirs_for_good_bad_data.__name__
+
+        self.log_writer.start_log(
+            key="start",
+            class_name=self.class_name,
+            method_name=method_name,
+            table_name=table_name,
+        )
+
+        try:
+            self.s3.create_folder(
+                bucket_name=self.train_data_bucket,
+                folder_name=self.good_train_data_dir,
+                table_name=table_name,
+            )
+
+            self.s3.create_folder(
+                bucket_name=self.train_data_bucket,
+                folder_name=self.bad_train_data_dir,
+                table_name=table_name,
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                table_name=table_name,
+            )
+
+        except Exception as e:
+            self.log_writer.exception_log(
+                error=e,
+                class_name=self.class_name,
+                method_name=method_name,
+                table_name=table_name,
+            )
+
     def validate_raw_file_name(
         self, regex, LengthOfDateStampInFile, LengthOfTimeStampInFile
     ):
@@ -176,7 +227,7 @@ class raw_train_data_validation:
         )
 
         try:
-            self.s3.create_dirs_for_good_bad_data(table_name=self.train_name_valid_log)
+            self.create_dirs_for_good_bad_data(table_name=self.train_name_valid_log)
 
             onlyfiles = self.s3.get_files(
                 bucket=self.raw_data_bucket_name,
@@ -188,7 +239,7 @@ class raw_train_data_validation:
 
             self.log_writer.log(
                 table_name=self.train_name_valid_log,
-                log_message="Got trainiction files with exact name",
+                log_message="Got training files with exact name",
             )
 
             for filename in train_batch_files:

@@ -6,8 +6,8 @@ def read_params(config_path="params.yaml"):
     Method Name :   read_params
     Description :   This method is used for read the params from yaml file
 
-    Version     :   1.0
-    Revisions   :   None
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud 
     """
     method_name = read_params.__name__
 
