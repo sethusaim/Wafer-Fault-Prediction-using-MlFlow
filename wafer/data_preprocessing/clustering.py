@@ -20,7 +20,7 @@ class kmeans_clustering:
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
-        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
+        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
 
         self.random_state = self.config["base"]["random_state"]
 

@@ -8,6 +8,7 @@ class data_transform_train:
     Description :   This class shall be used for transforming the good raw training data before loading
                     it in database
     Written by  :   iNeuron Intelligence
+
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """
@@ -103,9 +104,7 @@ class data_transform_train:
         Description :   This method replaces the missing values in columns with "NULL" to store in the table.
                         We are using substring in the first column to keep only "Integer" data for ease up the
                         loading.This columns is anyways going to be removed during training
-        
         Written by  :   iNeuron Intelligence
-        Versions    :   1.2
         Revisions   :   moved setup to cloud
         """
         method_name = self.replace_missing_with_null.__name__
