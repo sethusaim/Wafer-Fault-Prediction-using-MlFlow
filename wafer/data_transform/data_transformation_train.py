@@ -5,7 +5,7 @@ from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 class Data_Transform_Train:
     """
-    Description :   This class shall be used for transforming the good raw trainiction data before loading it in database
+    Description :   This class shall be used for transforming the good raw training data before loading it in database
     Written by  :   iNeuron Intelligence
 
     Version     :   1.2
@@ -34,7 +34,7 @@ class Data_Transform_Train:
         Method Name :   rename_target_column
         Description :   This method renames the target column from Good/Bad to Output.
                         We are using substring in the first column to keep only "Integer" data for ease up the
-                        loading.This columns is anyways going to be removed during trainiction
+                        loading.This columns is anyways going to be removed during training
 
         Written by  :   iNeuron Intelligence
         Revisions   :   moved setup to cloud
@@ -76,7 +76,7 @@ class Data_Transform_Train:
                         local_file_name=abs_f,
                         bucket_file_name=file,
                         bucket_name=self.train_data_bucket,
-                        table_name=self.train_data_transform_log
+                        table_name=self.train_data_transform_log,
                     )
 
                 else:
@@ -102,7 +102,7 @@ class Data_Transform_Train:
         Method Name :   replace_missing_with_null
         Description :   This method replaces the missing values in columns with "NULL" to store in the table.
                         We are using substring in the first column to keep only "Integer" data for ease up the
-                        loading.This columns is anyways going to be removed during trainiction
+                        loading.This columns is anyways going to be removed during training
         Written by  :   iNeuron Intelligence
         Revisions   :   moved setup to cloud
         """
@@ -116,7 +116,11 @@ class Data_Transform_Train:
         )
 
         try:
-            lst = self.s3.read_csv_from_folder(folder_name=self.good_train_data_dir,bucket_name=self.train_data_bucket,table_name=self.train_data_transform_log)
+            lst = self.s3.read_csv_from_folder(
+                folder_name=self.good_train_data_dir,
+                bucket_name=self.train_data_bucket,
+                table_name=self.train_data_transform_log,
+            )
 
             for idx, f in enumerate(lst):
                 df = f[idx][0]
@@ -140,7 +144,7 @@ class Data_Transform_Train:
                         local_file_name=abs_f,
                         bucket_file_name=file,
                         bucket_name=self.train_data_bucket,
-                        table_name=self.train_data_transform_log
+                        table_name=self.train_data_transform_log,
                     )
 
                 else:

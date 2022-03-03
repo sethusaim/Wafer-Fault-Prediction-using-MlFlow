@@ -2,13 +2,12 @@ from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_train import Data_Transform_Train
 from wafer.data_type_valid.data_type_valid_train import DB_Operation_Train
-from wafer.raw_data_validation.train_data_validation import \
-    Raw_Train_Data_Validation
+from wafer.raw_data_validation.train_data_validation import Raw_Train_Data_Validation
 
 
 class Train_Validation:
     """
-    Description :   This class is used for validating all the trainiction batch files
+    Description :   This class is used for validating all the training batch files
 
     Version     :   1.2
     Revisions   :   moved to setup to cloud
@@ -37,15 +36,15 @@ class Train_Validation:
 
         self.log_writer = App_Logger()
 
-    def trainiction_validation(self):
+    def training_validation(self):
         """
         Method Name :   load_s3
-        Description :   This method is used for validating the trainiction btach files
+        Description :   This method is used for validating the training btach files
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        method_name = self.trainiction_validation.__name__
+        method_name = self.training_validation.__name__
 
         try:
             self.log_writer.start_log(
