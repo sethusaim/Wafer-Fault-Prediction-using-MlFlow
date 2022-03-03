@@ -1,11 +1,12 @@
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.s3_bucket_operations.s3_operations import s3_operations
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
-class data_getter_pred:
+class Data_Getter_Pred:
     """
-    Description :   This class shall be used for obtaining the df from the source for prediction
+    Description :   This class shall be used for obtaining the df from the input files s3 bucket where the prediction file is present
+    
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """
@@ -17,21 +18,22 @@ class data_getter_pred:
 
         self.prediction_file = self.config["export_csv_file"]["pred"]
 
-        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+        self.input_files_bucket = self.config["bucket"]["input_files"]
 
-        self.s3 = s3_operations()
+        self.s3 = S3_Operation()
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
     def get_data(self):
         """
         Method Name :   get_data
-        Description :   This method reads the data from the source
+        Description :   This method reads the data from the input files s3 bucket where the prediction file is present
         Output      :   A pandas dataframe
-        On failure  :   Raise Exception
-        Written by  :   iNeuron Intelligence
+        
+        On Failure  :   Write an exception log and then raise an exception
+        
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
@@ -46,8 +48,8 @@ class data_getter_pred:
 
         try:
             df = self.s3.read_csv(
-                bucket=self.input_files_bucket,
                 file_name=self.prediction_file,
+                bucket_name=self.input_files_bucket,
                 table_name=self.table_name,
             )
 

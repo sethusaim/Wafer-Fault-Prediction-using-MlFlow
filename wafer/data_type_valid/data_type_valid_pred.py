@@ -1,6 +1,6 @@
 from utils.logger import app_logger
 from utils.read_params import read_params
-from wafer.mongo_db_operations.db_operations import mongo_db_operation
+from wafer.mongo_db_operations.mongo_operations import mongo_db_operation
 from wafer.s3_bucket_operations.s3_operations import s3_operations
 
 
