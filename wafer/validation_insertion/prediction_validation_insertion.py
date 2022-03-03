@@ -1,8 +1,8 @@
-from utils.logger import app_logger
+from utils.logger import App_Logger, app_logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_pred import Data_Transform_Pred
-from wafer.data_type_valid.data_type_valid_pred import db_operation_pred
-from wafer.raw_data_validation.pred_data_validation import raw_pred_data_validation
+from wafer.data_type_valid.data_type_valid_pred import DB_Operation_Pred
+from wafer.raw_data_validation.pred_data_validation import Raw_Pred_Data_Validation
 
 
 class pred_validation:
@@ -14,11 +14,11 @@ class pred_validation:
     """
 
     def __init__(self, bucket_name):
-        self.raw_data = raw_pred_data_validation(raw_data_bucket_name=bucket_name)
+        self.raw_data = Raw_Pred_Data_Validation(raw_data_bucket_name=bucket_name)
 
         self.data_transform = Data_Transform_Pred()
 
-        self.db_operation = db_operation_pred()
+        self.db_operation = DB_Operation_Pred()
 
         self.config = read_params()
 
@@ -34,7 +34,7 @@ class pred_validation:
             "wafer_pred_data_collection"
         ]
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
     def prediction_validation(self):
         """
