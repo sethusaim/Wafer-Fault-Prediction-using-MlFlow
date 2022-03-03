@@ -1,12 +1,11 @@
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.s3_bucket_operations.s3_operations import s3_operations
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
-class data_transform_train:
+class Data_Transform_Train:
     """
-    Description :   This class shall be used for transforming the good raw training data before loading
-                    it in database
+    Description :   This class shall be used for transforming the good raw trainiction data before loading it in database
     Written by  :   iNeuron Intelligence
 
     Version     :   1.2
@@ -16,17 +15,17 @@ class data_transform_train:
     def __init__(self):
         self.config = read_params()
 
-        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data_bucket"]
+        self.train_data_bucket = self.config["s3_bucket"]["wafer_train_data"]
 
         self.class_name = self.__class__.__name__
 
-        self.s3 = s3_operations()
+        self.s3 = S3_Operation()
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
-        self.good_train_data_dir = self.config["data"]["train"]["good_data_dir"]
+        self.good_train_data_dir = self.config["data"]["train"]["good"]
 
-        self.db_name = self.config["db_log"]["db_train_log"]
+        self.db_name = self.config["db_log"]["train"]
 
         self.train_data_transform_log = self.config["train_db_log"]["data_transform"]
 
@@ -35,7 +34,7 @@ class data_transform_train:
         Method Name :   rename_target_column
         Description :   This method renames the target column from Good/Bad to Output.
                         We are using substring in the first column to keep only "Integer" data for ease up the
-                        loading.This columns is anyways going to be removed during training
+                        loading.This columns is anyways going to be removed during trainiction
 
         Written by  :   iNeuron Intelligence
         Revisions   :   moved setup to cloud
@@ -74,10 +73,10 @@ class data_transform_train:
 
                     self.s3.upload_df_as_csv(
                         data_frame=df,
-                        file_name=abs_f,
-                        bucket=self.train_data_bucket,
-                        dest_file_name=file,
-                        collection_name=self.train_data_transform_log,
+                        local_file_name=abs_f,
+                        bucket_file_name=file,
+                        bucket_name=self.train_data_bucket,
+                        table_name=self.train_data_transform_log
                     )
 
                 else:
@@ -103,7 +102,7 @@ class data_transform_train:
         Method Name :   replace_missing_with_null
         Description :   This method replaces the missing values in columns with "NULL" to store in the table.
                         We are using substring in the first column to keep only "Integer" data for ease up the
-                        loading.This columns is anyways going to be removed during training
+                        loading.This columns is anyways going to be removed during trainiction
         Written by  :   iNeuron Intelligence
         Revisions   :   moved setup to cloud
         """
@@ -117,12 +116,7 @@ class data_transform_train:
         )
 
         try:
-            lst = self.s3.read_csv(
-                bucket=self.train_data_bucket,
-                file_name=self.good_train_data_dir,
-                folder=True,
-                table_name=self.train_data_transform_log,
-            )
+            lst = self.s3.read_csv_from_folder(folder_name=self.good_train_data_dir,bucket_name=self.train_data_bucket,table_name=self.train_data_transform_log)
 
             for idx, f in enumerate(lst):
                 df = f[idx][0]
@@ -143,10 +137,10 @@ class data_transform_train:
 
                     self.s3.upload_df_as_csv(
                         data_frame=df,
-                        file_name=abs_f,
-                        bucket=self.train_data_bucket,
-                        dest_file_name=file,
-                        collection_name=self.train_data_transform_log,
+                        local_file_name=abs_f,
+                        bucket_file_name=file,
+                        bucket_name=self.train_data_bucket,
+                        table_name=self.train_data_transform_log
                     )
 
                 else:
