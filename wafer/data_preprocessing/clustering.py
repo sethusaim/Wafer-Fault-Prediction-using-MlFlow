@@ -1,16 +1,17 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.s3_bucket_operations.s3_operations import s3_operations
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
-class kmeans_clustering:
+class KMeans_Clustering:
     """
-    Description :   This class shall  be used to divide the data into clusters before training.
+    Description :   This class shall be used to divide the data into clusters before training.
+    
     Version     :   1.2
-    Revisions   :   moved to the setup to cloud
+    Revisions   :   Moved to setup to cloud 
     """
 
     def __init__(self, table_name):
@@ -18,9 +19,9 @@ class kmeans_clustering:
 
         self.config = read_params()
 
-        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+        self.input_files_bucket = self.config["bucket"]["input_files"]
 
-        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
+        self.model_bucket_name = self.config["bucket"]["wafer_model"]
 
         self.random_state = self.config["base"]["random_state"]
 
@@ -32,11 +33,13 @@ class kmeans_clustering:
 
         self.kmeans_direction = self.config["kmeans_cluster"]["knee"]["direction"]
 
-        self.s3 = s3_operations()
+        self.trained_model_dir = self.config["model_dir"]["trained"]
+
+        self.s3 = S3_Operation()
 
         self.elbow_plot_file = self.config["elbow_plot_fig"]
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
@@ -44,8 +47,10 @@ class kmeans_clustering:
         """
         Method Name :   elbow_plot
         Description :   This method saves the plot to s3 bucket and decides the optimum number of clusters to the file.
-        Output      :   A picture saved to the s3_bucket
-        On Failure  :   Raise Exception
+        
+        Output      :   An elbow plot figure saved to input files bucket
+        On Failure  :   Write an exception log and then raise an exception
+        
         Version     :   1.2
         Revisions   :   Moved to setup to cloud 
         """
@@ -58,9 +63,9 @@ class kmeans_clustering:
             table_name=self.table_name,
         )
 
-        wcss = []
-
         try:
+            wcss = []
+
             for i in range(1, self.max_clusters):
                 kmeans = KMeans(
                     n_clusters=i, init=self.kmeans_init, random_state=self.random_state
@@ -86,9 +91,9 @@ class kmeans_clustering:
             )
 
             self.s3.upload_file(
-                src_file=self.elbow_plot_file,
-                bucket=self.input_files_bucket,
-                dest_file=self.elbow_plot_file,
+                from_file_name=self.elbow_plot_file,
+                to_file_name=self.elbow_plot_file,
+                bucket_name=self.input_files_bucket,
                 table_name=self.table_name,
             )
 
@@ -125,8 +130,10 @@ class kmeans_clustering:
         """
         Method Name :   create_clusters
         Description :   Create a new dataframe consisting of the cluster information.
-        Output      :   A datframe with cluster column
-        On Failure  :   Raise Exception
+        
+        Output      :   A dataframe with cluster column
+        On Failure  :   Write an exception log and then raise an exception
+        
         Version     :   1.2
         Revisions   :   Moved to setup to cloud 
         """
@@ -139,9 +146,9 @@ class kmeans_clustering:
             table_name=self.table_name,
         )
 
-        self.data = data
-
         try:
+            self.data = data
+
             self.kmeans = KMeans(
                 n_clusters=number_of_clusters,
                 init=self.kmeans_init,
@@ -151,9 +158,9 @@ class kmeans_clustering:
             self.y_kmeans = self.kmeans.fit_predict(data)
 
             self.s3.save_model(
-                idx=None,
                 model=self.kmeans,
-                model_bucket=self.model_bucket,
+                model_dir=self.trained_model_dir,
+                model_bucket_name=self.model_bucket_name,
                 table_name=self.table_name,
             )
 

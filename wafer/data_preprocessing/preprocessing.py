@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.s3_bucket_operations.s3_operations import s3_operations
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
 class preprocessor:
@@ -19,9 +19,9 @@ class preprocessor:
 
         self.config = read_params()
 
-        self.s3 = s3_operations()
+        self.s3 = S3_Operation()
 
-        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+        self.input_files_bucket = self.config["s3_bucket"]["input_files"]
 
         self.null_values_file = self.config["null_values_csv_file"]
 
@@ -29,7 +29,7 @@ class preprocessor:
 
         self.knn_weights = self.config["knn_imputer"]["weights"]
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
@@ -60,7 +60,7 @@ class preprocessor:
             self.useful_data = self.data.drop(labels=self.columns, axis=1)
 
             self.log_writer.log(
-                table_name=self.table_name, log_message=f"Column removal Successful",
+                table_name=self.table_name, log_message="Column removal Successful",
             )
 
             self.log_writer.start_log(
@@ -120,7 +120,7 @@ class preprocessor:
         except Exception as e:
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"Label Separation Unsuccessful",
+                log_message="Label Separation Unsuccessful",
             )
 
             self.log_writer.exception_log(
@@ -160,20 +160,20 @@ class preprocessor:
                     break
 
             if self.null_present:
-                dataframe_with_null = pd.DataFrame()
+                null_df = pd.DataFrame()
 
-                dataframe_with_null["columns"] = data.columns
+                null_df["columns"] = data.columns
 
-                dataframe_with_null["missing values count"] = np.asarray(
+                null_df["missing values count"] = np.asarray(
                     data.isna().sum()
                 )
 
                 self.s3.upload_df_as_csv(
-                    data_frame=dataframe_with_null,
-                    file_name=self.null_values_file,
-                    bucket=self.input_files_bucket,
-                    dest_file_name=self.null_values_file,
-                    table_name=self.table_name,
+                    data_frame=null_df,
+                    local_file_name=self.null_values_file,
+                    bucket_file_name=self.null_values_file,
+                    bucket_name=self.input_files_bucket,
+                    table_name=self.table_name
                 )
 
             self.log_writer.log(
@@ -281,14 +281,14 @@ class preprocessor:
             table_name=self.table_name,
         )
 
-        self.data_n = data.describe()
-
         try:
+            self.data_n = data.describe()
+            
             self.col_to_drop = [x for x in data.columns if self.data_n[x]["std"] == 0]
 
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"Column search for Standard Deviation of Zero Successful.",
+                log_message="Column search for Standard Deviation of Zero Successful.",
             )
 
             self.log_writer.start_log(
