@@ -6,7 +6,7 @@ from utils.read_params import read_params
 from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
-class preprocessor:
+class Preprocessor:
     """
     Description :   This class shall be used to clean and transform the data before training
     Written by  :   iNeuron Intelligence
@@ -38,7 +38,7 @@ class preprocessor:
         Method Name :   remove_columns
         Description :   This method removes the given columns from a pandas dataframe
         Output      :   A pandas dataframe after the removing the specified columns
-        On failure  :   Raise Exception
+        On Failure  :   Write an exception log and then raise an exception
         Written by  :   iNeuron Intelligence
         Version     :   1.2
         Revisions   :   Modified code based on the params.yaml file
@@ -85,7 +85,7 @@ class preprocessor:
         Method name :   separate_label_feature
         Description :   This method separates the features and a label columns
         Output      :   Returns two separate dataframe, one containing features and other containing labels
-        On failure  :   Raise Exception
+        On Failure  :   Write an exception log and then raise an exception
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -119,8 +119,7 @@ class preprocessor:
 
         except Exception as e:
             self.log_writer.log(
-                table_name=self.table_name,
-                log_message="Label Separation Unsuccessful",
+                table_name=self.table_name, log_message="Label Separation Unsuccessful",
             )
 
             self.log_writer.exception_log(
@@ -137,7 +136,7 @@ class preprocessor:
                         dataframe or not
         Output      :   Returns a boolean value. True if null is present in the dataframe, False they are
                         not present
-        On failure  :   1.1
+        On Failure  :   1.1
         Revisions   :   moved setup to cloud
         """
         method_name = self.is_null_present.__name__
@@ -164,16 +163,14 @@ class preprocessor:
 
                 null_df["columns"] = data.columns
 
-                null_df["missing values count"] = np.asarray(
-                    data.isna().sum()
-                )
+                null_df["missing values count"] = np.asarray(data.isna().sum())
 
                 self.s3.upload_df_as_csv(
                     data_frame=null_df,
                     local_file_name=self.null_values_file,
                     bucket_file_name=self.null_values_file,
                     bucket_name=self.input_files_bucket,
-                    table_name=self.table_name
+                    table_name=self.table_name,
                 )
 
             self.log_writer.log(
@@ -207,7 +204,7 @@ class preprocessor:
         Method Name :   impute_missing_values
         Desrciption :   This method  replaces all the missing values in th dataframe using KNN imputer
         Output      :   A dataframe which has all missing values imputed
-        On failure  :   Raise Exception
+        On Failure  :   Write an exception log and then raise an exception
         Written by  :   iNeuron Intelligence
 
         Version     :   1.2
@@ -266,8 +263,10 @@ class preprocessor:
         """
         Method Name :   get_columns_with_zero_std_deviation
         Description :   This method replaces all the missing values in the dataframe using KNN imputer
+        
         Output      :   a dataframe which has all missing values imputed
-        On failure  :   Raise Exception
+        On Failure  :   Write an exception log and then raise an exception
+        
         Written by  :   iNeuron Intelligence
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -283,7 +282,7 @@ class preprocessor:
 
         try:
             self.data_n = data.describe()
-            
+
             self.col_to_drop = [x for x in data.columns if self.data_n[x]["std"] == 0]
 
             self.log_writer.log(

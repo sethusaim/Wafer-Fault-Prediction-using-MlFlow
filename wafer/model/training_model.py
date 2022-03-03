@@ -4,7 +4,7 @@ from utils.logger import app_logger
 from utils.read_params import read_params
 from wafer.data_ingestion.data_loader_train import data_getter_train
 from wafer.data_preprocessing.clustering import kmeans_clustering
-from wafer.data_preprocessing.preprocessing import preprocessor
+from wafer.data_preprocessing.preprocessing import Preprocessor
 from wafer.mlflow_utils.mlflow_operations import mlflow_operations
 from wafer.model_finder.tuner import model_finder
 from wafer.s3_bucket_operations.s3_operations import s3_operations
@@ -48,7 +48,7 @@ class train_model:
 
         self.data_getter_train_obj = data_getter_train(table_name=self.model_train_log)
 
-        self.preprocessor_obj = preprocessor(table_name=self.model_train_log)
+        self.preprocessor_obj = Preprocessor(table_name=self.model_train_log)
 
         self.kmeans_obj = kmeans_clustering(table_name=self.model_train_log)
 
