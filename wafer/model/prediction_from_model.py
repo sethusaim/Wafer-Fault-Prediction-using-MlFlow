@@ -1,13 +1,13 @@
 import pandas as pd
 from botocore.exceptions import ClientError
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.data_ingestion.data_loader_prediction import data_getter_pred
+from wafer.data_ingestion.data_loader_prediction import Data_Getter_Pred
 from wafer.data_preprocessing.preprocessing import Preprocessor
-from wafer.s3_bucket_operations.s3_operations import s3_operations
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
-class prediction:
+class Prediction:
     """
     Description :   This class shall be used for loading the production model
 
@@ -28,21 +28,24 @@ class prediction:
 
         self.pred_output_file = self.config["pred_output_file"]
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
-        self.s3 = s3_operations()
+        self.s3 = S3_Operation()
 
-        self.data_getter_pred = data_getter_pred(table_name=self.pred_log)
+        self.data_getter_pred = Data_Getter_Pred(table_name=self.pred_log)
 
-        self.Preprocessor = Preprocessor(table_name=self.pred_log)
+        self.preprocessor = Preprocessor(table_name=self.pred_log)
 
         self.class_name = self.__class__.__name__
 
     def delete_pred_file(self, table_name):
         """
         Method Name :   delete_pred_file
-        Description :   This method is used for deleting the existing prediction batch file
-
+        Description :   This method deletes the existing prediction file for the model prediction starts
+        
+        Output      :   An existing prediction file is deleted
+        On Failure  :   Write an exception log and then raise an exception
+        
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
@@ -57,17 +60,19 @@ class prediction:
 
         try:
             self.s3.load_object(
-                bucket_name=self.input_files_bucket, obj=self.pred_output_file
+                object=self.pred_output_file,
+                bucket_name=self.input_files_bucket,
+                table_name=table_name,
             )
 
             self.log_writer.log(
                 table_name=table_name,
-                log_message=f"Found existing prediction batch file. Deleting it.",
+                log_message=f"Found existing Prediction batch file. Deleting it.",
             )
 
             self.s3.delete_file(
+                file_name=self.pred_output_file,
                 bucket_name=self.input_files_bucket,
-                file=self.pred_output_file,
                 table_name=table_name,
             )
 
@@ -93,9 +98,11 @@ class prediction:
     def find_correct_model_file(self, cluster_number, bucket_name, table_name):
         """
         Method Name :   find_correct_model_file
-        Description :   This method is used for finding the correct model file during prediction
-
+        Description :   This method gets correct model file based on cluster number during prediction
+        Output      :   A correct model file is found 
+        On Failure  :   Write an exception log and then raise an exception
         Version     :   1.2
+        
         Revisions   :   moved setup to cloud
         """
         method_name = self.find_correct_model_file.__name__
@@ -108,7 +115,7 @@ class prediction:
         )
 
         try:
-            list_of_files = self.s3.get_files(
+            list_of_files = self.s3.get_files_from_folder(
                 bucket=bucket_name,
                 folder_name=self.prod_model_dir,
                 table_name=table_name,
@@ -164,51 +171,65 @@ class prediction:
         )
 
         try:
-            self.delete_pred_file(table_name=self.pred_log)
+            self.s3.delete_pred_file(table_name=self.pred_log)
 
             data = self.data_getter_pred.get_data()
 
-            is_null_present = self.Preprocessor.is_null_present(data)
+            data = self.preprocessor.replace_invalid_values(data=data)
+
+            is_null_present = self.preprocessor.is_null_present(data=data)
 
             if is_null_present:
-                data = self.Preprocessor.impute_missing_values(data)
+                data = self.preprocessor.impute_missing_values(data=data)
 
-            cols_to_drop = self.Preprocessor.get_columns_with_zero_std_deviation(data)
-
-            data = self.Preprocessor.remove_columns(data, cols_to_drop)
-
-            kmeans = self.s3.load_model(
-                bucket=self.model_bucket, model_name="KMeans", table_name=self.pred_log
+            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(
+                data=data
             )
 
-            clusters = kmeans.predict(data.drop(["Wafer"], axis=1))
+            X = self.preprocessor.remove_columns(data, cols_to_drop)
+
+            X = self.preprocessor.scale_numerical_columns(data=X)
+
+            X = self.preprocessor.apply_pca_transform(X_scaled_data=X)
+
+            kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
+
+            kmeans_model = self.s3.load_model(
+                bucket=self.model_bucket,
+                model_name=kmeans_model_name,
+                table_name=self.pred_log,
+            )
+
+            clusters = kmeans_model.predict(data)
 
             data["clusters"] = clusters
 
-            clusters = data["clusters"].unique()
+            unique_clusters = data["clusters"].unique()
 
-            for i in clusters:
+            for i in unique_clusters:
                 cluster_data = data[data["clusters"] == i]
-
-                wafer_names = list(cluster_data["Wafer"])
-
-                cluster_data = data.drop(labels=["Wafer"], axis=1)
 
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
-                crt_model_name = self.find_correct_model_file(
+                model_name = self.s3.find_correct_model_file(
                     cluster_number=i,
                     bucket_name=self.model_bucket,
                     table_name=self.pred_log,
                 )
 
-                model = self.s3.load_model(model_name=crt_model_name)
+                prod_model_name = self.prod_model_dir + "/" + model_name
+
+                model = self.s3.load_model(
+                    bucket=self.model_bucket,
+                    model_name=prod_model_name,
+                    table_name=self.pred_log,
+                )
 
                 result = list(model.predict(cluster_data))
 
-                result = pd.DataFrame(
-                    list(zip(wafer_names, result)), columns=["Wafer", "Prediction"]
-                )
+                result = pd.DataFrame(result, columns=["Predictions"])
+
+                result["Predictions"] = result["Predictions"].map({0: "neg", 1: "pos"})
 
                 self.s3.upload_df_as_csv(
                     data_frame=result,
@@ -219,7 +240,14 @@ class prediction:
                 )
 
             self.log_writer.log(
-                table_name=self.pred_log, log_message=f"End of Prediction"
+                table_name=self.pred_log, log_message="End of prediction"
+            )
+
+            self.log_writer.start_log(
+                key="exit",
+                class_name=self.class_name,
+                method_name=method_name,
+                table_name=self.pred_log,
             )
 
             return (

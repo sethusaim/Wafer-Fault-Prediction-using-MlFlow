@@ -1,16 +1,17 @@
 from sklearn.ensemble import RandomForestClassifier
-from utils.logger import app_logger
-from utils.model_utils import get_model_name, get_model_params, get_model_score
+from utils.logger import App_Logger
+from utils.model_utils import Model_Utils
 from utils.read_params import read_params
 from xgboost import XGBClassifier
 
 
-class model_finder:
+class Model_Finder:
     """
-    This class shall  be used to find the model with best accuracy and AUC score.
-    Written By: iNeuron Intelligence
-    Version: 1.0
-    Revisions: None
+    Description :   This class shall  be used to find the model with best accuracy and AUC score.
+    Written by  :   iNeuron Intelligence
+    
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud 
     """
 
     def __init__(self, table_name):
@@ -24,7 +25,9 @@ class model_finder:
 
         self.verbose = self.config["model_utils"]["verbose"]
 
-        self.log_writer = app_logger()
+        self.model_utils = Model_Utils()
+
+        self.log_writer = App_Logger()
 
         self.rf_model = RandomForestClassifier()
 
@@ -35,12 +38,13 @@ class model_finder:
         Method Name :   get_best_params_for_random_forest
         Description :   get the parameters for Random Forest Algorithm which give the best accuracy.
                         Use Hyper Parameter Tuning.
+        
         Output      :   The model with the best parameters
         On Failure  :   Write an exception log and then raise an exception
-
-        Written By  :   iNeuron Intelligence
+        
         Version     :   1.2
-        Revisions   :   Moved to setup to cloud 
+        Written by  :   iNeuron Intelligence
+        Revisions   :   moved setup to cloud
         """
         method_name = self.get_best_params_for_random_forest.__name__
 
@@ -52,11 +56,11 @@ class model_finder:
         )
 
         try:
-            self.rf_model_name = get_model_name(
+            self.rf_model_name = self.model_utils.get_model_name(
                 model=self.rf_model, table_name=self.table_name
             )
 
-            self.rf_best_params = get_model_params(
+            self.rf_best_params = self.model_utils.get_model_params(
                 model=self.rf_model,
                 model_key_name="rf_model",
                 x_train=train_x,
@@ -77,7 +81,7 @@ class model_finder:
                 log_message=f"{self.rf_model_name} model best params are {self.rf_best_params}",
             )
 
-            rf_model = RandomForestClassifier(
+            self.rf_model = RandomForestClassifier(
                 n_estimators=self.n_estimators,
                 criterion=self.criterion,
                 max_depth=self.max_depth,
@@ -89,7 +93,7 @@ class model_finder:
                 log_message=f"Initialized {self.rf_model_name} with {self.rf_best_params} as params",
             )
 
-            rf_model.fit(train_x, train_y)
+            self.rf_model.fit(train_x, train_y)
 
             self.log_writer.log(
                 table_name=self.table_name,
@@ -103,7 +107,7 @@ class model_finder:
                 table_name=self.table_name,
             )
 
-            return rf_model
+            return self.rf_model
 
         except Exception as e:
             self.log_writer.exception_log(
@@ -118,13 +122,13 @@ class model_finder:
         Method Name :   get_best_params_for_xgboost
         Description :   get the parameters for XGBoost Algorithm which give the best accuracy.
                         Use Hyper Parameter Tuning.
+        
         Output      :   The model with the best parameters
         On Failure  :   Write an exception log and then raise an exception
 
-        Written By  :   iNeuron Intelligence
-
         Version     :   1.2
-        Revisions   :   Moved to setup to cloud 
+        Written by  :   iNeuron Intelligence
+        Revisions   :   moved setup to cloud
         """
         method_name = self.get_best_params_for_xgboost.__name__
 
@@ -136,11 +140,11 @@ class model_finder:
         )
 
         try:
-            self.xgb_model_name = get_model_name(
+            self.xgb_model_name = self.model_utils.get_model_name(
                 model=self.xgb_model, table_name=self.table_name
             )
 
-            self.xgb_best_params = get_model_params(
+            self.xgb_best_params = self.model_utils.get_model_params(
                 model=self.xgb_model,
                 model_key_name="xgb_model",
                 x_train=train_x,
@@ -152,14 +156,14 @@ class model_finder:
 
             self.max_depth = self.xgb_best_params["max_depth"]
 
-            self.n_estimators = self.xgb_best_params["n_estimators"]
+            self.n_estimators = self.rf_best_params["n_estimators"]
 
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"{self.xgb_model_name} model best params are {self.xgb_best_params}",
+                log_message=f"{self.rf_model_name} model best params are {self.rf_best_params}",
             )
 
-            xgb_model = XGBClassifier(
+            self.xgb_model = XGBClassifier(
                 learning_rate=self.learning_rate,
                 max_depth=self.max_depth,
                 n_estimators=self.n_estimators,
@@ -170,7 +174,7 @@ class model_finder:
                 log_message=f"Initialized {self.xgb_model_name} model with best params as {self.xgb_best_params}",
             )
 
-            xgb_model.fit(train_x, train_y)
+            self.xgb_model.fit(train_x, train_y)
 
             self.log_writer.log(
                 table_name=self.table_name,
@@ -184,11 +188,11 @@ class model_finder:
                 table_name=self.table_name,
             )
 
-            return xgb_model
+            return self.xgb_model
 
         except Exception as e:
-            self.log_writer.start_log(
-                key="exit",
+            self.log_writer.exception_log(
+                error=e,
                 class_name=self.class_name,
                 method_name=method_name,
                 table_name=self.table_name,
@@ -198,12 +202,13 @@ class model_finder:
         """
         Method Name :   get_trained_models
         Description :   Find out the Model which has the best score.
+        
         Output      :   The best model name and the model object
         On Failure  :   Write an exception log and then raise an exception
 
-        Written By  :   iNeuron Intelligence
         Version     :   1.2
-        Revisions   :   Moved to setup to cloud 
+        Written by  :   iNeuron Intelligence
+        Revisions   :   moved setup to cloud
         """
         method_name = self.get_trained_models.__name__
 
@@ -215,19 +220,19 @@ class model_finder:
         )
 
         try:
-            xgb_model = self.get_best_params_for_xgboost(train_x, train_y)
+            self.xgb_model = self.get_best_params_for_xgboost(train_x, train_y)
 
-            xgb_model_score = get_model_score(
-                model=xgb_model,
+            self.xgb_model_score = self.model_utils.get_model_score(
+                model=self.xgb_model,
                 test_x=test_x,
                 test_y=test_y,
                 table_name=self.table_name,
             )
 
-            rf_model = self.get_best_params_for_random_forest(train_x, train_y)
+            self.rf_model = self.get_best_params_for_random_forest(train_x, train_y)
 
-            rf_model_score = get_model_score(
-                model=rf_model,
+            self.rf_model_score = self.model_utils.get_model_score(
+                model=self.rf_model,
                 test_x=test_x,
                 test_y=test_y,
                 table_name=self.table_name,
@@ -240,7 +245,12 @@ class model_finder:
                 table_name=self.table_name,
             )
 
-            return xgb_model, xgb_model_score, rf_model, rf_model_score
+            return (
+                self.xgb_model,
+                self.xgb_model_score,
+                self.rf_model,
+                self.rf_model_score,
+            )
 
         except Exception as e:
             self.log_writer.exception_log(

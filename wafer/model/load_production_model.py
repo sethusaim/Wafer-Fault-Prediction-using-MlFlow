@@ -1,19 +1,20 @@
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
-from wafer.mlflow_utils.mlflow_operations import mlflow_operations
-from wafer.s3_bucket_operations.s3_operations import s3_operations
+from wafer.mlflow_utils.mlflow_operations import MLFlow_Operation
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
-class load_prod_model:
+class Load_Prod_Model:
     """
     Description :   This class shall be used for loading the production model
-    Written by  :   iNeuron Intelligence
+    
+    
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """
 
     def __init__(self, num_clusters):
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
         self.config = read_params()
 
@@ -21,9 +22,9 @@ class load_prod_model:
 
         self.num_clusters = num_clusters
 
-        self.model_bucket = self.config["s3_bucket"]["wafer_model_bucket"]
+        self.model_bucket_name = self.config["bucket"]["wafer_model"]
 
-        self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
+        self.load_prod_model_log = self.config["train_db_log"]["Load_Prod_Model"]
 
         self.prod_model_dir = self.config["models_dir"]["prod"]
 
@@ -31,22 +32,26 @@ class load_prod_model:
 
         self.exp_name = self.config["mlflow_config"]["experiment_name"]
 
-        self.s3 = s3_operations()
+        self.s3 = S3_Operation()
 
-        self.mlflow_op = mlflow_operations(table_name=self.load_prod_model_log)
+        self.mlflow_op = MLFlow_Operation(table_name=self.load_prod_model_log)
 
     def create_folders_for_prod_and_stag(self, bucket_name, table_name):
         """
-            Method Name :   create_folders_for_prod_and_stag
-            Description :   This method is used for creating production and staging folder in s3 bucket
+        Method Name :   create_folders_for_prod_and_stag
+        Description :   This method creates folders for production and staging bucket
 
-            Version     :   1.2
-            Revisions   :   moved setup to cloud
-            """
+        Output      :   Folders for production and staging are created in s3 bucket
+        On Failure  :   Write an exception log and then raise an exception
+
+        Version     :   1.2
+        
+        Revisions   :   moved setup to cloud
+        """
         method_name = self.create_folders_for_prod_and_stag.__name__
 
         self.log_writer.start_log(
-            key="exit",
+            key="start",
             class_name=self.class_name,
             method_name=method_name,
             table_name=table_name,
@@ -54,14 +59,14 @@ class load_prod_model:
 
         try:
             self.s3.create_folder(
-                bucket_name=bucket_name,
                 folder_name=self.prod_model_dir,
+                bucket_name=bucket_name,
                 table_name=table_name,
             )
 
             self.s3.create_folder(
-                bucket_name=bucket_name,
                 folder_name=self.stag_model_dir,
+                bucket_name=bucket_name,
                 table_name=table_name,
             )
 
@@ -83,10 +88,13 @@ class load_prod_model:
     def load_production_model(self):
         """
         Method Name :   load_production_model
-        Description :   This method is responsible for moving the models from the trained models dir to
-                        prod models dir and stag models dir based on the metrics of the cluster
+        Description :   This method is responsible for finding the best model based on metrics and then transitioned them to thier stages
+
+        Output      :   The best models are put in production and rest are put in staging
+        On Failure  :   Write an exception log and then raise an exception
 
         Version     :   1.2
+        
         Revisions   :   moved setup to cloud
         """
         method_name = self.load_production_model.__name__
@@ -100,7 +108,7 @@ class load_prod_model:
 
         try:
             self.create_folders_for_prod_and_stag(
-                bucket_name=self.model_bucket, table_name=self.load_prod_model_log
+                bucket_name=self.model_bucket_name, table_name=self.load_prod_model_log
             )
 
             self.mlflow_op.set_mlflow_tracking_uri()
@@ -215,10 +223,11 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            bucket=self.model_bucket,
+                            from_bucket_name=self.model_bucket_name,
+                            to_bucket_name=self.model_bucket_name,
                         )
 
-                    ## In the registered models, even kmeans model is present, so during prediction,
+                    ## In the registered models, even kmeans model is present, so during Prediction,
                     ## this model also needs to be in present in production, the code logic is present below
 
                     elif mv.name == "KMeans":
@@ -226,7 +235,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            bucket=self.model_bucket,
+                            from_bucket_name=self.model_bucket_name,
+                            to_bucket_name=self.model_bucket_name,
                         )
 
                     else:
@@ -234,7 +244,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Staging",
                             model_name=mv.name,
-                            bucket=self.model_bucket,
+                            from_bucket_name=self.model_bucket_name,
+                            to_bucket_name=self.model_bucket_name,
                         )
 
             self.log_writer.log(
