@@ -39,7 +39,7 @@ app.add_middleware(
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(
-        config["templates"]["index_html_file"], {"request": request}
+        config["templates"]["index"], {"request": request}
     )
 
 

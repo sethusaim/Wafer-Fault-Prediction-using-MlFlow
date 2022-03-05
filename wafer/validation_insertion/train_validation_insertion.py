@@ -24,7 +24,7 @@ class Train_Validation:
 
         self.class_name = self.__class__.__name__
 
-        self.db_name = self.config["db_log"]["db_train_log"]
+        self.db_name = self.config["db_log"]["train"]
 
         self.train_main_log = self.config["train_db_log"]["train_main"]
 
