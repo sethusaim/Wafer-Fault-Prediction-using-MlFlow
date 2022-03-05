@@ -58,16 +58,16 @@ async def trainRouteClient():
 
         train_val.training_validation()
 
-        training_model_obj = Train_Model()
+        train_model = Train_Model()
 
-        num_clusters = training_model_obj.training_model()
+        num_clusters = train_model.training_model()
 
-        load_prod_model_obj = Load_Prod_Model(num_clusters=num_clusters)
+        load_prod_model = Load_Prod_Model(num_clusters=num_clusters)
 
-        load_prod_model_obj.load_production_model()
+        load_prod_model.load_production_model()
 
     except Exception as e:
-        return Response("Error Occurred! %s" % e)
+        return Response(f"Error Occurred : {e}")
 
     return Response("Training successfull!!")
 
@@ -94,7 +94,7 @@ async def predictRouteClient():
         )
 
     except Exception as e:
-        return Response("Error Occurred! %s" % e)
+        return Response(f"Error Occurred : {e}")
 
 
 if __name__ == "__main__":
