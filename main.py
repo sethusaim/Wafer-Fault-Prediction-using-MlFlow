@@ -46,7 +46,7 @@ async def index(request: Request):
 @app.get("/train")
 async def trainRouteClient():
     try:
-        raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
+        raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data"]
 
         table = Create_Log_Table()
 
@@ -75,7 +75,7 @@ async def trainRouteClient():
 @app.get("/predict")
 async def predictRouteClient():
     try:
-        raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data_bucket"]
+        raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data"]
 
         table = Create_Log_Table()
 
