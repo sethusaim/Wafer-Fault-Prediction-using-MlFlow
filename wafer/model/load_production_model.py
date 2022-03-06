@@ -8,7 +8,6 @@ class Load_Prod_Model:
     """
     Description :   This class shall be used for loading the production model
     
-    
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """

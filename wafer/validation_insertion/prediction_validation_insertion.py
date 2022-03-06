@@ -1,4 +1,4 @@
-from utils.logger import App_Logger, app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
 from wafer.data_transform.data_transformation_pred import Data_Transform_Pred
 from wafer.data_type_valid.data_type_valid_pred import DB_Operation_Pred
@@ -38,7 +38,7 @@ class Pred_Validation:
 
     def prediction_validation(self):
         """
-        Method Name :   load_s3
+        Method Name :   prediction_validation
         Description :   This method is used for validating the prediction btach files
 
         Version     :   1.2

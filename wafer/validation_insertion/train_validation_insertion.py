@@ -38,7 +38,7 @@ class Train_Validation:
 
     def training_validation(self):
         """
-        Method Name :   load_s3
+        Method Name :   training_validation
         Description :   This method is used for validating the training btach files
 
         Version     :   1.2

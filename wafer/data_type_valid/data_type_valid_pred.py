@@ -102,7 +102,7 @@ class DB_Operation_Pred:
 
     def export_collection_to_csv(self, good_data_db_name, good_data_collection_name):
         """
-        Method Name :   insert_good_data_as_record
+        Method Name :   export_collection_to_csv
         Description :   This method inserts the good data in MongoDB as collection
 
         Output      :   A csv file stored in input files bucket, containing good data which was stored in MongoDB

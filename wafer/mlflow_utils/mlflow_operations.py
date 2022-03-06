@@ -11,8 +11,7 @@ from wafer.s3_bucket_operations.s3_operations import S3_Operation
 class MLFlow_Operation:
     """
     Description :    This class shall be used for handling all the mlflow operations
-    
-    
+
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """
