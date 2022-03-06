@@ -248,8 +248,7 @@ class Preprocessor:
 
         except Exception as e:
             self.log_writer.log(
-                table_name=self.table_name,
-                log_info=f"Imputing missing values failed",
+                table_name=self.table_name, log_info=f"Imputing missing values failed",
             )
 
             self.log_writer.exception_log(

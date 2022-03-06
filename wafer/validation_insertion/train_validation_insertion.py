@@ -77,8 +77,7 @@ class Train_Validation:
             )
 
             self.log_writer.log(
-                table_name=self.train_main_log,
-                log_info="Starting Data Transformation",
+                table_name=self.train_main_log, log_info="Starting Data Transformation",
             )
 
             self.data_transform.rename_target_column()
