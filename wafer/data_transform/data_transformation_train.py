@@ -49,10 +49,9 @@ class Data_Transform_Train:
         )
 
         try:
-            lst = self.s3.read_csv(
-                bucket=self.train_data_bucket,
-                file_name=self.good_train_data_dir,
-                folder=True,
+            lst = self.s3.read_csv_from_folder(
+                folder_name=self.good_train_data_dir,
+                bucket_name=self.train_data_bucket,
                 table_name=self.train_data_transform_log,
             )
 
