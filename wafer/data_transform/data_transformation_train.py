@@ -68,7 +68,7 @@ class Data_Transform_Train:
 
                     self.log_writer.log(
                         collection_name=self.train_data_transform_log,
-                        log_message=f"Renamed the output columns for the file {file}",
+                        log_info=f"Renamed the output columns for the file {file}",
                     )
 
                     self.s3.upload_df_as_csv(
@@ -136,7 +136,7 @@ class Data_Transform_Train:
 
                     self.log_writer.log(
                         collection_name=self.train_data_transform_log,
-                        log_message=f"Replaced missing values with null for the file {file}",
+                        log_info=f"Replaced missing values with null for the file {file}",
                     )
 
                     self.s3.upload_df_as_csv(

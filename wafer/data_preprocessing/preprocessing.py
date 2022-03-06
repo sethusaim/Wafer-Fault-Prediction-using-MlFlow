@@ -60,7 +60,7 @@ class Preprocessor:
             self.useful_data = self.data.drop(labels=self.columns, axis=1)
 
             self.log_writer.log(
-                table_name=self.table_name, log_message="Column removal Successful",
+                table_name=self.table_name, log_info="Column removal Successful",
             )
 
             self.log_writer.start_log(
@@ -105,7 +105,7 @@ class Preprocessor:
             self.Y = data[label_column_name]
 
             self.log_writer.log(
-                table_name=self.table_name, log_message=f"Label Separation Successful",
+                table_name=self.table_name, log_info=f"Label Separation Successful",
             )
 
             self.log_writer.start_log(
@@ -119,7 +119,7 @@ class Preprocessor:
 
         except Exception as e:
             self.log_writer.log(
-                table_name=self.table_name, log_message="Label Separation Unsuccessful",
+                table_name=self.table_name, log_info="Label Separation Unsuccessful",
             )
 
             self.log_writer.exception_log(
@@ -175,7 +175,7 @@ class Preprocessor:
 
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message="Finding missing values is a success.Data written to the null values file",
+                log_info="Finding missing values is a success.Data written to the null values file",
             )
 
             self.log_writer.start_log(
@@ -189,7 +189,7 @@ class Preprocessor:
 
         except Exception as e:
             self.log_writer.log(
-                table_name=self.table_name, log_message="Finding missing values failed",
+                table_name=self.table_name, log_info="Finding missing values failed",
             )
 
             self.log_writer.exception_log(
@@ -234,7 +234,7 @@ class Preprocessor:
 
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"Imputing missing values Successful",
+                log_info=f"Imputing missing values Successful",
             )
 
             self.log_writer.start_log(
@@ -249,7 +249,7 @@ class Preprocessor:
         except Exception as e:
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message=f"Imputing missing values failed",
+                log_info=f"Imputing missing values failed",
             )
 
             self.log_writer.exception_log(
@@ -287,7 +287,7 @@ class Preprocessor:
 
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message="Column search for Standard Deviation of Zero Successful.",
+                log_info="Column search for Standard Deviation of Zero Successful.",
             )
 
             self.log_writer.start_log(
@@ -302,7 +302,7 @@ class Preprocessor:
         except Exception as e:
             self.log_writer.log(
                 table_name=self.table_name,
-                log_message="Column search for Standard Deviation of Zero Failed.",
+                log_info="Column search for Standard Deviation of Zero Failed.",
             )
 
             self.log_writer.exception_log(
