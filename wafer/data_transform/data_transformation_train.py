@@ -25,8 +25,6 @@ class Data_Transform_Train:
 
         self.good_train_data_dir = self.config["data"]["train"]["good"]
 
-        self.db_name = self.config["db_log"]["train"]
-
         self.train_data_transform_log = self.config["train_db_log"]["data_transform"]
 
     def rename_target_column(self):
@@ -45,7 +43,7 @@ class Data_Transform_Train:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            collection_name=self.train_data_transform_log,
+            table_name=self.train_data_transform_log,
         )
 
         try:
@@ -66,7 +64,7 @@ class Data_Transform_Train:
                     df.rename(columns={"Good/Bad": "Output"}, inplace=True)
 
                     self.log_writer.log(
-                        collection_name=self.train_data_transform_log,
+                        table_name=self.train_data_transform_log,
                         log_info=f"Renamed the output columns for the file {file}",
                     )
 
@@ -85,7 +83,7 @@ class Data_Transform_Train:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                collection_name=self.train_data_transform_log,
+                table_name=self.train_data_transform_log,
             )
 
         except Exception as e:
@@ -93,7 +91,7 @@ class Data_Transform_Train:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                collection_name=self.train_data_transform_log,
+                table_name=self.train_data_transform_log,
             )
 
     def replace_missing_with_null(self):
@@ -111,7 +109,7 @@ class Data_Transform_Train:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            collection_name=self.train_data_transform_log,
+            table_name=self.train_data_transform_log,
         )
 
         try:
@@ -134,7 +132,7 @@ class Data_Transform_Train:
                     df["Wafer"] = df["Wafer"].str[6:]
 
                     self.log_writer.log(
-                        collection_name=self.train_data_transform_log,
+                        table_name=self.train_data_transform_log,
                         log_info=f"Replaced missing values with null for the file {file}",
                     )
 
@@ -153,7 +151,7 @@ class Data_Transform_Train:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                collection_name=self.train_data_transform_log,
+                table_name=self.train_data_transform_log,
             )
 
         except Exception as e:
@@ -161,5 +159,5 @@ class Data_Transform_Train:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                collection_name=self.train_data_transform_log,
+                table_name=self.train_data_transform_log,
             )

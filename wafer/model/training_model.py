@@ -24,8 +24,6 @@ class Train_Model:
 
         self.config = read_params()
 
-        self.db_name = self.config["db_log"]["train"]
-
         self.model_train_log = self.config["train_db_log"]["train_model"]
 
         self.model_container = self.config["container"]["wafer_model"]
@@ -46,25 +44,15 @@ class Train_Model:
 
         self.class_name = self.__class__.__name__
 
-        self.mlflow_op = MLFlow_Operation(
-            db_name=self.db_name, collection_name=self.model_train_log
-        )
+        self.mlflow_op = MLFlow_Operation(table_name=self.model_train_log)
 
-        self.data_getter_train = Data_Getter_Train(
-            db_name=self.db_name, collection_name=self.model_train_log
-        )
+        self.data_getter_train = Data_Getter_Train(table_name=self.model_train_log)
 
-        self.preprocessor = Preprocessor(
-            db_name=self.db_name, collection_name=self.model_train_log
-        )
+        self.preprocessor = Preprocessor(table_name=self.model_train_log)
 
-        self.kmeans_op = KMeans_Clustering(
-            db_name=self.db_name, collection_name=self.model_train_log
-        )
+        self.kmeans_op = KMeans_Clustering(table_name=self.model_train_log)
 
-        self.model_finder = Model_Finder(
-            db_name=self.db_name, collection_name=self.model_train_log
-        )
+        self.model_finder = Model_Finder(table_name=self.model_train_log)
 
         self.s3 = S3_Operation()
 
@@ -83,8 +71,7 @@ class Train_Model:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=self.db_name,
-            collection_name=self.model_train_log,
+            table_name=self.model_train_log,
         )
 
         try:
@@ -123,8 +110,7 @@ class Train_Model:
                 cluster_label = cluster_data["Labels"]
 
                 self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
+                    table_name=self.model_train_log,
                     log_info="Seprated cluster features and cluster label for the cluster data",
                 )
 
@@ -136,8 +122,7 @@ class Train_Model:
                 )
 
                 self.log_writer.log(
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
+                    table_name=self.model_train_log,
                     log_info=f"Performed train test split with test size as {self.test_size} and random state as {self.random_state}",
                 )
 
@@ -155,8 +140,7 @@ class Train_Model:
                     model_dir=self.train_model_dir,
                     container_name=self.model_container,
                     idx=i,
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
+                    table_name=self.model_train_log,
                 )
 
                 self.s3.save_model(
@@ -164,8 +148,7 @@ class Train_Model:
                     idx=i,
                     model_dir=self.train_model_dir,
                     model_container=self.model_container,
-                    db_name=self.db_name,
-                    collection_name=self.model_train_log,
+                    table_name=self.model_train_log,
                 )
 
                 try:
@@ -201,8 +184,7 @@ class Train_Model:
 
                 except Exception as e:
                     self.log_writer.log(
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
+                        table_name=self.model_train_log,
                         log_info="Mlflow logging of params,metrics and models failed",
                     )
 
@@ -210,30 +192,25 @@ class Train_Model:
                         error=e,
                         class_name=self.class_name,
                         method_name=method_name,
-                        db_name=self.db_name,
-                        collection_name=self.model_train_log,
+                        table_name=self.model_train_log,
                     )
 
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
-                log_info="Successful End of Training",
+                table_name=self.model_train_log, log_info="Successful End of Training",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
+                table_name=self.model_train_log,
             )
 
             return number_of_clusters
 
         except Exception as e:
             self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
+                table_name=self.model_train_log,
                 log_info="Unsuccessful End of Training",
             )
 
@@ -241,6 +218,5 @@ class Train_Model:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=self.db_name,
-                collection_name=self.model_train_log,
+                table_name=self.model_train_log,
             )
