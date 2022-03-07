@@ -28,7 +28,7 @@ class Train_Model:
 
         self.model_train_log = self.config["train_db_log"]["train_model"]
 
-        self.model_container = self.config["container"]["phising_model"]
+        self.model_container = self.config["container"]["wafer_model"]
 
         self.test_size = self.config["base"]["test_size"]
 
