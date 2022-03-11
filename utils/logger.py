@@ -6,7 +6,6 @@ class App_Logger:
     """
     Description :   This class is used for logging the info to DynamoDB
     
-    
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """

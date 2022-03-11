@@ -8,10 +8,9 @@ class DB_Operation_Pred:
     """
     Description :    This class shall be used for handling all the db operations
     
-    
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
-    """
+    """"
 
     def __init__(self):
         self.config = read_params()

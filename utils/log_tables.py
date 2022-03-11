@@ -6,7 +6,6 @@ class Create_Log_Table:
     """
     Description :   This class shall be used for creating the log tables in DynamoDB
     
-    
     Version     :   1.2
     Revisions   :   Moved to setup to cloud 
     """
