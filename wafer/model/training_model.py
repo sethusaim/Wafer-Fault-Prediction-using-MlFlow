@@ -5,7 +5,6 @@ from wafer.data_ingestion.data_loader_train import Data_Getter_Train
 from wafer.data_preprocessing.clustering import KMeans_Clustering
 from wafer.data_preprocessing.preprocessing import Preprocessor
 from wafer.mlflow_utils.mlflow_operations import MLFlow_Operation
-from wafer.model_finder.tuner import Model_Finder
 from wafer.s3_bucket_operations.s3_operations import S3_Operation
 
 
@@ -36,8 +35,6 @@ class Train_Model:
         self.preprocessor = Preprocessor(self.model_train_log)
 
         self.kmeans_op = KMeans_Clustering(self.model_train_log)
-
-        self.model_finder = Model_Finder(self.model_train_log)
 
         self.model_utils = Model_Utils()
 
