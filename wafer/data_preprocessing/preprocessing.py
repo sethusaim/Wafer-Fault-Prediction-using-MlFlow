@@ -25,9 +25,7 @@ class Preprocessor:
 
         self.null_values_file = self.config["null_values_csv_file"]
 
-        self.knn_n_neighbors = self.config["knn_imputer"]["n_neighbors"]
-
-        self.knn_weights = self.config["knn_imputer"]["weights"]
+        self.imputer_params = self.config["knn_imputer"]
 
         self.log_writer = App_Logger()
 
@@ -47,12 +45,12 @@ class Preprocessor:
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
-        self.data = data
+        data = data
 
         self.columns = columns
 
         try:
-            self.useful_data = self.data.drop(labels=self.columns, axis=1)
+            self.useful_data = data.drop(labels=self.columns, axis=1)
 
             self.log_writer.log(
                 self.log_file, "Column removal Successful",
@@ -181,18 +179,12 @@ class Preprocessor:
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
-        self.data = data
-
         try:
-            imputer = KNNImputer(
-                n_neighbors=self.knn_n_neighbors,
-                weights=self.knn_weights,
-                missing_values=np.nan,
-            )
+            imputer = KNNImputer(missing_values=np.nan, **self.imputer_params)
 
-            self.new_array = imputer.fit_transform(self.data)
+            self.new_array = imputer.fit_transform(data)
 
-            self.new_data = pd.DataFrame(data=self.new_array, columns=self.data.columns)
+            self.new_data = pd.DataFrame(data=self.new_array, columns=data.columns)
 
             self.log_writer.log(
                 self.log_file, f"Imputing missing values Successful",
@@ -230,9 +222,9 @@ class Preprocessor:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            self.data_n = data.describe()
+            data_n = data.describe()
 
-            self.col_to_drop = [x for x in data.columns if self.data_n[x]["std"] == 0]
+            self.col_to_drop = [x for x in data.columns if data_n[x]["std"] == 0]
 
             self.log_writer.log(
                 self.log_file,

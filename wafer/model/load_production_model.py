@@ -52,13 +52,9 @@ class Load_Prod_Model:
         self.log_writer.start_log("start", self.class_name, method_name, log_file)
 
         try:
-            self.s3.create_folder(
-                self.prod_model_dir, bucket, log_file,
-            )
+            self.s3.create_folder(self.prod_model_dir, bucket, log_file)
 
-            self.s3.create_folder(
-                self.stag_model_dir, bucket, log_file,
-            )
+            self.s3.create_folder(self.stag_model_dir, bucket, log_file)
 
             self.log_writer.start_log("exit", self.class_name, method_name, log_file)
 
@@ -80,7 +76,7 @@ class Load_Prod_Model:
         method_name = self.load_production_model.__name__
 
         self.log_writer.start_log(
-            "start", self.class_name, method_name, self.load_prod_model_log,
+            "start", self.class_name, method_name, self.load_prod_model_log
         )
 
         try:
@@ -113,20 +109,18 @@ class Load_Prod_Model:
             ]
 
             self.log_writer.log(
-                self.load_prod_model_log, "Created cols for all registered model",
+                self.load_prod_model_log, "Created cols for all registered model"
             )
 
             runs_cols = runs[cols].max().sort_values(ascending=False)
 
             self.log_writer.log(
-                self.load_prod_model_log, "Sorted the runs cols in descending order",
+                self.load_prod_model_log, "Sorted the runs cols in descending order"
             )
 
             metrics_dict = runs_cols.to_dict()
 
-            self.log_writer.log(
-                self.load_prod_model_log, "Converted runs cols to dict",
-            )
+            self.log_writer.log(self.load_prod_model_log, "Converted runs cols to dict")
 
             """ 
             Eg-output: For 3 clusters, 
@@ -178,9 +172,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
 
             top_mn_lst = [mn.split(".")[1].split("-")[0] for mn in best_metrics_names]
 
-            self.log_writer.log(
-                self.load_prod_model_log, f"Got the top model names",
-            )
+            self.log_writer.log(self.load_prod_model_log, f"Got the top model names")
 
             results = self.mlflow_op.search_mlflow_models(order="DESC")
 
@@ -227,10 +219,10 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             )
 
             self.log_writer.start_log(
-                "exit", self.class_name, method_name, self.load_prod_model_log,
+                "exit", self.class_name, method_name, self.load_prod_model_log
             )
 
         except Exception as e:
             self.log_writer.exception_log(
-                e, self.class_name, method_name, self.load_prod_model_log,
+                e, self.class_name, method_name, self.load_prod_model_log
             )

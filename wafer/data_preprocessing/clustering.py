@@ -25,27 +25,27 @@ class KMeans_Clustering:
 
         self.random_state = self.config["base"]["random_state"]
 
-        self.kmeans_init = self.config["kmeans_cluster"]["init"]
+        self.trained_model_dir = self.config["model_dir"]["trained"]
+
+        self.kmeans_params = self.config["KMeans"]
+
+        self.model_save_format = self.config["model_save_format"]
+
+        self.knee_params = self.config["knee"]
 
         self.max_clusters = self.config["kmeans_cluster"]["max_clusters"]
 
-        self.kmeans_curve = self.config["kmeans_cluster"]["knee"]["curve"]
-
-        self.kmeans_direction = self.config["kmeans_cluster"]["knee"]["direction"]
-
-        self.trained_model_dir = self.config["model_dir"]["trained"]
+        self.elbow_plot = self.config["elbow_plot_fig"]
 
         self.s3 = S3_Operation()
-
-        self.elbow_plot_file = self.config["elbow_plot_fig"]
 
         self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
-    def elbow_plot(self, data):
+    def draw_elbow_plot(self, data):
         """
-        Method Name :   elbow_plot
+        Method Name :   draw_elbow_plot
         Description :   This method saves the plot to s3 bucket and decides the optimum number of clusters to the file.
         
         Output      :   An elbow plot figure saved to input files bucket
@@ -54,7 +54,7 @@ class KMeans_Clustering:
         Version     :   1.2
         Revisions   :   Moved to setup to cloud 
         """
-        method_name = self.elbow_plot.__name__
+        method_name = self.draw_elbow_plot.__name__
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
@@ -62,9 +62,7 @@ class KMeans_Clustering:
             wcss = []
 
             for i in range(1, self.max_clusters):
-                kmeans = KMeans(
-                    n_clusters=i, init=self.kmeans_init, random_state=self.random_state
-                )
+                kmeans = KMeans(n_clusters=i, **self.kmeans_params)
 
                 kmeans.fit(data)
 
@@ -78,25 +76,20 @@ class KMeans_Clustering:
 
             plt.ylabel("WCSS")
 
-            plt.savefig(self.elbow_plot_file)
+            plt.savefig(self.elbow_plot)
 
             self.log_writer.log(
-                self.log_file, "Saved elbow_plot fig and local copy is created",
+                self.log_file, "Saved draw_elbow_plot fig and local copy is created",
             )
 
             self.s3.upload_file(
-                self.elbow_plot_file,
-                self.elbow_plot_file,
+                self.elbow_plot,
+                self.elbow_plot,
                 self.input_files_bucket,
                 self.log_file,
             )
 
-            self.kn = KneeLocator(
-                range(1, self.max_clusters),
-                wcss,
-                curve=self.kmeans_curve,
-                direction=self.kmeans_direction,
-            )
+            self.kn = KneeLocator(range(1, self.max_clusters), wcss, **self.knee_params)
 
             self.log_writer.log(
                 self.log_file,
@@ -114,7 +107,7 @@ class KMeans_Clustering:
                 e, self.class_name, method_name, self.log_file
             )
 
-    def create_clusters(self, data, number_of_clusters):
+    def create_clusters(self, data, num_clusters):
         """
         Method Name :   create_clusters
         Description :   Create a new dataframe consisting of the cluster information.
@@ -130,13 +123,7 @@ class KMeans_Clustering:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            self.data = data
-
-            self.kmeans = KMeans(
-                n_clusters=number_of_clusters,
-                init=self.kmeans_init,
-                random_state=self.random_state,
-            )
+            self.kmeans = KMeans(n_clusters=num_clusters, **self.kmeans_params)
 
             self.y_kmeans = self.kmeans.fit_predict(data)
 
@@ -144,7 +131,7 @@ class KMeans_Clustering:
                 self.kmeans, self.trained_model_dir, self.model_bucket, self.log_file,
             )
 
-            self.data["Cluster"] = self.y_kmeans
+            data["Cluster"] = self.y_kmeans
 
             self.log_writer.log(
                 self.log_file, f"Successfully created {str(self.kn.knee)} clusters",
@@ -154,7 +141,7 @@ class KMeans_Clustering:
                 "exit", self.class_name, method_name, self.log_file
             )
 
-            return self.data, self.kmeans
+            return data, self.kmeans
 
         except Exception as e:
             self.log_writer.exception_log(

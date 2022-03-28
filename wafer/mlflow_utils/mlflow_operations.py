@@ -174,40 +174,6 @@ class MLFlow_Operation:
                 e, self.class_name, method_name, self.log_file
             )
 
-    def get_remote_server_uri(self):
-        """
-        Method Name :   get_remote_server_uri
-        Description :   This method gets the remote server uri from environment variables declared
-
-        Output      :   A variable which stores the remote server uri
-        On Failure  :   Write an exception log and then raise an exception
-
-        Version     :   1.2
-        
-        Revisions   :   moved setup to cloud
-        """
-        method_name = self.get_remote_server_uri.__name__
-
-        self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
-
-        try:
-            remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
-
-            self.log_writer.log(
-                self.log_file, "Got mlflow tracking uri",
-            )
-
-            self.log_writer.start_log(
-                "exit", self.class_name, method_name, self.log_file
-            )
-
-            return remote_server_uri
-
-        except Exception as e:
-            self.log_writer.exception_log(
-                e, self.class_name, method_name, self.log_file
-            )
-
     def set_mlflow_tracking_uri(self):
         """
         Method Name :   set_mlflow_tracking_uri
@@ -225,7 +191,7 @@ class MLFlow_Operation:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            server_uri = self.get_remote_server_uri()
+            server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
             mlflow.set_tracking_uri(server_uri)
 
@@ -259,7 +225,7 @@ class MLFlow_Operation:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            remote_server_uri = self.get_remote_server_uri()
+            remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
             client = self.get_mlflow_client(server_uri=remote_server_uri)
 
@@ -297,7 +263,7 @@ class MLFlow_Operation:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            remote_server_uri = self.get_remote_server_uri()
+            remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
             client = self.get_mlflow_client(server_uri=remote_server_uri)
 
@@ -423,7 +389,7 @@ class MLFlow_Operation:
                 e, self.class_name, method_name, self.log_file
             )
 
-    def log_all_for_model(self, model, model_param_name, model_score, idx=None):
+    def log_all_for_model(self, model, model_score, idx=None):
         """
         Method Name :   log_all_for_model
         Description :   This method logs model,model params and model score to mlflow server
@@ -454,13 +420,10 @@ class MLFlow_Operation:
                     self.log_file, f"Got the model name as {model_name}",
                 )
 
-                model_params_list = list(
-                    self.config["model_params"][model_param_name].keys()
-                )
+                model_params_list = list(self.config[model_name].keys())
 
                 self.log_writer.log(
-                    self.log_file,
-                    f"Created a list of params based on {model_param_name}",
+                    self.log_file, f"Created a list of params based on {model_name}",
                 )
 
                 for param in model_params_list:
@@ -498,7 +461,7 @@ class MLFlow_Operation:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            remote_server_uri = self.get_remote_server_uri()
+            remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
             current_version = model_version
 

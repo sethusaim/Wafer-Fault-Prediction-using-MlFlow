@@ -64,11 +64,11 @@ class Raw_Pred_Data_Validation:
         """
         method_name = self.values_from_schema.__name__
 
-        try:
-            self.log_writer.start_log(
-                "start", self.class_name, method_name, self.pred_schema_log,
-            )
+        self.log_writer.start_log(
+            "start", self.class_name, method_name, self.pred_schema_log
+        )
 
+        try:
             dic = self.s3.read_json(
                 self.pred_schema_file, self.input_files_bucket, self.pred_schema_log,
             )
@@ -123,11 +123,11 @@ class Raw_Pred_Data_Validation:
         """
         method_name = self.get_regex_pattern.__name__
 
-        try:
-            self.log_writer.start_log(
-                "start", self.class_name, method_name, self.pred_gen_log,
-            )
+        self.log_writer.start_log(
+            "start", self.class_name, method_name, self.pred_gen_log,
+        )
 
+        try:
             regex = self.s3.read_text(
                 self.regex_file, self.input_files_bucket, self.pred_gen_log,
             )
@@ -212,9 +212,9 @@ class Raw_Pred_Data_Validation:
             )
 
             for fname in pred_batch_files:
-                raw_data_pred_file_name = self.raw_pred_data_dir + "/" + fname
+                raw_data_pred_fname = self.raw_pred_data_dir + "/" + fname
 
-                good_data_pred_file_name = self.good_pred_data_dir + "/" + fname
+                good_data_pred_fname = self.good_pred_data_dir + "/" + fname
 
                 bad_data_pred_file_name = self.bad_pred_data_dir + "/" + fname
 
@@ -230,16 +230,16 @@ class Raw_Pred_Data_Validation:
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
                             self.s3.copy_data(
-                                raw_data_pred_file_name,
+                                raw_data_pred_fname,
                                 self.pred_data_bucket,
-                                good_data_pred_file_name,
+                                good_data_pred_fname,
                                 self.pred_data_bucket,
                                 self.pred_name_valid_log,
                             )
 
                         else:
                             self.s3.copy_data(
-                                raw_data_pred_file_name,
+                                raw_data_pred_fname,
                                 self.pred_data_bucket,
                                 bad_data_pred_file_name,
                                 self.pred_data_bucket,
@@ -248,7 +248,7 @@ class Raw_Pred_Data_Validation:
 
                     else:
                         self.s3.copy_data(
-                            raw_data_pred_file_name,
+                            raw_data_pred_fname,
                             self.pred_data_bucket,
                             bad_data_pred_file_name,
                             self.pred_data_bucket,
@@ -256,7 +256,7 @@ class Raw_Pred_Data_Validation:
                         )
                 else:
                     self.s3.copy_data(
-                        raw_data_pred_file_name,
+                        raw_data_pred_fname,
                         self.pred_data_bucket,
                         bad_data_pred_file_name,
                         self.pred_data_bucket,

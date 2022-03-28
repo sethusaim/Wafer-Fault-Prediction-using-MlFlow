@@ -64,11 +64,11 @@ class Raw_Train_Data_Validation:
         """
         method_name = self.values_from_schema.__name__
 
-        try:
-            self.log_writer.start_log(
-                "start", self.class_name, method_name, self.train_schema_log,
-            )
+        self.log_writer.start_log(
+            "start", self.class_name, method_name, self.train_schema_log,
+        )
 
+        try:
             dic = self.s3.read_json(
                 self.train_schema_file, self.input_files_bucket, self.train_schema_log,
             )
@@ -123,28 +123,26 @@ class Raw_Train_Data_Validation:
         """
         method_name = self.get_regex_pattern.__name__
 
+        self.log_writer.start_log(
+            "start", self.class_name, method_name, self.train_gen_log
+        )
+
         try:
-            self.log_writer.start_log(
-                "start", self.class_name, method_name, self.train_gen_log,
-            )
-
             regex = self.s3.read_text(
-                self.regex_file, self.input_files_bucket, self.train_gen_log,
+                self.regex_file, self.input_files_bucket, self.train_gen_log
             )
 
-            self.log_writer.log(
-                self.train_gen_log, f"Got {regex} pattern",
-            )
+            self.log_writer.log(self.train_gen_log, f"Got {regex} pattern")
 
             self.log_writer.start_log(
-                "exit", self.class_name, method_name, self.train_gen_log,
+                "exit", self.class_name, method_name, self.train_gen_log
             )
 
             return regex
 
         except Exception as e:
             self.log_writer.exception_log(
-                e, self.class_name, method_name, self.train_gen_log,
+                e, self.class_name, method_name, self.train_gen_log
             )
 
     def create_dirs_for_good_bad_data(self, log_file):
@@ -286,7 +284,7 @@ class Raw_Train_Data_Validation:
         method_name = self.validate_col_length.__name__
 
         self.log_writer.start_log(
-            "start", self.class_name, method_name, self.train_col_valid_log,
+            "start", self.class_name, method_name, self.train_col_valid_log
         )
 
         try:
@@ -344,7 +342,7 @@ class Raw_Train_Data_Validation:
         method_name = self.validate_missing_values_in_col.__name__
 
         self.log_writer.start_log(
-            "start", self.class_name, method_name, self.train_missing_value_log,
+            "start", self.class_name, method_name, self.train_missing_value_log
         )
 
         try:
@@ -395,10 +393,10 @@ class Raw_Train_Data_Validation:
                     pass
 
                 self.log_writer.start_log(
-                    "exit", self.class_name, method_name, self.train_missing_value_log,
+                    "exit", self.class_name, method_name, self.train_missing_value_log
                 )
 
         except Exception as e:
             self.log_writer.exception_log(
-                e, self.class_name, method_name, self.train_missing_value_log,
+                e, self.class_name, method_name, self.train_missing_value_log
             )

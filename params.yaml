@@ -136,7 +136,7 @@ schema_file:
   train : schema_training.json
   pred : schema_prediction.json
   
-elbow_plot_fig : K-Means_Elbow.PNG
+draw_elbow_plot_fig : K-Means_Elbow.PNG
 
 null_values_csv_file : null_values.csv
 

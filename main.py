@@ -1,5 +1,4 @@
 import json
-import os
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -13,9 +12,6 @@ from wafer.model.prediction_from_model import Prediction
 from wafer.model.training_model import Train_Model
 from wafer.validation_insertion.prediction_validation_insertion import Pred_Validation
 from wafer.validation_insertion.train_validation_insertion import Train_Validation
-
-os.putenv("LANG", "en_US.UTF-8")
-os.putenv("LC_ALL", "en_US.UTF-8")
 
 app = FastAPI()
 

@@ -142,9 +142,7 @@ class MongoDB_Operation:
         try:
             records = json.loads(data_frame.T.to_json().values())
 
-            self.log_writer.log(
-                log_file, f"Converted dataframe to json records",
-            )
+            self.log_writer.log(log_file, f"Converted dataframe to json records")
 
             database = self.get_database(db_name, log_file)
 

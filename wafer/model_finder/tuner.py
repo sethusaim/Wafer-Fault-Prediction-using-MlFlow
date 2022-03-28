@@ -21,10 +21,6 @@ class Model_Finder:
 
         self.config = read_params()
 
-        self.cv = self.config["model_utils"]["cv"]
-
-        self.verbose = self.config["model_utils"]["verbose"]
-
         self.model_utils = Model_Utils()
 
         self.log_writer = App_Logger()
@@ -33,9 +29,9 @@ class Model_Finder:
 
         self.xgb_model = XGBClassifier(objective="binary:logistic")
 
-    def get_best_params_for_random_forest(self, train_x, train_y):
+    def get_rf_model(self, train_x, train_y):
         """
-        Method Name :   get_best_params_for_random_forest
+        Method Name :   get_rf_model
         Description :   get the parameters for Random Forest Algorithm which give the best accuracy.
                         Use Hyper Parameter Tuning.
         
@@ -46,7 +42,7 @@ class Model_Finder:
         Written by  :   iNeuron Intelligence
         Revisions   :   moved setup to cloud
         """
-        method_name = self.get_best_params_for_random_forest.__name__
+        method_name = self.get_rf_model.__name__
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
@@ -56,28 +52,15 @@ class Model_Finder:
             )
 
             self.rf_best_params = self.model_utils.get_model_params(
-                self.rf_model, "rf_model", train_x, train_y, self.log_file,
+                self.rf_model, train_x, train_y, self.log_file
             )
-
-            self.criterion = self.rf_best_params["criterion"]
-
-            self.max_depth = self.rf_best_params["max_depth"]
-
-            self.max_features = self.rf_best_params["max_features"]
-
-            self.n_estimators = self.rf_best_params["n_estimators"]
 
             self.log_writer.log(
                 self.log_file,
                 f"{self.rf_model_name} model best params are {self.rf_best_params}",
             )
 
-            self.rf_model = RandomForestClassifier(
-                n_estimators=self.n_estimators,
-                criterion=self.criterion,
-                max_depth=self.max_depth,
-                max_features=self.max_features,
-            )
+            self.rf_model.set_params(**self.rf_best_params)
 
             self.log_writer.log(
                 self.log_file,
@@ -102,9 +85,9 @@ class Model_Finder:
                 e, self.class_name, method_name, self.log_file
             )
 
-    def get_best_params_for_xgboost(self, train_x, train_y):
+    def get_xgboost_model(self, train_x, train_y):
         """
-        Method Name :   get_best_params_for_xgboost
+        Method Name :   get_xgboost_model
         Description :   get the parameters for XGBoost Algorithm which give the best accuracy.
                         Use Hyper Parameter Tuning.
         
@@ -115,7 +98,7 @@ class Model_Finder:
         Written by  :   iNeuron Intelligence
         Revisions   :   moved setup to cloud
         """
-        method_name = self.get_best_params_for_xgboost.__name__
+        method_name = self.get_xgboost_model.__name__
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
@@ -125,25 +108,15 @@ class Model_Finder:
             )
 
             self.xgb_best_params = self.model_utils.get_model_params(
-                self.xgb_model, "xgb_model", train_x, train_y, self.log_file,
+                self.xgb_model, train_x, train_y, self.log_file
             )
-
-            self.learning_rate = self.xgb_best_params["learning_rate"]
-
-            self.max_depth = self.xgb_best_params["max_depth"]
-
-            self.n_estimators = self.rf_best_params["n_estimators"]
 
             self.log_writer.log(
                 self.log_file,
                 f"{self.rf_model_name} model best params are {self.rf_best_params}",
             )
 
-            self.xgb_model = XGBClassifier(
-                learning_rate=self.learning_rate,
-                max_depth=self.max_depth,
-                n_estimators=self.n_estimators,
-            )
+            self.xgb_model.set_params(**self.xgb_best_params)
 
             self.log_writer.log(
                 self.log_file,
@@ -185,28 +158,28 @@ class Model_Finder:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            self.xgb_model = self.get_best_params_for_xgboost(train_x, train_y)
+            self.xgb_model = self.get_xgboost_model(train_x, train_y)
 
             self.xgb_model_score = self.model_utils.get_model_score(
-                self.xgb_model, test_x, test_y, self.log_file,
+                self.xgb_model, test_x, test_y, self.log_file
             )
 
-            self.rf_model = self.get_best_params_for_random_forest(train_x, train_y)
+            self.rf_model = self.get_rf_model(train_x, train_y)
 
             self.rf_model_score = self.model_utils.get_model_score(
-                self.rf_model, test_x, test_y, self.log_file,
+                self.rf_model, test_x, test_y, self.log_file
             )
+
+            lst = [
+                (self.xgb_model, self.xgb_model_score),
+                (self.rf_model, self.rf_model_score),
+            ]
 
             self.log_writer.start_log(
                 "exit", self.class_name, method_name, self.log_file
             )
 
-            return (
-                self.xgb_model,
-                self.xgb_model_score,
-                self.rf_model,
-                self.rf_model_score,
-            )
+            return lst
 
         except Exception as e:
             self.log_writer.exception_log(

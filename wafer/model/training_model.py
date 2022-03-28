@@ -89,10 +89,10 @@ class Train_Model:
 
             X = self.preprocessor.remove_columns(X, cols_to_drop)
 
-            number_of_clusters = self.kmeans_op.elbow_plot(X)
+            num_clusters = self.kmeans_op.draw_elbow_plot(X)
 
             X, kmeans_model = self.kmeans_op.create_clusters(
-                data=X, number_of_clusters=number_of_clusters
+                data=X, num_clusters=num_clusters
             )
 
             X["Labels"] = Y
@@ -188,7 +188,7 @@ class Train_Model:
                 "exit", self.class_name, method_name, self.model_train_log,
             )
 
-            return number_of_clusters
+            return num_clusters
 
         except Exception as e:
             self.log_writer.log(

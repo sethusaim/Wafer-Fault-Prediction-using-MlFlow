@@ -150,10 +150,6 @@ class Prediction:
 
             X = self.preprocessor.remove_columns(data, cols_to_drop)
 
-            X = self.preprocessor.scale_numerical_columns(data=X)
-
-            X = self.preprocessor.apply_pca_transform(X_scaled_data=X)
-
             kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
 
             kmeans_model = self.s3.load_model(
@@ -178,7 +174,7 @@ class Prediction:
                 prod_model_name = self.prod_model_dir + "/" + model_name
 
                 model = self.s3.load_model(
-                    self.model_bucket, prod_model_name, self.pred_log,
+                    self.model_bucket, prod_model_name, self.pred_log
                 )
 
                 result = list(model.predict(cluster_data))
@@ -198,7 +194,7 @@ class Prediction:
             self.log_writer.log(self.pred_log, "End of prediction")
 
             self.log_writer.start_log(
-                "exit", self.class_name, method_name, self.pred_log,
+                "exit", self.class_name, method_name, self.pred_log
             )
 
             return (
@@ -209,5 +205,5 @@ class Prediction:
 
         except Exception as e:
             self.log_writer.exception_log(
-                e, self.class_name, method_name, self.pred_log,
+                e, self.class_name, method_name, self.pred_log
             )

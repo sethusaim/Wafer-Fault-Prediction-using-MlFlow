@@ -21,19 +21,17 @@ class S3_Operation:
     """
 
     def __init__(self):
-        self.log_writer = App_Logger()
-
-        self.config = read_params()
-
-        self.class_name = self.__class__.__name__
-
-        self.model_utils = Model_Utils()
-
-        self.file_format = self.config["model_utils"]["save_format"]
-
         self.s3_client = boto3.client("s3")
 
         self.s3_resource = boto3.resource("s3")
+
+        self.config = read_params()
+
+        self.log_writer = App_Logger()
+
+        self.model_utils = Model_Utils()
+
+        self.class_name = self.__class__.__name__
 
     def read_object(self, object, log_file, decode=True, make_readable=False):
         """
@@ -556,7 +554,7 @@ class S3_Operation:
         except Exception as e:
             self.log_writer.exception_log(e, self.class_name, method_name, log_file)
 
-    def load_model(self, model_name, bucket, log_file, model_dir=None):
+    def load_model(self, model_name, bucket, log_file, format, model_dir=None):
         """
         Method Name :   load_model
         Description :   This method loads the model from s3 bucket
@@ -573,9 +571,9 @@ class S3_Operation:
 
         try:
             func = (
-                lambda: model_name + self.file_format
+                lambda: model_name + format
                 if model_dir is None
-                else model_dir + model_name + self.file_format
+                else model_dir + model_name + format
             )
 
             model_file = func()
@@ -601,7 +599,7 @@ class S3_Operation:
         except Exception as e:
             self.log_writer.exception_log(e, self.class_name, method_name, log_file)
 
-    def save_model(self, model, model_dir, model_bucket, log_file, idx=None):
+    def save_model(self, model, model_dir, model_bucket, log_file, format, idx=None):
         """
         Method Name :   save_model
         Description :   This method saves the model into particular model directory in s3 bucket with kwargs
@@ -620,9 +618,9 @@ class S3_Operation:
             model_name = self.model_utils.get_model_name(model, log_file)
 
             func = (
-                lambda: model_name + self.file_format
+                lambda: model_name + format
                 if model_name == "KMeans"
-                else model_name + str(idx) + self.file_format
+                else model_name + str(idx) + format
             )
 
             model_file = func()
