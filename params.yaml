@@ -111,28 +111,28 @@ db_log:
   pred: wafer_prediction_logs
 
 train_db_log:
-  model_training: model_training_log
-  col_validation: train_col_validation_log
-  data_transform: train_data_transform_log
-  export_csv: train_export_to_csv_log
-  general: train_general_log
-  db_insert: train_db_insert_log
-  load_prod_model: load_prod_model_log
-  missing_values_in_col: train_missing_values_in_column
-  name_validation: train_name_validation_log
-  train_main: training_main_log
-  values_from_schema: train_values_from_schema_log
+  model_training: model_training_log.txt
+  col_validation: train_col_validation_log.txt
+  data_transform: train_data_transform_log.txt
+  export_csv: train_export_to_csv_log.txt
+  general: train_general_log.txt
+  db_insert: train_db_insert_log.txt
+  load_prod_model: load_prod_model_log.txt
+  missing_values_in_col: train_missing_values_in_column.txt
+  name_validation: train_name_validation_log.txt
+  train_main: training_main_log.txt
+  values_from_schema: train_values_from_schema_log.txt
 
 pred_db_log:
-  col_validation: pred_col_validation_log
-  data_transform: pred_data_transform_log
-  db_insert: pred_db_insert_log
-  export_csv: pred_export_to_csv_log
-  general: pred_general_log
-  missing_values_in_col: pred_missing_values_in_column
-  name_validation: pred_name_validation_log
-  pred_main: prediction_main_log
-  values_from_schema: pred_values_from_schema_log
+  col_validation: pred_col_validation_log.txt
+  data_transform: pred_data_transform_log.txt
+  db_insert: pred_db_insert_log.txt
+  export_csv: pred_export_to_csv_log.txt
+  general: pred_general_log.txt
+  missing_values_in_col: pred_missing_values_in_column.txt
+  name_validation: pred_name_validation_log.txt
+  pred_main: prediction_main_log.txt
+  values_from_schema: pred_values_from_schema_log.txt
 
 schema_file:
   train: schema_training.json
