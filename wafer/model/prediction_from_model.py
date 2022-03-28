@@ -32,13 +32,13 @@ class Prediction:
 
         self.s3 = S3_Operation()
 
-        self.data_getter_pred = Data_Getter_Pred(table_name=self.pred_log)
+        self.data_getter_pred = Data_Getter_Pred(log_file=self.pred_log)
 
-        self.preprocessor = Preprocessor(table_name=self.pred_log)
+        self.preprocessor = Preprocessor(log_file=self.pred_log)
 
         self.class_name = self.__class__.__name__
 
-    def delete_pred_file(self, table_name):
+    def delete_pred_file(self, log_file):
         """
         Method Name :   delete_pred_file
         Description :   This method deletes the existing prediction file for the model prediction starts
@@ -55,32 +55,32 @@ class Prediction:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
             self.s3.load_object(
                 object=self.pred_output_file,
                 bucket_name=self.input_files_bucket,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Found existing Prediction batch file. Deleting it.",
             )
 
             self.s3.delete_file(
                 file_name=self.pred_output_file,
                 bucket_name=self.input_files_bucket,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
         except ClientError as e:
@@ -92,10 +92,10 @@ class Prediction:
                     error=e,
                     class_name=self.class_name,
                     method_name=method_name,
-                    table_name=table_name,
+                    log_file=log_file,
                 )
 
-    def find_correct_model_file(self, cluster_number, bucket_name, table_name):
+    def find_correct_model_file(self, cluster_number, bucket_name, log_file):
         """
         Method Name :   find_correct_model_file
         Description :   This method gets correct model file based on cluster number during prediction
@@ -111,14 +111,12 @@ class Prediction:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
             list_of_files = self.s3.get_files_from_folder(
-                bucket=bucket_name,
-                folder_name=self.prod_model_dir,
-                table_name=table_name,
+                bucket=bucket_name, folder_name=self.prod_model_dir, log_file=log_file,
             )
 
             for file in list_of_files:
@@ -132,7 +130,7 @@ class Prediction:
             model_name = model_name.split(".")[0]
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Got {model_name} from {self.prod_model_dir} folder in {bucket_name} bucket",
             )
 
@@ -140,7 +138,7 @@ class Prediction:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return model_name
@@ -150,7 +148,7 @@ class Prediction:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
     def predict_from_model(self):
@@ -167,11 +165,11 @@ class Prediction:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.pred_log,
+            log_file=self.pred_log,
         )
 
         try:
-            self.s3.delete_pred_file(table_name=self.pred_log)
+            self.s3.delete_pred_file(log_file=self.pred_log)
 
             data = self.data_getter_pred.get_data()
 
@@ -197,7 +195,7 @@ class Prediction:
             kmeans_model = self.s3.load_model(
                 bucket=self.model_bucket,
                 model_name=kmeans_model_name,
-                table_name=self.pred_log,
+                log_file=self.pred_log,
             )
 
             clusters = kmeans_model.predict(data)
@@ -214,7 +212,7 @@ class Prediction:
                 model_name = self.s3.find_correct_model_file(
                     cluster_number=i,
                     bucket_name=self.model_bucket,
-                    table_name=self.pred_log,
+                    log_file=self.pred_log,
                 )
 
                 prod_model_name = self.prod_model_dir + "/" + model_name
@@ -222,7 +220,7 @@ class Prediction:
                 model = self.s3.load_model(
                     bucket=self.model_bucket,
                     model_name=prod_model_name,
-                    table_name=self.pred_log,
+                    log_file=self.pred_log,
                 )
 
                 result = list(model.predict(cluster_data))
@@ -236,16 +234,16 @@ class Prediction:
                     file_name=self.pred_output_file,
                     bucket=self.input_files_bucket,
                     dest_file_name=self.pred_output_file,
-                    table_name=self.pred_log,
+                    log_file=self.pred_log,
                 )
 
-            self.log_writer.log(table_name=self.pred_log, log_info="End of prediction")
+            self.log_writer.log(log_file=self.pred_log, log_info="End of prediction")
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_log,
+                log_file=self.pred_log,
             )
 
             return (
@@ -259,5 +257,5 @@ class Prediction:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_log,
+                log_file=self.pred_log,
             )

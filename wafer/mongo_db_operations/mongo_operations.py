@@ -27,7 +27,7 @@ class MongoDB_Operation:
 
         self.log_writer = App_Logger()
 
-    def get_database(self, db_name, table_name):
+    def get_database(self, db_name, log_file):
         """
         Method Name :   get_database
         Description :   This method gets database from MongoDB from the db_name
@@ -44,22 +44,21 @@ class MongoDB_Operation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
             db = self.client[db_name]
 
             self.log_writer.log(
-                table_name=table_name,
-                log_info=f"Created {db_name} database in MongoDB",
+                log_file=log_file, log_info=f"Created {db_name} database in MongoDB",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return db
@@ -69,10 +68,10 @@ class MongoDB_Operation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
-    def get_collection(self, database, collection_name, table_name):
+    def get_collection(self, database, collection_name, log_file):
         """
         Method Name :   get_collection
         Description :   This method gets collection from the particular database and collection name
@@ -89,14 +88,14 @@ class MongoDB_Operation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
             collection = database[collection_name]
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Created {collection_name} collection in mongodb",
             )
 
@@ -104,7 +103,7 @@ class MongoDB_Operation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return collection
@@ -114,10 +113,10 @@ class MongoDB_Operation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
-    def get_collection_as_dataframe(self, db_name, collection_name, table_name):
+    def get_collection_as_dataframe(self, db_name, collection_name, log_file):
         """
         Method Name :   get_collection_as_dataframe
         Description :   This method is used for converting the selected collection to dataframe
@@ -135,11 +134,11 @@ class MongoDB_Operation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
-            database = self.get_database(db_name=db_name, table_name=table_name)
+            database = self.get_database(db_name=db_name, log_file=log_file)
 
             collection = database.get_collection(name=collection_name)
 
@@ -149,14 +148,14 @@ class MongoDB_Operation:
                 df = df.drop(columns=["_id"], axis=1)
 
             self.log_writer.log(
-                table_name=table_name, log_info="Converted collection to dataframe",
+                log_file=log_file, log_info="Converted collection to dataframe",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return df
@@ -166,11 +165,11 @@ class MongoDB_Operation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
     def insert_dataframe_as_record(
-        self, data_frame, db_name, collection_name, table_name
+        self, data_frame, db_name, collection_name, log_file
     ):
         """
         Method Name :   insert_dataframe_as_record
@@ -188,35 +187,35 @@ class MongoDB_Operation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
             records = json.loads(data_frame.T.to_json()).values()
 
             self.log_writer.log(
-                table_name=table_name, log_info=f"Converted dataframe to json records",
+                log_file=log_file, log_info=f"Converted dataframe to json records",
             )
 
-            database = self.get_database(db_name, table_name=table_name)
+            database = self.get_database(db_name, log_file=log_file)
 
             collection = database.get_collection(collection_name)
 
             self.log_writer.log(
-                table_name=table_name, log_info="Inserting records to MongoDB"
+                log_file=log_file, log_info="Inserting records to MongoDB"
             )
 
             collection.insert_many(records)
 
             self.log_writer.log(
-                table_name=table_name, log_info="Inserted records to MongoDB"
+                log_file=log_file, log_info="Inserted records to MongoDB"
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
         except Exception as e:
@@ -224,5 +223,5 @@ class MongoDB_Operation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )

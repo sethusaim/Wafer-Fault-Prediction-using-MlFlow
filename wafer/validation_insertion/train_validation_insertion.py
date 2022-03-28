@@ -51,7 +51,7 @@ class Train_Validation:
                 key="start",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_main_log,
+                log_file=self.train_main_log,
             )
 
             (
@@ -72,12 +72,12 @@ class Train_Validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
-                table_name=self.train_main_log,
+                log_file=self.train_main_log,
                 log_info="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
-                table_name=self.train_main_log, log_info="Starting Data Transformation",
+                log_file=self.train_main_log, log_info="Starting Data Transformation",
             )
 
             self.data_transform.rename_target_column()
@@ -85,7 +85,7 @@ class Train_Validation:
             self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
-                table_name=self.train_main_log,
+                log_file=self.train_main_log,
                 log_info="Data Transformation completed !!",
             )
 
@@ -95,7 +95,7 @@ class Train_Validation:
             )
 
             self.log_writer.log(
-                table_name=self.train_main_log,
+                log_file=self.train_main_log,
                 log_info="Data type validation Operation completed !!",
             )
 
@@ -108,7 +108,7 @@ class Train_Validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_main_log,
+                log_file=self.train_main_log,
             )
 
         except Exception as e:
@@ -116,5 +116,5 @@ class Train_Validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_main_log,
+                log_file=self.train_main_log,
             )

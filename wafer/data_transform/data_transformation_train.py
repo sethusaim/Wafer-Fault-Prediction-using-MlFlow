@@ -43,14 +43,14 @@ class Data_Transform_Train:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.train_data_transform_log,
+            log_file=self.train_data_transform_log,
         )
 
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_train_data_dir,
                 bucket_name=self.train_data_bucket,
-                table_name=self.train_data_transform_log,
+                log_file=self.train_data_transform_log,
             )
 
             for idx, f in enumerate(lst):
@@ -64,7 +64,7 @@ class Data_Transform_Train:
                     df.rename(columns={"Good/Bad": "Output"}, inplace=True)
 
                     self.log_writer.log(
-                        table_name=self.train_data_transform_log,
+                        log_file=self.train_data_transform_log,
                         log_info=f"Renamed the output columns for the file {file}",
                     )
 
@@ -73,7 +73,7 @@ class Data_Transform_Train:
                         local_file_name=abs_f,
                         bucket_file_name=file,
                         bucket_name=self.train_data_bucket,
-                        table_name=self.train_data_transform_log,
+                        log_file=self.train_data_transform_log,
                     )
 
                 else:
@@ -83,7 +83,7 @@ class Data_Transform_Train:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_data_transform_log,
+                log_file=self.train_data_transform_log,
             )
 
         except Exception as e:
@@ -91,7 +91,7 @@ class Data_Transform_Train:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_data_transform_log,
+                log_file=self.train_data_transform_log,
             )
 
     def replace_missing_with_null(self):
@@ -109,14 +109,14 @@ class Data_Transform_Train:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.train_data_transform_log,
+            log_file=self.train_data_transform_log,
         )
 
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_train_data_dir,
                 bucket_name=self.train_data_bucket,
-                table_name=self.train_data_transform_log,
+                log_file=self.train_data_transform_log,
             )
 
             for idx, f in enumerate(lst):
@@ -132,7 +132,7 @@ class Data_Transform_Train:
                     df["Wafer"] = df["Wafer"].str[6:]
 
                     self.log_writer.log(
-                        table_name=self.train_data_transform_log,
+                        log_file=self.train_data_transform_log,
                         log_info=f"Replaced missing values with null for the file {file}",
                     )
 
@@ -141,7 +141,7 @@ class Data_Transform_Train:
                         local_file_name=abs_f,
                         bucket_file_name=file,
                         bucket_name=self.train_data_bucket,
-                        table_name=self.train_data_transform_log,
+                        log_file=self.train_data_transform_log,
                     )
 
                 else:
@@ -151,7 +151,7 @@ class Data_Transform_Train:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_data_transform_log,
+                log_file=self.train_data_transform_log,
             )
 
         except Exception as e:
@@ -159,5 +159,5 @@ class Data_Transform_Train:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.train_data_transform_log,
+                log_file=self.train_data_transform_log,
             )

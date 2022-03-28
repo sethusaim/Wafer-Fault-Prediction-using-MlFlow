@@ -26,7 +26,7 @@ class Model_Utils:
 
         self.class_name = self.__class__.__name__
 
-    def get_model_name(self, model, table_name):
+    def get_model_name(self, model, log_file):
         """
         Method Name :   get_model_name
         Description :   This method gets the model name from the particular model
@@ -44,21 +44,21 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
             model_name = model.__class__.__name__
 
             self.log_writer.log(
-                table_name=table_name, log_info=f"Got the {model} model_name",
+                log_file=log_file, log_info=f"Got the {model} model_name",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return model_name
@@ -68,10 +68,10 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
-    def get_model_param_grid(self, model_key_name, table_name):
+    def get_model_param_grid(self, model_key_name, log_file):
         """
         Method Name :   get_model_param_grid
         Description :   This method gets the model param grid as specified in params.yaml file
@@ -89,7 +89,7 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
@@ -103,7 +103,7 @@ class Model_Utils:
                 model_grid[param] = model_param_name[param]
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Inserted {model_key_name} params to model_grid dict",
             )
 
@@ -111,7 +111,7 @@ class Model_Utils:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return model_grid
@@ -121,10 +121,10 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
-    def get_model_score(self, model, test_x, test_y, table_name):
+    def get_model_score(self, model, test_x, test_y, log_file):
         """
         Method Name :   get_model_score
         Description :   This method gets model score againist the test data
@@ -142,16 +142,16 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
-            model_name = self.get_model_name(model=model, table_name=table_name)
+            model_name = self.get_model_name(model=model, log_file=log_file)
 
             preds = model.predict(test_x)
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Used {model_name} model to get predictions on test data",
             )
 
@@ -159,7 +159,7 @@ class Model_Utils:
                 model_score = accuracy_score(test_y, preds)
 
                 self.log_writer.log(
-                    table_name=table_name,
+                    log_file=log_file,
                     log_info=f"Accuracy for {model_name} is {model_score}",
                 )
 
@@ -167,7 +167,7 @@ class Model_Utils:
                 model_score = roc_auc_score(test_y, preds)
 
                 self.log_writer.log(
-                    table_name=table_name,
+                    log_file=log_file,
                     log_info=f"AUC score for {model_name} is {model_score}",
                 )
 
@@ -175,7 +175,7 @@ class Model_Utils:
                     key="exit",
                     class_name=self.class_name,
                     method_name=method_name,
-                    table_name=table_name,
+                    log_file=log_file,
                 )
 
             return model_score
@@ -185,10 +185,10 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
-    def get_model_params(self, model, model_key_name, x_train, y_train, table_name):
+    def get_model_params(self, model, model_key_name, x_train, y_train, log_file):
         """
         Method Name :   get_model_params
         Description :   This method gets the model parameters based on model_key_name and train data
@@ -206,14 +206,14 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=table_name,
+            log_file=log_file,
         )
 
         try:
-            model_name = self.get_model_name(model=model, table_name=table_name)
+            model_name = self.get_model_name(model=model, log_file=log_file)
 
             model_param_grid = self.get_model_param_grid(
-                model_key_name=model_key_name, table_name=table_name
+                model_key_name=model_key_name, log_file=log_file
             )
 
             model_grid = GridSearchCV(
@@ -225,14 +225,14 @@ class Model_Utils:
             )
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Initialized {model_grid.__class__.__name__}  with {model_param_grid} as params",
             )
 
             model_grid.fit(x_train, y_train)
 
             self.log_writer.log(
-                table_name=table_name,
+                log_file=log_file,
                 log_info=f"Found the best params for {model_name} model based on {model_param_grid} as params",
             )
 
@@ -240,7 +240,7 @@ class Model_Utils:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )
 
             return model_grid.best_params_
@@ -250,5 +250,5 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=table_name,
+                log_file=log_file,
             )

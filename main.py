@@ -1,6 +1,5 @@
 import json
 import os
-import time
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -8,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 
-from utils.log_tables import Create_Log_Table
 from utils.read_params import read_params
 from wafer.model.load_production_model import Load_Prod_Model
 from wafer.model.prediction_from_model import Prediction
@@ -48,12 +46,6 @@ async def trainRouteClient():
     try:
         raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data"]
 
-        table = Create_Log_Table()
-
-        table.generate_log_tables(type="train")
-
-        time.sleep(5)
-
         train_val = Train_Validation(bucket_name=raw_data_train_bucket_name)
 
         train_val.training_validation()
@@ -76,10 +68,6 @@ async def trainRouteClient():
 async def predictRouteClient():
     try:
         raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data"]
-
-        table = Create_Log_Table()
-
-        table.generate_log_tables(type="pred")
 
         pred_val = Pred_Validation(raw_data_pred_bucket_name)
 

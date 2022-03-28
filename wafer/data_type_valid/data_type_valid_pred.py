@@ -53,14 +53,14 @@ class DB_Operation_Pred:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.pred_db_insert_log,
+            log_file=self.pred_db_insert_log,
         )
 
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_data_pred_dir,
                 bucket_name=self.pred_data_bucket,
-                table_name=self.pred_db_insert_log,
+                log_file=self.pred_db_insert_log,
             )
 
             for idx, f in enumerate(lst):
@@ -73,14 +73,14 @@ class DB_Operation_Pred:
                         data_frame=df,
                         db_name=good_data_db_name,
                         collection_name=good_data_collection_name,
-                        table_name=self.pred_db_insert_log,
+                        log_file=self.pred_db_insert_log,
                     )
 
                 else:
                     pass
 
                 self.log_writer.log(
-                    table_name=self.pred_db_insert_log,
+                    log_file=self.pred_db_insert_log,
                     log_info="Inserted dataframe as collection record in mongodb",
                 )
 
@@ -88,7 +88,7 @@ class DB_Operation_Pred:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_db_insert_log,
+                log_file=self.pred_db_insert_log,
             )
 
         except Exception as e:
@@ -96,7 +96,7 @@ class DB_Operation_Pred:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_db_insert_log,
+                log_file=self.pred_db_insert_log,
             )
 
     def export_collection_to_csv(self, good_data_db_name, good_data_collection_name):
@@ -117,14 +117,14 @@ class DB_Operation_Pred:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.pred_export_csv_log,
+            log_file=self.pred_export_csv_log,
         )
 
         try:
             df = self.mongo.get_collection_as_dataframe(
                 db_name=good_data_db_name,
                 collection_name=good_data_collection_name,
-                table_name=self.pred_export_csv_log,
+                log_file=self.pred_export_csv_log,
             )
 
             self.s3.upload_df_as_csv(
@@ -132,14 +132,14 @@ class DB_Operation_Pred:
                 local_file_name=self.pred_export_csv_file,
                 bucket_file_name=self.pred_export_csv_file,
                 bucket_name=self.input_files_bucket,
-                table_name=self.input_files_bucket,
+                log_file=self.input_files_bucket,
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_export_csv_log,
+                log_file=self.pred_export_csv_log,
             )
 
         except Exception as e:
@@ -147,5 +147,5 @@ class DB_Operation_Pred:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_export_csv_log,
+                log_file=self.pred_export_csv_log,
             )
