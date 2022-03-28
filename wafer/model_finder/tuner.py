@@ -47,9 +47,7 @@ class Model_Finder:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            self.rf_model_name = self.model_utils.get_model_name(
-                self.rf_model, self.log_file
-            )
+            self.rf_model_name = self.rf_model.__class__.__name__
 
             self.rf_best_params = self.model_utils.get_model_params(
                 self.rf_model, train_x, train_y, self.log_file
@@ -103,9 +101,7 @@ class Model_Finder:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            self.xgb_model_name = self.model_utils.get_model_name(
-                self.xgb_model, self.log_file
-            )
+            self.xgb_model_name = self.xgb_model.__class__.__name__
 
             self.xgb_best_params = self.model_utils.get_model_params(
                 self.xgb_model, train_x, train_y, self.log_file

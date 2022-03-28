@@ -408,7 +408,7 @@ class MLFlow_Operation:
                 "start", self.class_name, method_name, self.log_file,
             )
 
-            base_model_name = self.model_utils.get_model_name(model, self.log_file)
+            base_model_name = model.__class__.__name__
 
             if base_model_name is "KMeans":
                 self.log_model(model, base_model_name)

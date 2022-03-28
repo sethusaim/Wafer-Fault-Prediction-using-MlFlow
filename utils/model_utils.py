@@ -1,6 +1,12 @@
 from cmath import log
+
+import mlflow
 from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
+from wafer.mlflow_utils.mlflow_operations import MLFlow_Operation
+from wafer.model_finder.tuner import Model_Finder
+from wafer.s3_bucket_operations.s3_operations import S3_Operation
+
 
 from utils.logger import App_Logger
 from utils.read_params import read_params
@@ -19,40 +25,27 @@ class Model_Utils:
 
         self.config = read_params()
 
-        self.cv = self.config["model_utils"]["cv"]
+        self.tuner_kwargs = self.config["model_utils"]
 
-        self.verbose = self.config["model_utils"]["verbose"]
+        self.split_kwargs = self.config["base"]
 
-        self.n_jobs = self.config["model_utils"]["n_jobs"]
+        self.train_model_dir = self.config["models_dir"]["trained"]
+
+        self.save_format = self.config["model_save_format"]
+
+        self.model_bucket = self.config["s3_bucket"]["model"]
+
+        self.exp_name = self.config["mlflow_config"]["experiment_name"]
+
+        self.run_name = self.config["mlflow_config"]["run_name"]
+
+        self.mlflow_op = MLFlow_Operation()
+
+        self.model_finder = Model_Finder()
+
+        self.s3 = S3_Operation()
 
         self.class_name = self.__class__.__name__
-
-    def get_model_name(self, model, log_file):
-        """
-        Method Name :   get_model_name
-        Description :   This method gets the model name from the particular model
-
-        Output      :   A model name is returned
-        On Failure  :   Write an exception log and then raise an exception
-
-        Version     :   1.2
-        Revisions   :   moved setup to cloud
-        """
-        method_name = self.get_model_name.__name__
-
-        self.log_writer.start_log("start", self.class_name, method_name, log_file)
-
-        try:
-            model_name = model.__class__.__name__
-
-            self.log_writer.log(log_file, f"Got the {model} model_name")
-
-            self.log_writer.start_log("exit", self.class_name, method_name, log_file)
-
-            return model_name
-
-        except Exception as e:
-            self.log_writer.exception_log(e, self.class_name, method_name, log_file)
 
     def get_model_score(self, model, test_x, test_y, log_file):
         """
@@ -71,7 +64,7 @@ class Model_Utils:
         self.log_writer.start_log("start", self.class_name, method_name, log_file)
 
         try:
-            model_name = self.get_model_name(model, log_file)
+            model_name = model.__class__.__name__
 
             preds = model.predict(test_x)
 
@@ -117,16 +110,12 @@ class Model_Utils:
         self.log_writer.start_log("start", self.class_name, method_name, log_file)
 
         try:
-            model_name = self.get_model_name(model, log_file)
+            model_name = model.__class__.__name__
 
             model_param_grid = self.config[model_name]
 
             model_grid = GridSearchCV(
-                estimator=model,
-                param_grid=model_param_grid,
-                cv=self.cv,
-                verbose=self.verbose,
-                n_jobs=self.n_jobs,
+                estimator=model, param_grid=model_param_grid, **self.tuner_kwargs
             )
 
             self.log_writer.log(
@@ -147,3 +136,53 @@ class Model_Utils:
 
         except Exception as e:
             self.log_writer.exception_log(e, self.class_name, method_name, log_file)
+
+    def train_and_log_models(self, X_data, Y_data, log_file, idx=None, kmeans=None):
+        method_name = self.train_and_log_models.__name__
+
+        self.log_writer.start_log("start", log_file, self.class_name, method_name)
+
+        try:
+            x_train, x_test, y_train, y_test = train_test_split(
+                X_data, Y_data, **self.split_kwargs
+            )
+
+            self.log_writer.log(
+                log_file,
+                f"Performed train test split with kwargs as {self.split_kwargs}",
+            )
+
+            lst = self.model_finder.get_trained_models(x_train, y_train, x_test, y_test)
+
+            self.log_writer.log(log_file, "Got trained models")
+
+            for _, tm in enumerate(lst):
+                self.s3.save_model(
+                    tm[0],
+                    self.train_model_dir,
+                    self.model_bucket,
+                    log_file,
+                    format=self.save_format,
+                )
+
+                self.mlflow_op.set_mlflow_tracking_uri()
+
+                self.mlflow_op.set_mlflow_experiment(self.exp_name)
+
+                with mlflow.start_run(run_name=self.run_name):
+                    self.mlflow_op.log_all_for_model(idx, tm[0], tm[1])
+
+                    if kmeans is not None:
+                        self.mlflow_op.log_all_for_model(None, kmeans, None)
+
+                    else:
+                        pass
+
+            self.log_writer.log(
+                log_file, "Saved and logged all trained models to mlflow"
+            )
+
+            self.log_writer.start_log("exit", log_file, self.class_name, method_name)
+
+        except Exception as e:
+            self.log_writer.exception_log(e, log_file, self.class_name, method_name)

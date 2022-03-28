@@ -615,7 +615,7 @@ class S3_Operation:
         self.log_writer.start_log("start", self.class_name, method_name, log_file)
 
         try:
-            model_name = self.model_utils.get_model_name(model, log_file)
+            model_name = model.__class__.__name__
 
             func = (
                 lambda: model_name + format
