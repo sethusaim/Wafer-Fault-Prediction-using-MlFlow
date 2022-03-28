@@ -49,7 +49,7 @@ class Data_Getter_Train:
         try:
             df = self.s3.read_csv(
                 fname=self.train_csv_file,
-                bucket_name=self.input_files_bucket,
+                bucket=self.input_files_bucket,
                 log_file=self.log_file,
             )
 

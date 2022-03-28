@@ -49,7 +49,7 @@ class Data_Transform_Pred:
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_pred_data_dir,
-                bucket_name=self.pred_data_bucket,
+                bucket=self.pred_data_bucket,
                 log_file=self.pred_data_transform_log,
             )
 
@@ -72,7 +72,7 @@ class Data_Transform_Pred:
                         data_frame=df,
                         local_file_name=abs_f,
                         bucket_file_name=file,
-                        bucket_name=self.pred_data_bucket,
+                        bucket=self.pred_data_bucket,
                         log_file=self.pred_data_transform_log,
                     )
 
@@ -115,7 +115,7 @@ class Data_Transform_Pred:
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_pred_data_dir,
-                bucket_name=self.pred_data_bucket,
+                bucket=self.pred_data_bucket,
                 log_file=self.pred_data_transform_log,
             )
 
@@ -140,7 +140,7 @@ class Data_Transform_Pred:
                         data_frame=df,
                         local_file_name=abs_f,
                         bucket_file_name=file,
-                        bucket_name=self.pred_data_bucket,
+                        bucket=self.pred_data_bucket,
                         log_file=self.pred_data_transform_log,
                     )
 

@@ -61,7 +61,7 @@ class Prediction:
         try:
             self.s3.load_object(
                 object=self.pred_output_file,
-                bucket_name=self.input_files_bucket,
+                bucket=self.input_files_bucket,
                 log_file=log_file,
             )
 
@@ -72,7 +72,7 @@ class Prediction:
 
             self.s3.delete_file(
                 fname=self.pred_output_file,
-                bucket_name=self.input_files_bucket,
+                bucket=self.input_files_bucket,
                 log_file=log_file,
             )
 
@@ -95,7 +95,7 @@ class Prediction:
                     log_file=log_file,
                 )
 
-    def find_correct_model_file(self, cluster_number, bucket_name, log_file):
+    def find_correct_model_file(self, cluster_number, bucket, log_file):
         """
         Method Name :   find_correct_model_file
         Description :   This method gets correct model file based on cluster number during prediction
@@ -116,7 +116,7 @@ class Prediction:
 
         try:
             list_of_files = self.s3.get_files_from_folder(
-                bucket=bucket_name, folder_name=self.prod_model_dir, log_file=log_file,
+                bucket=bucket, folder_name=self.prod_model_dir, log_file=log_file,
             )
 
             for file in list_of_files:
@@ -131,7 +131,7 @@ class Prediction:
 
             self.log_writer.log(
                 log_file=log_file,
-                log_info=f"Got {model_name} from {self.prod_model_dir} folder in {bucket_name} bucket",
+                log_info=f"Got {model_name} from {self.prod_model_dir} folder in {bucket} bucket",
             )
 
             self.log_writer.start_log(
@@ -211,7 +211,7 @@ class Prediction:
 
                 model_name = self.s3.find_correct_model_file(
                     cluster_number=i,
-                    bucket_name=self.model_bucket,
+                    bucket=self.model_bucket,
                     log_file=self.pred_log,
                 )
 

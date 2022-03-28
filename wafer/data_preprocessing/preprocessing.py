@@ -169,7 +169,7 @@ class Preprocessor:
                     data_frame=null_df,
                     local_file_name=self.null_values_file,
                     bucket_file_name=self.null_values_file,
-                    bucket_name=self.input_files_bucket,
+                    bucket=self.input_files_bucket,
                     log_file=self.log_file,
                 )
 

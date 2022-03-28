@@ -74,7 +74,7 @@ class Raw_Train_Data_Validation:
 
             dic = self.s3.read_json(
                 fname=self.train_schema_file,
-                bucket_name=self.input_files_bucket,
+                bucket=self.input_files_bucket,
                 log_file=self.train_schema_log,
             )
 
@@ -144,7 +144,7 @@ class Raw_Train_Data_Validation:
 
             regex = self.s3.read_text(
                 fname=self.regex_file,
-                bucket_name=self.input_files_bucket,
+                bucket=self.input_files_bucket,
                 log_file=self.train_gen_log,
             )
 
@@ -192,13 +192,13 @@ class Raw_Train_Data_Validation:
         try:
             self.s3.create_folder(
                 folder_name=self.good_train_data_dir,
-                bucket_name=self.train_data_bucket,
+                bucket=self.train_data_bucket,
                 log_file=log_file,
             )
 
             self.s3.create_folder(
                 folder_name=self.bad_train_data_dir,
-                bucket_name=self.train_data_bucket,
+                bucket=self.train_data_bucket,
                 log_file=log_file,
             )
 
@@ -346,7 +346,7 @@ class Raw_Train_Data_Validation:
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_train_data_dir,
-                bucket_name=self.train_data_bucket,
+                bucket=self.train_data_bucket,
                 log_file=self.train_col_valid_log,
             )
 
@@ -413,7 +413,7 @@ class Raw_Train_Data_Validation:
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_train_data_dir,
-                bucket_name=self.train_data_bucket,
+                bucket=self.train_data_bucket,
                 log_file=self.train_missing_value_log,
             )
 
@@ -450,7 +450,7 @@ class Raw_Train_Data_Validation:
                             data_frame=df,
                             local_file_name=abs_f,
                             bucket_file_name=dest_f,
-                            bucket_name=self.train_data_bucket,
+                            bucket=self.train_data_bucket,
                             log_file=self.train_missing_value_log,
                         )
 

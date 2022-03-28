@@ -35,7 +35,7 @@ class Load_Prod_Model:
 
         self.mlflow_op = MLFlow_Operation(log_file=self.load_prod_model_log)
 
-    def create_folders_for_prod_and_stag(self, bucket_name, log_file):
+    def create_folders_for_prod_and_stag(self, bucket, log_file):
         """
         Method Name :   create_folders_for_prod_and_stag
         Description :   This method creates folders for production and staging bucket
@@ -59,13 +59,13 @@ class Load_Prod_Model:
         try:
             self.s3.create_folder(
                 folder_name=self.prod_model_dir,
-                bucket_name=bucket_name,
+                bucket=bucket,
                 log_file=log_file,
             )
 
             self.s3.create_folder(
                 folder_name=self.stag_model_dir,
-                bucket_name=bucket_name,
+                bucket=bucket,
                 log_file=log_file,
             )
 
@@ -107,7 +107,7 @@ class Load_Prod_Model:
 
         try:
             self.create_folders_for_prod_and_stag(
-                bucket_name=self.model_bucket_name, log_file=self.load_prod_model_log
+                bucket=self.model_bucket_name, log_file=self.load_prod_model_log
             )
 
             self.mlflow_op.set_mlflow_tracking_uri()

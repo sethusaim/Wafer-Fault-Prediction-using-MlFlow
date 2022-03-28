@@ -59,7 +59,7 @@ class DB_Operation_Pred:
         try:
             lst = self.s3.read_csv_from_folder(
                 folder_name=self.good_data_pred_dir,
-                bucket_name=self.pred_data_bucket,
+                bucket=self.pred_data_bucket,
                 log_file=self.pred_db_insert_log,
             )
 
@@ -131,7 +131,7 @@ class DB_Operation_Pred:
                 data_frame=df,
                 local_file_name=self.pred_export_csv_file,
                 bucket_file_name=self.pred_export_csv_file,
-                bucket_name=self.input_files_bucket,
+                bucket=self.input_files_bucket,
                 log_file=self.input_files_bucket,
             )
 
