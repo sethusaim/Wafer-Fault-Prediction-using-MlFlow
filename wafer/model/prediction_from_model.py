@@ -71,7 +71,7 @@ class Prediction:
             )
 
             self.s3.delete_file(
-                file_name=self.pred_output_file,
+                fname=self.pred_output_file,
                 bucket_name=self.input_files_bucket,
                 log_file=log_file,
             )
@@ -231,7 +231,7 @@ class Prediction:
 
                 self.s3.upload_df_as_csv(
                     data_frame=result,
-                    file_name=self.pred_output_file,
+                    fname=self.pred_output_file,
                     bucket=self.input_files_bucket,
                     dest_file_name=self.pred_output_file,
                     log_file=self.pred_log,
