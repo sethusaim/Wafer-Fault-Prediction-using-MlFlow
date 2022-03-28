@@ -1,11 +1,11 @@
 base:
-  random_state : 42
-  target_col : Output
-  test_size : 0.33
+  random_state: 42
+  target_col: Output
+  test_size: 0.33
 
 app:
-  host : 0.0.0.0
-  port : 8080 
+  host: 0.0.0.0
+  port: 8080
 
 data:
   raw_data:
@@ -13,7 +13,7 @@ data:
     pred_batch: prediction_data
 
   train:
-    good_data_dir : good/train
+    good_data_dir: good/train
     bad_data_dir: bad/train
 
   pred:
@@ -21,22 +21,23 @@ data:
     bad_data_dir: bad/pred
 
 mongodb:
-  mongo_url: 
+  mongo_url:
   wafer_data_db_name: wafer-data
   wafer_train_data_collection: wafer-train-data
   wafer_pred_data_collection: wafer-pred-data
 
 knn_imputer:
-  n_neighbors : 3
-  weights : uniform
+  n_neighbors: 3
+  weights: uniform
   missing_values: nan
 
 kmeans_cluster:
-  init          : k-means++
-  max_clusters  : 11
-  knee:
-    curve     : convex
-    direction : decreasing
+  init: k-means++
+  max_clusters: 11
+
+knee:
+  curve: convex
+  direction: decreasing
 
 s3_bucket:
   input_files: input-files-for-train-and-pred
@@ -47,15 +48,15 @@ s3_bucket:
   wafer_raw_data: wafer-raw-data
 
 models_dir:
-  trained : trained/
+  trained: trained/
   stag: staging/
-  prod : production/
+  prod: production/
 
 model_utils:
-  verbose : 3
-  cv      : 5
-  n_jobs  : -1
-  save_format : .sav
+  verbose: 3
+  cv: 5
+  n_jobs: -1
+  save_format: .sav
 
 model_params:
   RandomForestClassifier:
@@ -64,7 +65,7 @@ model_params:
       - 50
       - 100
       - 130
-      
+
     criterion:
       - gini
       - entropy
@@ -97,57 +98,57 @@ model_params:
       - 50
       - 100
       - 200
-    
+
 mlflow_config:
-  experiment_name : wafer-ops-test
-  run_name : mlops
-  serialization_format : cloudpickle  
-  num_of_prod_models : 3
+  experiment_name: wafer-ops-test
+  run_name: mlops
+  serialization_format: cloudpickle
+  num_of_prod_models: 3
 
 db_log:
-  train : wafer_training_logs
-  pred : wafer_prediction_logs
+  train: wafer_training_logs
+  pred: wafer_prediction_logs
 
 train_db_log:
-  model_training : model_training_log
-  col_validation : train_col_validation_log
-  data_transform : train_data_transform_log
-  export_csv : train_export_to_csv_log
-  general : train_general_log
+  model_training: model_training_log
+  col_validation: train_col_validation_log
+  data_transform: train_data_transform_log
+  export_csv: train_export_to_csv_log
+  general: train_general_log
   db_insert: train_db_insert_log
-  load_prod_model : load_prod_model_log
-  missing_values_in_col : train_missing_values_in_column
-  name_validation : train_name_validation_log
-  train_main : training_main_log
-  values_from_schema : train_values_from_schema_log
+  load_prod_model: load_prod_model_log
+  missing_values_in_col: train_missing_values_in_column
+  name_validation: train_name_validation_log
+  train_main: training_main_log
+  values_from_schema: train_values_from_schema_log
 
 pred_db_log:
-  col_validation : pred_col_validation_log
-  data_transform : pred_data_transform_log
-  db_insert : pred_db_insert_log
-  export_csv : pred_export_to_csv_log
-  general : pred_general_log
-  missing_values_in_col : pred_missing_values_in_column
-  name_validation : pred_name_validation_log
-  pred_main : prediction_main_log
-  values_from_schema : pred_values_from_schema_log
+  col_validation: pred_col_validation_log
+  data_transform: pred_data_transform_log
+  db_insert: pred_db_insert_log
+  export_csv: pred_export_to_csv_log
+  general: pred_general_log
+  missing_values_in_col: pred_missing_values_in_column
+  name_validation: pred_name_validation_log
+  pred_main: prediction_main_log
+  values_from_schema: pred_values_from_schema_log
 
 schema_file:
-  train : schema_training.json
-  pred : schema_prediction.json
-  
-draw_elbow_plot_fig : K-Means_Elbow.PNG
+  train: schema_training.json
+  pred: schema_prediction.json
 
-null_values_csv_file : null_values.csv
+draw_elbow_plot_fig: K-Means_Elbow.PNG
 
-regex_file : wafer-regex.txt
+null_values_csv_file: null_values.csv
 
-pred_output_file : predictions.csv
+regex_file: wafer-regex.txt
+
+pred_output_file: predictions.csv
 
 export_csv_file:
-  train : train_input_file.csv
-  pred : pred_input_file.csv
+  train: train_input_file.csv
+  pred: pred_input_file.csv
 
 templates:
-  dir : templates
-  index : index.html
+  dir: templates
+  index: index.html
