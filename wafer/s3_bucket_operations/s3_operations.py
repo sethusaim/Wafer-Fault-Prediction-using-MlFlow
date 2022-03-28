@@ -310,9 +310,7 @@ class S3_Operation:
 
             lst = [
                 (
-                    self.read_csv(
-                        fname=f, bucket_name=bucket_name, log_file=log_file,
-                    ),
+                    self.read_csv(fname=f, bucket_name=bucket_name, log_file=log_file,),
                     f,
                     f.split("/")[-1],
                 )
