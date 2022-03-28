@@ -61,7 +61,7 @@ class Train_Model:
             data = self.preprocessor.remove_columns(data, ["Wafer"])
 
             X, Y = self.preprocessor.separate_label_feature(
-                data, label_column_name=self.target_col
+                data, label_col_name=self.target_col
             )
 
             is_null_present = self.preprocessor.is_null_present(X)

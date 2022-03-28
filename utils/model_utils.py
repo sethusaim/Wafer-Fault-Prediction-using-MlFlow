@@ -1,12 +1,9 @@
-from cmath import log
-
 import mlflow
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV, train_test_split
 from wafer.mlflow_utils.mlflow_operations import MLFlow_Operation
 from wafer.model_finder.tuner import Model_Finder
 from wafer.s3_bucket_operations.s3_operations import S3_Operation
-
 
 from utils.logger import App_Logger
 from utils.read_params import read_params
@@ -170,10 +167,10 @@ class Model_Utils:
                 self.mlflow_op.set_mlflow_experiment(self.exp_name)
 
                 with mlflow.start_run(run_name=self.run_name):
-                    self.mlflow_op.log_all_for_model(idx, tm[0], tm[1])
+                    self.mlflow_op.log_all_for_model(tm[0], tm[1], idx)
 
                     if kmeans is not None:
-                        self.mlflow_op.log_all_for_model(None, kmeans, None)
+                        self.mlflow_op.log_all_for_model(kmeans, None, None)
 
                     else:
                         pass

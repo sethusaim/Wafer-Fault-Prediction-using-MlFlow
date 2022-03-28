@@ -45,16 +45,10 @@ class Preprocessor:
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
-        data = data
-
-        self.columns = columns
-
         try:
-            self.useful_data = data.drop(labels=self.columns, axis=1)
+            self.useful_data = data.drop(labels=columns, axis=1)
 
-            self.log_writer.log(
-                self.log_file, "Column removal Successful",
-            )
+            self.log_writer.log(self.log_file, "Column removal Successful")
 
             self.log_writer.start_log(
                 "exit", self.class_name, method_name, self.log_file
@@ -67,7 +61,7 @@ class Preprocessor:
                 e, self.class_name, method_name, self.log_file
             )
 
-    def separate_label_feature(self, data, label_column_name):
+    def separate_label_feature(self, data, label_col_name):
         """
         Method name :   separate_label_feature
         Description :   This method separates the features and a label columns
@@ -82,13 +76,11 @@ class Preprocessor:
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
-            self.X = data.drop(labels=label_column_name, axis=1)
+            self.X = data.drop(labels=label_col_name, axis=1)
 
-            self.Y = data[label_column_name]
+            self.Y = data[label_col_name]
 
-            self.log_writer.log(
-                self.log_file, f"Label Separation Successful",
-            )
+            self.log_writer.log(self.log_file, f"Label Separation Successful")
 
             self.log_writer.start_log(
                 "exit", self.class_name, method_name, self.log_file
@@ -97,9 +89,7 @@ class Preprocessor:
             return self.X, self.Y
 
         except Exception as e:
-            self.log_writer.log(
-                self.log_file, "Label Separation Unsuccessful",
-            )
+            self.log_writer.log(self.log_file, "Label Separation Unsuccessful")
 
             self.log_writer.exception_log(
                 e, self.class_name, method_name, self.log_file
@@ -119,9 +109,9 @@ class Preprocessor:
 
         self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
-        self.null_present = False
-
         try:
+            self.null_present = False
+
             self.null_counts = data.isna().sum()
 
             for i in self.null_counts:
@@ -156,9 +146,7 @@ class Preprocessor:
             return self.null_present
 
         except Exception as e:
-            self.log_writer.log(
-                self.log_file, "Finding missing values failed",
-            )
+            self.log_writer.log(self.log_file, "Finding missing values failed")
 
             self.log_writer.exception_log(
                 e, self.class_name, method_name, self.log_file
@@ -186,9 +174,7 @@ class Preprocessor:
 
             self.new_data = pd.DataFrame(data=self.new_array, columns=data.columns)
 
-            self.log_writer.log(
-                self.log_file, f"Imputing missing values Successful",
-            )
+            self.log_writer.log(self.log_file, f"Imputing missing values Successful")
 
             self.log_writer.start_log(
                 "exit", self.class_name, method_name, self.log_file
@@ -197,9 +183,7 @@ class Preprocessor:
             return self.new_data
 
         except Exception as e:
-            self.log_writer.log(
-                self.log_file, f"Imputing missing values failed",
-            )
+            self.log_writer.log(self.log_file, f"Imputing missing values failed")
 
             self.log_writer.exception_log(
                 e, self.class_name, method_name, self.log_file
@@ -239,7 +223,7 @@ class Preprocessor:
 
         except Exception as e:
             self.log_writer.log(
-                self.log_file, "Column search for Standard Deviation of Zero Failed.",
+                self.log_file, "Column search for Standard Deviation of Zero Failed."
             )
 
             self.log_writer.exception_log(

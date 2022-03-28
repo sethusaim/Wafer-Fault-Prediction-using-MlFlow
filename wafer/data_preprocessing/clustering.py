@@ -92,8 +92,7 @@ class KMeans_Clustering:
             self.kn = KneeLocator(range(1, self.max_clusters), wcss, **self.knee_params)
 
             self.log_writer.log(
-                self.log_file,
-                f"The optimum number of clusters is {str(self.kn.knee)}.",
+                self.log_file, f"The optimum number of clusters is {str(self.kn.knee)}."
             )
 
             self.log_writer.start_log(
@@ -128,13 +127,13 @@ class KMeans_Clustering:
             self.y_kmeans = self.kmeans.fit_predict(data)
 
             self.s3.save_model(
-                self.kmeans, self.trained_model_dir, self.model_bucket, self.log_file,
+                self.kmeans, self.trained_model_dir, self.model_bucket, self.log_file
             )
 
             data["Cluster"] = self.y_kmeans
 
             self.log_writer.log(
-                self.log_file, f"Successfully created {str(self.kn.knee)} clusters",
+                self.log_file, f"Successfully created {str(self.kn.knee)} clusters"
             )
 
             self.log_writer.start_log(
