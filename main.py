@@ -41,9 +41,9 @@ async def index(request: Request):
 @app.get("/train")
 async def trainRouteClient():
     try:
-        raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data"]
+        raw_data_train_bucket = config["s3_bucket"]["wafer_raw_data"]
 
-        train_val = Train_Validation(raw_data_train_bucket_name)
+        train_val = Train_Validation(raw_data_train_bucket)
 
         train_val.training_validation()
 
@@ -66,9 +66,9 @@ async def trainRouteClient():
 @app.get("/predict")
 async def predictRouteClient():
     try:
-        raw_data_pred_bucket_name = config["s3_bucket"]["wafer_raw_data"]
+        raw_data_pred_bucket = config["s3_bucket"]["wafer_raw_data"]
 
-        pred_val = Pred_Validation(raw_data_pred_bucket_name)
+        pred_val = Pred_Validation(raw_data_pred_bucket)
 
         pred_val.prediction_validation()
 

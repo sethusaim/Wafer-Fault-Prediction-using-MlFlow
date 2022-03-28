@@ -14,7 +14,7 @@ class Pred_Validation:
     """
 
     def __init__(self, bucket):
-        self.raw_data = Raw_Pred_Data_Validation(raw_data_bucket_name=bucket)
+        self.raw_data = Raw_Pred_Data_Validation(bucket)
 
         self.data_transform = Data_Transform_Pred()
 
