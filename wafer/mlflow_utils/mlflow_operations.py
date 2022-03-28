@@ -618,7 +618,7 @@ class MLFlow_Operation:
             )
 
     def transition_mlflow_model(
-        self, model_version, stage, model_name, from_bucket_name, to_bucket_name
+        self, model_version, stage, model_name, from_bucket, to_bucket
     ):
         """
         Method Name :   transition_mlflow_model
@@ -685,10 +685,10 @@ class MLFlow_Operation:
                 )
 
                 self.s3.copy_data(
-                    from_file_name=trained_model_file,
-                    from_bucket_name=from_bucket_name,
-                    to_file_name=prod_model_file,
-                    to_bucket_name=to_bucket_name,
+                    from_fname=trained_model_file,
+                    from_bucket=from_bucket,
+                    to_fname=prod_model_file,
+                    to_bucket=to_bucket,
                     log_file=self.log_file,
                 )
 
@@ -708,10 +708,10 @@ class MLFlow_Operation:
                 )
 
                 self.s3.copy_data(
-                    from_file_name=trained_model_file,
-                    from_bucket_name=from_bucket_name,
-                    to_file_name=stag_model_file,
-                    to_bucket_name=to_bucket_name,
+                    from_fname=trained_model_file,
+                    from_bucket=from_bucket,
+                    to_fname=stag_model_file,
+                    to_bucket=to_bucket,
                     log_file=self.log_file,
                 )
 

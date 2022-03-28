@@ -221,8 +221,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            from_bucket_name=self.model_bucket_name,
-                            to_bucket_name=self.model_bucket_name,
+                            from_bucket=self.model_bucket_name,
+                            to_bucket=self.model_bucket_name,
                         )
 
                     ## In the registered models, even kmeans model is present, so during Prediction,
@@ -233,8 +233,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            from_bucket_name=self.model_bucket_name,
-                            to_bucket_name=self.model_bucket_name,
+                            from_bucket=self.model_bucket_name,
+                            to_bucket=self.model_bucket_name,
                         )
 
                     else:
@@ -242,8 +242,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Staging",
                             model_name=mv.name,
-                            from_bucket_name=self.model_bucket_name,
-                            to_bucket_name=self.model_bucket_name,
+                            from_bucket=self.model_bucket_name,
+                            to_bucket=self.model_bucket_name,
                         )
 
             self.log_writer.log(

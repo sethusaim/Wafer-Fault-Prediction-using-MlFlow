@@ -489,7 +489,7 @@ class S3_Operation:
             )
 
     def upload_file(
-        self, from_file_name, to_file_name, bucket_name, log_file, remove=True
+        self, from_fname, to_fname, bucket_name, log_file, remove=True
     ):
         """
         Method Name :   upload_file
@@ -513,16 +513,16 @@ class S3_Operation:
         try:
             self.log_writer.log(
                 log_file=log_file,
-                log_info=f"Uploading {from_file_name} to s3 bucket {bucket_name}",
+                log_info=f"Uploading {from_fname} to s3 bucket {bucket_name}",
             )
 
             self.s3_resource.meta.client.upload_file(
-                from_file_name, bucket_name, to_file_name
+                from_fname, bucket_name, to_fname
             )
 
             self.log_writer.log(
                 log_file=log_file,
-                log_info=f"Uploaded {from_file_name} to s3 bucket {bucket_name}",
+                log_info=f"Uploaded {from_fname} to s3 bucket {bucket_name}",
             )
 
             if remove is True:
@@ -531,11 +531,11 @@ class S3_Operation:
                     log_info=f"Option remove is set {remove}..deleting the file",
                 )
 
-                os.remove(from_file_name)
+                os.remove(from_fname)
 
                 self.log_writer.log(
                     log_file=log_file,
-                    log_info=f"Removed the local copy of {from_file_name}",
+                    log_info=f"Removed the local copy of {from_fname}",
                 )
 
                 self.log_writer.start_log(
@@ -604,7 +604,7 @@ class S3_Operation:
             )
 
     def copy_data(
-        self, from_file_name, from_bucket_name, to_file_name, to_bucket_name, log_file
+        self, from_fname, from_bucket, to_fname, to_bucket, log_file
     ):
         """
         Method Name :   copy_data
@@ -626,13 +626,13 @@ class S3_Operation:
         )
 
         try:
-            copy_source = {"Bucket": from_bucket_name, "Key": from_file_name}
+            copy_source = {"Bucket": from_bucket, "Key": from_fname}
 
-            self.s3_resource.meta.client.copy(copy_source, to_bucket_name, to_file_name)
+            self.s3_resource.meta.client.copy(copy_source, to_bucket, to_fname)
 
             self.log_writer.log(
                 log_file=log_file,
-                log_info=f"Copied data from bucket_name {from_bucket_name} to bucket_name {to_bucket_name}",
+                log_info=f"Copied data from bucket_name {from_bucket} to bucket_name {to_bucket}",
             )
 
             self.log_writer.start_log(
@@ -694,7 +694,7 @@ class S3_Operation:
             )
 
     def move_data(
-        self, from_file_name, from_bucket_name, to_file_name, to_bucket_name, log_file
+        self, from_fname, from_bucket, to_fname, to_bucket, log_file
     ):
         """
         Method Name :   move_data
@@ -717,20 +717,20 @@ class S3_Operation:
 
         try:
             self.copy_data(
-                from_bucket_name=from_bucket_name,
-                from_file_name=from_file_name,
-                to_bucket_name=to_bucket_name,
-                to_file_name=to_file_name,
+                from_bucket=from_bucket,
+                from_fname=from_fname,
+                to_bucket=to_bucket,
+                to_fname=to_fname,
                 log_file=log_file,
             )
 
             self.delete_file(
-                bucket_name=from_bucket_name, file=from_file_name, log_file=log_file,
+                bucket_name=from_bucket, file=from_fname, log_file=log_file,
             )
 
             self.log_writer.log(
                 log_file=log_file,
-                log_info=f"Moved {from_file_name} from bucket_name {from_bucket_name} to {to_bucket_name}",
+                log_info=f"Moved {from_fname} from bucket_name {from_bucket} to {to_bucket}",
             )
 
             self.log_writer.start_log(
@@ -958,8 +958,8 @@ class S3_Operation:
             )
 
             self.upload_file(
-                from_file_name=model_file,
-                to_file_name=bucket_model_path,
+                from_fname=model_file,
+                to_fname=bucket_model_path,
                 bucket_name=model_bucket_name,
                 log_file=log_file,
             )
@@ -1020,8 +1020,8 @@ class S3_Operation:
             )
 
             self.upload_file(
-                from_file_name=local_file_name,
-                to_file_name=bucket_file_name,
+                from_fname=local_file_name,
+                to_fname=bucket_file_name,
                 bucket_name=bucket_name,
                 log_file=log_file,
             )
