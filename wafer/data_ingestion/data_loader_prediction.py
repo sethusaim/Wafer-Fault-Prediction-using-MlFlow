@@ -16,7 +16,7 @@ class Data_Getter_Pred:
 
         self.log_file = log_file
 
-        self.prediction_file = self.config["export_csv_file"]["pred"]
+        self.pred_file = self.config["export_csv_file"]["pred"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files"]
 
@@ -41,7 +41,7 @@ class Data_Getter_Pred:
 
         try:
             df = self.s3.read_csv(
-                self.prediction_file, self.input_files_bucket, self.log_file
+                self.pred_file, self.input_files_bucket, self.log_file
             )
 
             self.log_writer.start_log(
