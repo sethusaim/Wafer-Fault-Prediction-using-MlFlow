@@ -21,7 +21,7 @@ class KMeans_Clustering:
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files"]
 
-        self.model_bucket_name = self.config["s3_bucket"]["wafer_model"]
+        self.model_bucket = self.config["s3_bucket"]["wafer_model"]
 
         self.random_state = self.config["base"]["random_state"]
 
@@ -56,12 +56,7 @@ class KMeans_Clustering:
         """
         method_name = self.elbow_plot.__name__
 
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=self.log_file,
-        )
+        self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
             wcss = []
@@ -86,15 +81,14 @@ class KMeans_Clustering:
             plt.savefig(self.elbow_plot_file)
 
             self.log_writer.log(
-                log_file=self.log_file,
-                log_info="Saved elbow_plot fig and local copy is created",
+                self.log_file, "Saved elbow_plot fig and local copy is created",
             )
 
             self.s3.upload_file(
-                from_fname=self.elbow_plot_file,
-                to_fname=self.elbow_plot_file,
-                bucket=self.input_files_bucket,
-                log_file=self.log_file,
+                self.elbow_plot_file,
+                self.elbow_plot_file,
+                self.input_files_bucket,
+                self.log_file,
             )
 
             self.kn = KneeLocator(
@@ -105,25 +99,19 @@ class KMeans_Clustering:
             )
 
             self.log_writer.log(
-                log_file=self.log_file,
-                log_info=f"The optimum number of clusters is {str(self.kn.knee)}.",
+                self.log_file,
+                f"The optimum number of clusters is {str(self.kn.knee)}.",
             )
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.log_file,
+                "exit", self.class_name, method_name, self.log_file
             )
 
             return self.kn.knee
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.log_file,
+                e, self.class_name, method_name, self.log_file
             )
 
     def create_clusters(self, data, number_of_clusters):
@@ -139,12 +127,7 @@ class KMeans_Clustering:
         """
         method_name = self.create_clusters.__name__
 
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=self.log_file,
-        )
+        self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
             self.data = data
@@ -158,32 +141,22 @@ class KMeans_Clustering:
             self.y_kmeans = self.kmeans.fit_predict(data)
 
             self.s3.save_model(
-                model=self.kmeans,
-                model_dir=self.trained_model_dir,
-                model_bucket_name=self.model_bucket_name,
-                log_file=self.log_file,
+                self.kmeans, self.trained_model_dir, self.model_bucket, self.log_file,
             )
 
             self.data["Cluster"] = self.y_kmeans
 
             self.log_writer.log(
-                log_file=self.log_file,
-                log_info=f"Successfully created {str(self.kn.knee)} clusters",
+                self.log_file, f"Successfully created {str(self.kn.knee)} clusters",
             )
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.log_file,
+                "exit", self.class_name, method_name, self.log_file
             )
 
             return self.data, self.kmeans
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.log_file,
+                e, self.class_name, method_name, self.log_file
             )

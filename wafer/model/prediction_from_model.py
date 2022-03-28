@@ -32,9 +32,9 @@ class Prediction:
 
         self.s3 = S3_Operation()
 
-        self.data_getter_pred = Data_Getter_Pred(log_file=self.pred_log)
+        self.data_getter_pred = Data_Getter_Pred(self.pred_log)
 
-        self.preprocessor = Preprocessor(log_file=self.pred_log)
+        self.preprocessor = Preprocessor(self.pred_log)
 
         self.class_name = self.__class__.__name__
 
@@ -51,37 +51,22 @@ class Prediction:
         """
         method_name = self.delete_pred_file.__name__
 
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=log_file,
-        )
+        self.log_writer.start_log("start", self.class_name, method_name, log_file)
 
         try:
             self.s3.load_object(
-                object=self.pred_output_file,
-                bucket=self.input_files_bucket,
-                log_file=log_file,
+                self.pred_output_file, self.input_files_bucket, log_file,
             )
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Found existing Prediction batch file. Deleting it.",
+                log_file, f"Found existing Prediction batch file. Deleting it.",
             )
 
             self.s3.delete_file(
-                fname=self.pred_output_file,
-                bucket=self.input_files_bucket,
-                log_file=log_file,
+                self.pred_output_file, self.input_files_bucket, log_file,
             )
 
-            self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=log_file,
-            )
+            self.log_writer.start_log("exit", self.class_name, method_name, log_file)
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
@@ -89,10 +74,7 @@ class Prediction:
 
             else:
                 self.log_writer.exception_log(
-                    error=e,
-                    class_name=self.class_name,
-                    method_name=method_name,
-                    log_file=log_file,
+                    e, self.class_name, method_name, log_file,
                 )
 
     def find_correct_model_file(self, cluster_number, bucket, log_file):
@@ -107,16 +89,11 @@ class Prediction:
         """
         method_name = self.find_correct_model_file.__name__
 
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=log_file,
-        )
+        self.log_writer.start_log("start", self.class_name, method_name, log_file)
 
         try:
             list_of_files = self.s3.get_files_from_folder(
-                bucket=bucket, folder_name=self.prod_model_dir, log_file=log_file,
+                bucket, self.prod_model_dir, log_file,
             )
 
             for file in list_of_files:
@@ -130,26 +107,16 @@ class Prediction:
             model_name = model_name.split(".")[0]
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Got {model_name} from {self.prod_model_dir} folder in {bucket} bucket",
+                log_file,
+                f"Got {model_name} from {self.prod_model_dir} folder in {bucket} bucket",
             )
 
-            self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=log_file,
-            )
+            self.log_writer.start_log("exit", self.class_name, method_name, log_file)
 
             return model_name
 
         except Exception as e:
-            self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=log_file,
-            )
+            self.log_writer.exception_log(e, self.class_name, method_name, log_file)
 
     def predict_from_model(self):
         """
@@ -162,14 +129,11 @@ class Prediction:
         method_name = self.predict_from_model.__name__
 
         self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=self.pred_log,
+            "start", self.class_name, method_name, self.pred_log,
         )
 
         try:
-            self.s3.delete_pred_file(log_file=self.pred_log)
+            self.s3.delete_pred_file(self.pred_log)
 
             data = self.data_getter_pred.get_data()
 
@@ -193,9 +157,7 @@ class Prediction:
             kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
 
             kmeans_model = self.s3.load_model(
-                bucket=self.model_bucket,
-                model_name=kmeans_model_name,
-                log_file=self.pred_log,
+                self.model_bucket, kmeans_model_name, self.pred_log,
             )
 
             clusters = kmeans_model.predict(data)
@@ -209,16 +171,14 @@ class Prediction:
 
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
-                model_name = self.s3.find_correct_model_file(
-                    cluster_number=i, bucket=self.model_bucket, log_file=self.pred_log,
+                model_name = self.find_correct_model_file(
+                    i, self.model_bucket, self.pred_log
                 )
 
                 prod_model_name = self.prod_model_dir + "/" + model_name
 
                 model = self.s3.load_model(
-                    bucket=self.model_bucket,
-                    model_name=prod_model_name,
-                    log_file=self.pred_log,
+                    self.model_bucket, prod_model_name, self.pred_log,
                 )
 
                 result = list(model.predict(cluster_data))
@@ -228,20 +188,17 @@ class Prediction:
                 result["Predictions"] = result["Predictions"].map({0: "neg", 1: "pos"})
 
                 self.s3.upload_df_as_csv(
-                    data_frame=result,
-                    fname=self.pred_output_file,
-                    bucket=self.input_files_bucket,
-                    dest_file_name=self.pred_output_file,
-                    log_file=self.pred_log,
+                    result,
+                    self.pred_output_file,
+                    self.input_files_bucket,
+                    self.pred_output_file,
+                    self.pred_log,
                 )
 
-            self.log_writer.log(log_file=self.pred_log, log_info="End of prediction")
+            self.log_writer.log(self.pred_log, "End of prediction")
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.pred_log,
+                "exit", self.class_name, method_name, self.pred_log,
             )
 
             return (
@@ -252,8 +209,5 @@ class Prediction:
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.pred_log,
+                e, self.class_name, method_name, self.pred_log,
             )

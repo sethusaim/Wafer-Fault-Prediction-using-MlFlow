@@ -46,7 +46,7 @@ async def trainRouteClient():
     try:
         raw_data_train_bucket_name = config["s3_bucket"]["wafer_raw_data"]
 
-        train_val = Train_Validation(bucket=raw_data_train_bucket_name)
+        train_val = Train_Validation(raw_data_train_bucket_name)
 
         train_val.training_validation()
 

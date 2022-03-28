@@ -58,7 +58,7 @@ model_utils:
   save_format : .sav
 
 model_params:
-  rf_model:
+  RandomForestClassifier:
     n_estimators:
       - 10
       - 50
@@ -79,7 +79,7 @@ model_params:
       - 4
       - 5
 
-  xgb_model:
+  XGBClassifier:
     learning_rate:
       - 0.5
       - 0.1

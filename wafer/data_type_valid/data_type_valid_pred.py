@@ -50,17 +50,12 @@ class DB_Operation_Pred:
         method_name = self.insert_good_data_as_record.__name__
 
         self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=self.pred_db_insert_log,
+            "start", self.class_name, method_name, self.pred_db_insert_log,
         )
 
         try:
             lst = self.s3.read_csv_from_folder(
-                folder_name=self.good_data_pred_dir,
-                bucket=self.pred_data_bucket,
-                log_file=self.pred_db_insert_log,
+                self.good_data_pred_dir, self.pred_data_bucket, self.pred_db_insert_log,
             )
 
             for idx, f in enumerate(lst):
@@ -70,7 +65,7 @@ class DB_Operation_Pred:
 
                 if file.endswith(".csv"):
                     self.mongo.insert_dataframe_as_record(
-                        data_frame=df,
+                        dataframe=df,
                         db_name=good_data_db_name,
                         collection_name=good_data_collection_name,
                         log_file=self.pred_db_insert_log,
@@ -80,23 +75,17 @@ class DB_Operation_Pred:
                     pass
 
                 self.log_writer.log(
-                    log_file=self.pred_db_insert_log,
-                    log_info="Inserted dataframe as collection record in mongodb",
+                    self.pred_db_insert_log,
+                    "Inserted dataframe as collection record in mongodb",
                 )
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.pred_db_insert_log,
+                "exit", self.class_name, method_name, self.pred_db_insert_log,
             )
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.pred_db_insert_log,
+                e, self.class_name, method_name, self.pred_db_insert_log,
             )
 
     def export_collection_to_csv(self, good_data_db_name, good_data_collection_name):
@@ -114,10 +103,7 @@ class DB_Operation_Pred:
         method_name = self.export_collection_to_csv.__name__
 
         self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=self.pred_export_csv_log,
+            "start", self.class_name, method_name, self.pred_export_csv_log,
         )
 
         try:
@@ -128,24 +114,18 @@ class DB_Operation_Pred:
             )
 
             self.s3.upload_df_as_csv(
-                data_frame=df,
-                local_file_name=self.pred_export_csv_file,
-                bucket_file_name=self.pred_export_csv_file,
-                bucket=self.input_files_bucket,
-                log_file=self.input_files_bucket,
+                df,
+                self.pred_export_csv_file,
+                self.pred_export_csv_file,
+                self.input_files_bucket,
+                self.input_files_bucket,
             )
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.pred_export_csv_log,
+                "exit", self.class_name, method_name, self.pred_export_csv_log,
             )
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.pred_export_csv_log,
+                e, self.class_name, method_name, self.pred_export_csv_log,
             )

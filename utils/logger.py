@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 
@@ -20,7 +21,7 @@ class App_Logger:
 
             self.current_time = self.now.strftime("%H:%M:%S")
 
-            log_file_path = "logs" + "/" + log_file
+            log_file_path = os.path.join("logs", log_file)
 
             with open(file=log_file_path, mode="a+") as f:
                 f.write(
@@ -56,7 +57,7 @@ class App_Logger:
 
             log_msg = f"{func()} {method_name} method of class {class_name}"
 
-            self.log(log_file, log_info=log_msg)
+            self.log(log_file, log_msg)
 
         except Exception as e:
             error_msg = f"Exception occured in Class : {self.class_name}, Method : {start_method_name}, Error : {str(e)}"
@@ -75,15 +76,10 @@ class App_Logger:
         Revisions   :   moved setup to cloud
         """
 
-        self.start_log(
-            key="exit",
-            class_name=class_name,
-            method_name=method_name,
-            log_file=log_file,
-        )
+        self.start_log("exit", class_name, method_name, log_file)
 
         exception_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {str(error)}"
 
-        self.log(log_file=log_file, log_info=exception_msg)
+        self.log(log_file, exception_msg)
 
         raise Exception(exception_msg)

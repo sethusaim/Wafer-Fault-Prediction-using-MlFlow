@@ -48,10 +48,7 @@ class Train_Validation:
 
         try:
             self.log_writer.start_log(
-                key="start",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.train_main_log,
+                "start", self.class_name, method_name, self.train_main_log,
             )
 
             (
@@ -72,12 +69,11 @@ class Train_Validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
-                log_file=self.train_main_log,
-                log_info="Raw Data Validation Completed !!",
+                self.train_main_log, "Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
-                log_file=self.train_main_log, log_info="Starting Data Transformation",
+                self.train_main_log, "Starting Data Transformation",
             )
 
             self.data_transform.rename_target_column()
@@ -85,8 +81,7 @@ class Train_Validation:
             self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
-                log_file=self.train_main_log,
-                log_info="Data Transformation completed !!",
+                self.train_main_log, "Data Transformation completed !!",
             )
 
             self.db_operation.insert_good_data_as_record(
@@ -95,8 +90,7 @@ class Train_Validation:
             )
 
             self.log_writer.log(
-                log_file=self.train_main_log,
-                log_info="Data type validation Operation completed !!",
+                self.train_main_log, "Data type validation Operation completed !!",
             )
 
             self.db_operation.export_collection_to_csv(
@@ -105,16 +99,10 @@ class Train_Validation:
             )
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.train_main_log,
+                "exit", self.class_name, method_name, self.train_main_log,
             )
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.train_main_log,
+                e, self.class_name, method_name, self.train_main_log,
             )

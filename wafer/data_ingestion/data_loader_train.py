@@ -39,33 +39,20 @@ class Data_Getter_Train:
         """
         method_name = self.get_data.__name__
 
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            log_file=self.log_file,
-        )
+        self.log_writer.start_log("start", self.class_name, method_name, self.log_file)
 
         try:
             df = self.s3.read_csv(
-                fname=self.train_csv_file,
-                bucket=self.input_files_bucket,
-                log_file=self.log_file,
+                self.train_csv_file, self.input_files_bucket, self.log_file
             )
 
             self.log_writer.start_log(
-                key="exit",
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.log_file,
+                "exit", self.class_name, method_name, self.log_file
             )
 
             return df
 
         except Exception as e:
             self.log_writer.exception_log(
-                error=e,
-                class_name=self.class_name,
-                method_name=method_name,
-                log_file=self.log_file,
+                e, self.class_name, method_name, self.log_file
             )
