@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 
+from utils.main_utils import upload_logs
 from utils.read_params import read_params
 from wafer.model.load_production_model import Load_Prod_Model
 from wafer.model.prediction_from_model import Prediction
@@ -53,6 +54,8 @@ async def trainRouteClient():
         load_prod_model = Load_Prod_Model(num_clusters=num_clusters)
 
         load_prod_model.load_production_model()
+
+        upload_logs("logs", bucket=config["s3_bucket"]["input_files"])
 
     except Exception as e:
         return Response(f"Error Occurred : {e}")
