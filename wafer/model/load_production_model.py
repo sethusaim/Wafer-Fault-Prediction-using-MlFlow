@@ -58,15 +58,11 @@ class Load_Prod_Model:
 
         try:
             self.s3.create_folder(
-                folder_name=self.prod_model_dir,
-                bucket=bucket,
-                log_file=log_file,
+                folder_name=self.prod_model_dir, bucket=bucket, log_file=log_file,
             )
 
             self.s3.create_folder(
-                folder_name=self.stag_model_dir,
-                bucket=bucket,
-                log_file=log_file,
+                folder_name=self.stag_model_dir, bucket=bucket, log_file=log_file,
             )
 
             self.log_writer.start_log(

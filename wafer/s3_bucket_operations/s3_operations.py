@@ -161,17 +161,14 @@ class S3_Operation:
         )
 
         try:
-            f_obj = self.get_file_object(
-                fname=fname, bucket=bucket, log_file=log_file
-            )
+            f_obj = self.get_file_object(fname=fname, bucket=bucket, log_file=log_file)
 
             json_content = self.read_object(object=f_obj, log_file=log_file)
 
             dic = json.loads(json_content)
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Read {fname} from {bucket} bucket",
+                log_file=log_file, log_info=f"Read {fname} from {bucket} bucket",
             )
 
             self.log_writer.start_log(
@@ -363,8 +360,7 @@ class S3_Operation:
             self.s3_resource.Object(bucket, object).load()
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Loaded {object} from {bucket} bucket",
+                log_file=log_file, log_info=f"Loaded {object} from {bucket} bucket",
             )
 
             self.log_writer.start_log(
@@ -423,9 +419,7 @@ class S3_Operation:
                     log_info=f"{folder_name} folder does not exist,creating new one",
                 )
 
-                self.put_object(
-                    object=folder_name, bucket=bucket, log_file=log_file
-                )
+                self.put_object(object=folder_name, bucket=bucket, log_file=log_file)
 
                 self.log_writer.log(
                     log_file=log_file,
@@ -488,9 +482,7 @@ class S3_Operation:
                 log_file=log_file,
             )
 
-    def upload_file(
-        self, from_fname, to_fname, bucket, log_file, remove=True
-    ):
+    def upload_file(self, from_fname, to_fname, bucket, log_file, remove=True):
         """
         Method Name :   upload_file
         Description :   This method uploades a file to s3 bucket with kwargs
@@ -516,9 +508,7 @@ class S3_Operation:
                 log_info=f"Uploading {from_fname} to s3 bucket {bucket}",
             )
 
-            self.s3_resource.meta.client.upload_file(
-                from_fname, bucket, to_fname
-            )
+            self.s3_resource.meta.client.upload_file(from_fname, bucket, to_fname)
 
             self.log_writer.log(
                 log_file=log_file,
@@ -603,9 +593,7 @@ class S3_Operation:
                 log_file=log_file,
             )
 
-    def copy_data(
-        self, from_fname, from_bucket, to_fname, to_bucket, log_file
-    ):
+    def copy_data(self, from_fname, from_bucket, to_fname, to_bucket, log_file):
         """
         Method Name :   copy_data
         Description :   This method copies the data from one bucket to another bucket
@@ -674,8 +662,7 @@ class S3_Operation:
             self.s3_resource.Object(bucket, fname).delete()
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Deleted {fname} from bucket {bucket}",
+                log_file=log_file, log_info=f"Deleted {fname} from bucket {bucket}",
             )
 
             self.log_writer.start_log(
@@ -693,9 +680,7 @@ class S3_Operation:
                 log_file=log_file,
             )
 
-    def move_data(
-        self, from_fname, from_bucket, to_fname, to_bucket, log_file
-    ):
+    def move_data(self, from_fname, from_bucket, to_fname, to_bucket, log_file):
         """
         Method Name :   move_data
         Description :   This method moves the data from one bucket to other bucket
@@ -776,8 +761,7 @@ class S3_Operation:
             list_of_files = [object.key for object in lst]
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Got list of files from bucket {bucket}",
+                log_file=log_file, log_info=f"Got list of files from bucket {bucket}",
             )
 
             self.log_writer.start_log(
@@ -823,8 +807,7 @@ class S3_Operation:
             lst_objs = [object for object in bucket.objects.filter(Prefix=fname)]
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Got {fname} from bucket {bucket}",
+                log_file=log_file, log_info=f"Got {fname} from bucket {bucket}",
             )
 
             func = lambda x: x[0] if len(x) == 1 else x
@@ -890,8 +873,7 @@ class S3_Operation:
             model = pickle.loads(model_obj)
 
             self.log_writer.log(
-                log_file=log_file,
-                log_info=f"Loaded {model_name} from bucket {bucket}",
+                log_file=log_file, log_info=f"Loaded {model_name} from bucket {bucket}",
             )
 
             self.log_writer.start_log(

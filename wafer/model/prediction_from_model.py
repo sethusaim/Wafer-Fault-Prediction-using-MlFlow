@@ -210,9 +210,7 @@ class Prediction:
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
                 model_name = self.s3.find_correct_model_file(
-                    cluster_number=i,
-                    bucket=self.model_bucket,
-                    log_file=self.pred_log,
+                    cluster_number=i, bucket=self.model_bucket, log_file=self.pred_log,
                 )
 
                 prod_model_name = self.prod_model_dir + "/" + model_name
